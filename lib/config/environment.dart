@@ -1,5 +1,5 @@
 class Environment {
-  static const String appwriteEndpoint = 'appwrite-endpoint';
-  static const String appwriteProjectId = 'appwrite-project-id';
-  static const String appwriteProjectName = 'appwrite-project-name';
+  static const String appwriteEndpoint = '[appwriteEndpoint]';
+  static const String appwriteProjectId = '[appwriteProjectId]';
+  static const String appwriteProjectName = '[appwriteProjectName]';
 }

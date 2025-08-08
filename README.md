@@ -27,9 +27,9 @@ Alternatively, open the repository URL in `Android Studio` to clone it directly.
    Open `lib/config/environment.dart` and update the values with your Appwrite project credentials:
    ```dart
    class Environment {
-     static const String appwriteEndpoint = 'appwrite-endpoint';
-     static const String appwriteProjectId = 'your-project-id';
-     static const String appwriteProjectName = 'your-project-name';
+      static const String appwriteEndpoint = '[appwriteEndpoint]';
+      static const String appwriteProjectId = '[appwriteProjectId]';
+      static const String appwriteProjectName = '[appwriteProjectName]';
    }
    ```
 
