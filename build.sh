@@ -20,13 +20,9 @@ done < .env
 
 # Check if device parameter is provided
 if [ -z "$1" ]; then
-  echo "Usage: ./build.sh <device_id_or_name>"
-  echo "Example: ./build.sh chrome"
-  echo "Example: ./build.sh 'iPhone 15'"
-  echo ""
-  echo "Available devices:"
-  flutter devices
-  exit 1
+  echo "No device specified. Building for web..."
+  flutter build web "${ARGS[@]}"
+  exit 0
 fi
 
 DEVICE_NAME="$1"
