@@ -24,7 +24,7 @@ Alternatively, open the repository URL in `Android Studio` to clone it directly.
 ## 🛠️ Development Guide
 
 1. **Configure Appwrite**  
-   Navigate to `lib/data/repository/appwrite_repository.dart` and update the values to match your
+   Copy `.env.example` to `.env` and update the values to match your
    Appwrite project credentials.
 
 2. **Customize as Needed**  
@@ -32,8 +32,7 @@ Alternatively, open the repository URL in `Android Studio` to clone it directly.
    integrations as per your needs.
 
 3. **Run the App**  
-   Select a target device (emulator or a connected physical device) in `Android Studio`, and
-   click **Run** to start the app.
+   Run by executing `./build.sh {device-name}` like `./build.sh chrome` 
 
 ---
 

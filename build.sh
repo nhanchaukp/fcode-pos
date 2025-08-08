@@ -10,20 +10,27 @@ if [ ! -f .env ]; then
 fi
 
 # Read .env file and convert it to --dart-define arguments
-ARGS=""
+ARGS=()
 while IFS='=' read -r key value || [ -n "$key" ]; do
   # Ignore empty lines and comments
   if [[ -n "$key" && ! "$key" =~ ^# ]]; then
-    ARGS+=" --dart-define=${key}=\"${value}\""
+    ARGS+=("--dart-define=${key}=${value}")
   fi
 done < .env
 
-# Build Flutter web
-eval flutter build web "$ARGS"
-
-# If --preview flag is provided, run a local preview server
-if [ "$1" == "--preview" ]; then
-  echo "Starting preview server at http://localhost:3000..."
-  cd build/web || exit 1
-  python3 -m http.server 3000
+# Check if device parameter is provided
+if [ -z "$1" ]; then
+  echo "Usage: ./build.sh <device_id_or_name>"
+  echo "Example: ./build.sh chrome"
+  echo "Example: ./build.sh 'iPhone 15'"
+  echo ""
+  echo "Available devices:"
+  flutter devices
+  exit 1
 fi
+
+DEVICE_NAME="$1"
+
+# Run Flutter app on specified device
+echo "Running Flutter app on device: $DEVICE_NAME"
+flutter run -d "$DEVICE_NAME" "${ARGS[@]}"
