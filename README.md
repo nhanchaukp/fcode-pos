@@ -24,16 +24,39 @@ Alternatively, open the repository URL in `Android Studio` to clone it directly.
 ## 🛠️ Development Guide
 
 1. **Configure Appwrite**  
-   Navigate to `lib/data/repository/appwrite_repository.dart` and update the values to match your
-   Appwrite project credentials.
+   Open `lib/config/environment.dart` and update the values with your Appwrite project credentials:
+   ```dart
+   class Environment {
+      static const String appwriteEndpoint = '[appwriteEndpoint]';
+      static const String appwriteProjectId = '[appwriteProjectId]';
+      static const String appwriteProjectName = '[appwriteProjectName]';
+   }
+   ```
 
 2. **Customize as Needed**  
    Modify the starter kit to suit your app's requirements. Adjust UI, features, or backend
    integrations as per your needs.
 
 3. **Run the App**  
-   Select a target device (emulator or a connected physical device) in `Android Studio`, and
-   click **Run** to start the app.
+   Select a target device and run the app:
+   ```bash
+   # List available devices
+   flutter devices
+   
+   # Run on a specific device (replace 'device-id' with actual device)
+   flutter run -d device-id
+   
+   # Examples:
+   flutter run -d chrome          # Web
+   flutter run -d "iPhone 15"     # iOS Simulator
+   flutter run -d emulator-5554   # Android Emulator
+   flutter run -d macos           # macOS Desktop
+   ```
+
+   **Build for Web:**
+   ```bash
+   flutter build web
+   ```
 
 ---
 
@@ -46,5 +69,5 @@ production : https://docs.flutter.dev/deployment
 
 ## 💡 Additional Notes
 
-- This starter project is designed to streamline your Android development with Appwrite.
+- This starter project is designed to streamline your Flutter development with Appwrite.
 - Refer to the [Appwrite Documentation](https://appwrite.io/docs) for detailed integration guidance.
