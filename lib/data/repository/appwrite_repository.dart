@@ -11,7 +11,7 @@ class AppwriteRepository {
   static const String pingPath = "/ping";
   static const String appwriteProjectId = Environment.appwriteProjectId;
   static const String appwriteProjectName = Environment.appwriteProjectName;
-  static const String appwritePublicEndpoint = Environment.appwriteEndpoint;
+  static const String appwritePublicEndpoint = Environment.appwritePublicEndpoint;
 
   final Client _client = Client()
       .setProject(appwriteProjectId)
