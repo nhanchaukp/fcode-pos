@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:appwrite_flutter_starter_kit/utils/extensions/colors.dart';
+import 'package:fcode_pos/utils/extensions/colors.dart';
 import 'package:flutter/material.dart';
 
 /// Background color for gradients, blur, etc.

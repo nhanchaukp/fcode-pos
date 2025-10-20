@@ -1,29 +1,85 @@
-name: appwrite_flutter_starter_kit
-description: "Appwrite StarterKit in Flutter"
+name: fcode_pos
+description: "FCODE Pos - A starter kit for building Flutter applications with Appwrite backend services."
 publish_to: 'none'
 
 version: 1.0.0
 
 environment:
-  sdk: ^3.5.4
+  sdk: ^3.8.5
 
 dependencies:
   flutter:
     sdk: flutter
 
   intl: ^0.20.2
-  appwrite: ^14.0.0
   url_launcher: ^6.3.1
-  window_manager: ^0.4.3
+  window_manager: ^0.5.1
   cupertino_icons: ^1.0.8
+  device_info_plus: ^12.1.0
+  flutter_launcher_icons: ^0.14.4
+  http: ^1.5.0
+  flutter_web_auth_2: ^4.1.0
+  path_provider: ^2.1.5
+  web: ^1.1.1
+  cookie_jar: ^4.0.8
+  package_info_plus: ^9.0.0
+  dio: ^5.9.0
+  flutter_secure_storage: ^9.2.4
+  shared_preferences: ^2.5.3
+  flutter_riverpod: ^3.0.3
+  passkeys: ^2.8.2
+  google_sign_in: ^7.2.0
+  credential_manager: ^2.0.4
+  json_annotation: ^4.9.0
+  currency_text_input_formatter: ^2.3.0
 
 dependency_overrides:
   flutter_web_auth_2: 4.1.0
 
 dev_dependencies:
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
   flutter_native_splash: ^2.4.4
-  flutter_launcher_icons: ^0.14.3
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/
+  
+  fonts:
+    - family: Aeonik
+      fonts:
+        - asset: assets/fonts/Aeonik-Thin.otf
+          weight: 100
+        - asset: assets/fonts/Aeonik-ThinItalic.otf
+          weight: 100
+          style: italic
+        - asset: assets/fonts/Aeonik-Air.otf
+          weight: 200
+        - asset: assets/fonts/Aeonik-AirItalic.otf
+          weight: 200
+          style: italic
+        - asset: assets/fonts/Aeonik-Light.otf
+          weight: 300
+        - asset: assets/fonts/Aeonik-LightItalic.otf
+          weight: 300
+          style: italic
+        - asset: assets/fonts/Aeonik-Regular.otf
+          weight: 400
+        - asset: assets/fonts/Aeonik-RegularItalic.otf
+          weight: 400
+          style: italic
+        - asset: assets/fonts/Aeonik-Medium.otf
+          weight: 500
+        - asset: assets/fonts/Aeonik-MediumItalic.otf
+          weight: 500
+          style: italic
+        - asset: assets/fonts/Aeonik-Bold.otf
+          weight: 700
+        - asset: assets/fonts/Aeonik-BoldItalic.otf
+          weight: 700
+          style: italic
+        - asset: assets/fonts/Aeonik-Black.otf
+          weight: 900
+        - asset: assets/fonts/Aeonik-BlackItalic.otf
+          weight: 900
+          style: italic

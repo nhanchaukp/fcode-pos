@@ -1,4 +1,4 @@
-import 'package:appwrite_flutter_starter_kit/data/models/status.dart';
+import 'package:fcode_pos/data/models/status.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -12,12 +12,6 @@ class ConnectionStatusView extends StatelessWidget {
     required this.status,
     required this.onButtonClick,
   });
-
-  /// Simulates sending a ping with a loading state.
-  Future<void> _sendPing() async {
-    HapticFeedback.mediumImpact();
-    onButtonClick();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +33,9 @@ class ConnectionStatusView extends StatelessWidget {
             duration: const Duration(milliseconds: 300),
             opacity: status == Status.loading ? 0.0 : 1.0,
             child: ElevatedButton(
-              onPressed: status == Status.loading ? null : _sendPing,
+              onPressed: () =>
+                  Navigator.pushReplacementNamed(context, '/login'),
+              // onPressed: status == Status.loading ? null : _sendPing,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFD366E),
                 disabledBackgroundColor: const Color(0xFFEDEDF0),

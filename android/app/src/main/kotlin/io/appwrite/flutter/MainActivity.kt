@@ -1,4 +1,4 @@
-package io.appwrite.flutter
+package com.nhanchaukp.fcode.pos
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "io.appwrite" "\0"
-            VALUE "FileDescription", "AppwriteStarterKit" "\0"
+            VALUE "FileDescription", "FCODEPos" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "AppwriteStarterKit" "\0"
+            VALUE "InternalName", "FCODEPos" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2025 io.appwrite. All rights reserved." "\0"
-            VALUE "OriginalFilename", "AppwriteStarterKit.exe" "\0"
-            VALUE "ProductName", "AppwriteStarterKit" "\0"
+            VALUE "OriginalFilename", "FCODEPos.exe" "\0"
+            VALUE "ProductName", "FCODEPos" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

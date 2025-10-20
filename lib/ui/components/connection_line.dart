@@ -1,4 +1,4 @@
-import 'package:appwrite_flutter_starter_kit/utils/extensions/build_context.dart';
+import 'package:fcode_pos/utils/extensions/build_context.dart';
 import 'package:flutter/material.dart';
 
 /// A widget that animates a connection line with a checkmark in the middle.
@@ -61,13 +61,13 @@ class AnimatedSideline extends StatelessWidget {
                   gradient: LinearGradient(
                     colors: left
                         ? [
-                      const Color(0x26FE9567),
-                      const Color(0xFFF02E65),
-                    ]
+                            const Color(0x26FE9567),
+                            const Color(0xFFF02E65),
+                          ]
                         : [
-                      const Color(0xFFF02E65),
-                      const Color(0x26FE9567),
-                    ],
+                            const Color(0xFFF02E65),
+                            const Color(0x26FE9567),
+                          ],
                   ),
                 ),
               ),

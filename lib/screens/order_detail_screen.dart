@@ -1,0 +1,1009 @@
+import 'package:fcode_pos/utils/extensions/colors.dart';
+import 'package:fcode_pos/utils/snackbar_helper.dart';
+import 'package:fcode_pos/utils/string_helper.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:fcode_pos/models.dart';
+import 'package:fcode_pos/services/order_service.dart';
+import 'package:fcode_pos/ui/components/order_status_badge.dart';
+import 'package:fcode_pos/ui/components/order_update_bottom_sheet.dart';
+import 'package:fcode_pos/ui/components/order_item_update_bottom_sheet.dart';
+import 'package:fcode_pos/utils/currency_helper.dart';
+import 'package:fcode_pos/utils/date_helper.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+class OrderDetailScreen extends StatefulWidget {
+  final String orderId;
+
+  const OrderDetailScreen({super.key, required this.orderId});
+
+  @override
+  State<OrderDetailScreen> createState() => _OrderDetailScreenState();
+}
+
+class _OrderDetailScreenState extends State<OrderDetailScreen>
+    with SingleTickerProviderStateMixin {
+  late AuthService _orderService;
+  Order? _order;
+  bool _isLoading = false;
+  String? _error;
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _orderService = AuthService();
+    _tabController = TabController(length: 3, vsync: this);
+    _loadOrderDetail();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  // Quick access to theme
+  ColorScheme get colorScheme => Theme.of(context).colorScheme;
+
+  Future<void> _loadOrderDetail() async {
+    if (!mounted) return;
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final order = await _orderService.detail(widget.orderId);
+      if (!mounted) return;
+      setState(() {
+        _order = order;
+        _isLoading = false;
+      });
+    } catch (e, st) {
+      debugPrintStack(
+        stackTrace: st,
+        label: 'Error loading order detail: ${e.toString()}',
+      );
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _showUpdateDialog() async {
+    if (_order == null) return;
+
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) => OrderUpdateBottomSheet(
+        order: _order!,
+        onSuccess: () {
+          // Reload order detail after successful update
+          _loadOrderDetail();
+        },
+      ),
+    );
+
+    // Optional: Show a message or perform additional actions if needed
+    if (result == true && mounted) {
+      // Dialog was closed after successful update
+      debugPrint('Order updated successfully');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: false,
+        title: Text('Chi tiết đơn hàng #${widget.orderId}'),
+        // title: Column(
+        //   crossAxisAlignment:
+        //       CrossAxisAlignment.start, // Align text to the start (left)
+        //   children: <Widget>[
+        //     Text(
+        //       'Chi tiết đơn hàng #${widget.orderId}',
+        //       style: TextStyle(
+        //         fontSize: 20.0,
+        //         fontWeight: FontWeight.bold,
+        //       ),
+        //     ),
+        //     Row(
+        //       children: [
+        //         Icon(Icons.access_time, size: 12, color: colorScheme.onSurface),
+        //         const SizedBox(width: 4),
+        //         Text(
+        //           DateHelper.formatDateTimeShort(_order?.createdAt),
+        //           style: TextStyle(
+        //             fontSize: 11,
+        //             color: colorScheme.onSurface,
+        //           ),
+        //         ),
+        //         const SizedBox(width: 12),
+        //         Icon(Icons.edit_calendar,
+        //             size: 12, color: colorScheme.onSurface),
+        //         const SizedBox(width: 4),
+        //         Text(
+        //           DateHelper.formatDateTimeShort(_order?.updatedAt),
+        //           style: TextStyle(
+        //             fontSize: 11,
+        //             color: colorScheme.onSurface,
+        //           ),
+        //         ),
+        //         const SizedBox(width: 12),
+        //         Icon(Icons.link, size: 12, color: colorScheme.onSurface),
+        //         const SizedBox(width: 4),
+        //         Text(
+        //           _order?.utmSource ?? 'Direct',
+        //           style: TextStyle(
+        //             fontSize: 11,
+        //             color: colorScheme.onSurface,
+        //           ),
+        //         ),
+        //       ],
+        //     ),
+        //   ],
+        // ),
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: _order != null ? () => _showUpdateDialog() : null,
+            tooltip: 'Chỉnh sửa',
+          ),
+        ],
+      ),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 48, color: colorScheme.error),
+            const SizedBox(height: 16),
+            Text(
+              'Lỗi: $_error',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: colorScheme.error),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _loadOrderDetail,
+              child: const Text('Thử lại'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_order == null) {
+      return const Center(child: Text('Không tìm thấy đơn hàng'));
+    }
+
+    final order = _order!;
+
+    return Column(
+      children: [
+        // Card thông tin đơn hàng
+        _buildOrderInfoCard(order),
+
+        // Tab section
+        Container(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          child: TabBar(
+            controller: _tabController,
+            tabs: [
+              Tab(icon: Icon(Icons.shopping_bag), text: 'Sản phẩm'),
+              Tab(icon: Icon(Icons.payment), text: 'Thanh toán'),
+              Tab(icon: Icon(Icons.money_off), text: 'Hoàn tiền'),
+            ],
+          ),
+        ),
+
+        // Tab view
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildProductsTab(order),
+              _buildPaymentHistoryTab(order),
+              _buildRefundHistoryTab(order),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOrderInfoCard(Order order) {
+    final createdAt = order.createdAt;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header: ID, Status, Customer
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.person,
+                          size: 18,
+                          color: colorScheme.secondary,
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            order.user?.name ?? 'N/A',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    // Customer info
+                    _buildCustomerInfo(order.user),
+                  ],
+                ),
+              ),
+              OrderStatusBadge(status: order.status),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          // Financial Summary (compact)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Left side - breakdown
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildCompactAmount(
+                      'Giảm',
+                      -(order.discount!),
+                      color: colorScheme.secondary,
+                    ),
+                    _buildCompactAmount(
+                      'Hoàn',
+                      order.refundAmount!,
+                      color: colorScheme.error,
+                    ),
+                  ],
+                ),
+              ),
+              // Right side - final amount
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    'Thành tiền',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                  Text(
+                    CurrencyHelper.formatCurrency(order.total),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          // Footer: Time & Source (compact)
+          Row(
+            children: [
+              Icon(Icons.access_time, size: 12, color: colorScheme.onSurface),
+              const SizedBox(width: 4),
+              Text(
+                DateHelper.formatDateTimeShort(createdAt),
+                style: TextStyle(fontSize: 11, color: colorScheme.onSurface),
+              ),
+              const SizedBox(width: 12),
+              Icon(Icons.edit_calendar, size: 12, color: colorScheme.onSurface),
+              const SizedBox(width: 4),
+              Text(
+                DateHelper.formatDateTimeShort(order.updatedAt),
+                style: TextStyle(fontSize: 11, color: colorScheme.onSurface),
+              ),
+              const SizedBox(width: 12),
+              Icon(Icons.link, size: 12, color: colorScheme.onSurface),
+              const SizedBox(width: 4),
+              Text(
+                order.utmSource ?? 'Direct',
+                style: TextStyle(fontSize: 11, color: colorScheme.onSurface),
+              ),
+            ],
+          ),
+          if (order.note != null && order.note!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Icon(Icons.note, size: 12, color: colorScheme.onSurfaceVariant),
+                const SizedBox(width: 4),
+                Text(
+                  order.note!,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCustomerInfo(User? user) {
+    if (user == null) {
+      return Text(
+        'N/A',
+        style: TextStyle(fontSize: 12, color: colorScheme.onSurface),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Name
+        if (user.name.isNotEmpty)
+          if (user.email.isNotEmpty) ...[
+            if (user.name.isNotEmpty) const SizedBox(height: 2),
+            Row(
+              children: [
+                Icon(Icons.email, size: 12, color: colorScheme.secondary),
+                SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    user.email,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: colorScheme.secondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        // Phone (clickable)
+        if (user.phone != null && user.phone!.isNotEmpty) ...[
+          const SizedBox(height: 2),
+          InkWell(
+            onTap: () => _makePhoneCall(user.phone!),
+            child: Row(
+              children: [
+                Icon(Icons.phone, size: 12, color: colorScheme.secondary),
+                SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    user.phone!,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: colorScheme.secondary,
+                      decoration: TextDecoration.underline,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    final uri = Uri(scheme: 'tel', path: phoneNumber);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      if (mounted) {
+        SnackBarHelper.error('Không thể gọi số $phoneNumber');
+      }
+    }
+  }
+
+  Widget _buildCompactAmount(String label, int amount, {Color? color}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: TextStyle(fontSize: 11, color: colorScheme.onSurface),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            CurrencyHelper.formatCurrency(amount.abs()),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProductsTab(Order order) {
+    if (order.items.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: _loadOrderDetail,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Container(
+            height: MediaQuery.of(context).size.height * 0.5,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Không có sản phẩm nào'),
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed: () =>
+                        _showAddProductBottomSheet(order.id.toString()),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Thêm sản phẩm'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadOrderDetail,
+      child: Column(
+        children: [
+          // Add product button at the top
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: () => _showAddProductBottomSheet(order.id.toString()),
+              icon: const Icon(Icons.add),
+              label: const Text('Thêm sản phẩm'),
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+          // Products list
+          Expanded(
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+              itemCount: order.items.length,
+              separatorBuilder: (context, index) => const Divider(height: 1),
+              itemBuilder: (context, index) {
+                final item = order.items[index];
+                return _buildProductItem(item);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProductItem(OrderItem item) {
+    final accountSlot = item.accountSlot;
+    final hasSlot = accountSlot != null;
+
+    return InkWell(
+      onTap: () => _showItemUpdateBottomSheet(item),
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Product name & price
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              '${item.product?.name} (x${item.quantity})',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Text(
+                            item.supply?.name ?? 'N/A',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            CurrencyHelper.formatCurrency(item.priceSupply),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        CurrencyHelper.formatCurrency(item.price),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.green,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            // Account slot information (compact)
+            if (hasSlot) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          accountSlot.accountMaster?.username ?? 'N/A',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: colorScheme.onSurface.applyOpacity(0.7),
+                          ),
+                        ),
+                        const Spacer(),
+                        // Copy button for Netflix
+                        if (accountSlot.accountMaster?.serviceType
+                                .toLowerCase() ==
+                            'netflix')
+                          InkWell(
+                            onTap: () => _copyAccountInfo(accountSlot),
+                            borderRadius: BorderRadius.circular(4),
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              child: Icon(
+                                Icons.copy,
+                                size: 16,
+                                color: colorScheme.onSurface.applyOpacity(0.7),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildCompactSlotInfo(
+                            const Icon(Icons.account_circle),
+                            accountSlot.name,
+                          ),
+                        ),
+                        Expanded(
+                          child: _buildCompactSlotInfo(
+                            const Icon(Icons.lock),
+                            accountSlot.pin,
+                          ),
+                        ),
+                        if (accountSlot.expiryDate != null)
+                          _buildCompactSlotInfo(
+                            const Icon(Icons.calendar_today),
+                            DateHelper.formatDate(accountSlot.expiryDate),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            // Account display if exist, display key|value format
+            if (item.account != null && item.account!.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          StringHelper.formatAccountString(item.account![0]),
+                          style: TextStyle(fontSize: 11),
+                        ),
+                        InkWell(
+                          onTap: () => _copyRawAccountInfo(item.account![0]),
+                          borderRadius: BorderRadius.circular(4),
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.copy,
+                                  size: 14,
+                                  color: colorScheme.primary,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showItemUpdateBottomSheet(OrderItem item) async {
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) => OrderItemUpdateBottomSheet(
+        item: item,
+        onSuccess: () {
+          // Reload order detail after successful update
+          _loadOrderDetail();
+        },
+      ),
+    );
+
+    if (result == true && mounted) {
+      debugPrint('Order item updated successfully');
+    }
+  }
+
+  Future<void> _showAddProductBottomSheet(String orderId) async {
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) => OrderItemUpdateBottomSheet(
+        orderId: orderId,
+        onSuccess: () {
+          // Reload order detail after successful addition
+          _loadOrderDetail();
+        },
+      ),
+    );
+
+    if (result == true && mounted) {
+      debugPrint('Product added successfully');
+    }
+  }
+
+  Widget _buildCompactSlotInfo(Icon icon, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Row(
+        children: [
+          Icon(
+            icon.icon,
+            size: 12,
+            color: colorScheme.onSurface.applyOpacity(0.7),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 11,
+              color: colorScheme.onSurface.applyOpacity(0.7),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentHistoryTab(Order order) {
+    if (order.paymentHistories.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: _loadOrderDetail,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Container(
+            height: MediaQuery.of(context).size.height * 0.5,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.payment, size: 64, color: colorScheme.onSurface),
+                  SizedBox(height: 16),
+                  Text(
+                    'Chưa có lịch sử thanh toán',
+                    style: TextStyle(color: colorScheme.onSurface),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadOrderDetail,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        itemCount: order.paymentHistories.length,
+        separatorBuilder: (context, index) => const Divider(height: 1),
+        itemBuilder: (context, index) {
+          final payment = order.paymentHistories[index];
+          return _buildPaymentHistoryItem(payment);
+        },
+      ),
+    );
+  }
+
+  Widget _buildPaymentHistoryItem(PaymentHistory payment) {
+    final statusColor = _getPaymentStatusColor(payment.status);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                CurrencyHelper.formatCurrency(payment.amount),
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: statusColor.applyOpacity(0.1),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: statusColor),
+                ),
+                child: Text(
+                  payment.status.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: statusColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          if (payment.paymentMethod != null)
+            _buildPaymentInfo('Phương thức', payment.paymentMethod!),
+          if (payment.transactionReference != null)
+            _buildPaymentInfo('Mã GD', payment.transactionReference!),
+          if (payment.createdAt != null)
+            _buildPaymentInfo(
+              'Thời gian',
+              DateHelper.formatDateTime(payment.createdAt),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentInfo(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Row(
+        children: [
+          Text(
+            '$label: ',
+            style: TextStyle(fontSize: 11, color: colorScheme.onSurface),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRefundHistoryTab(Order order) {
+    if (order.refunds.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: _loadOrderDetail,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Container(
+            height: MediaQuery.of(context).size.height * 0.5,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.money_off, size: 64, color: colorScheme.onSurface),
+                  SizedBox(height: 16),
+                  Text(
+                    'Chưa có lịch sử hoàn tiền',
+                    style: TextStyle(color: colorScheme.onSurface),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadOrderDetail,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        itemCount: order.refunds.length,
+        separatorBuilder: (context, index) => const Divider(height: 1),
+        itemBuilder: (context, index) {
+          final refund = order.refunds[index];
+          return _buildRefundItem(refund);
+        },
+      ),
+    );
+  }
+
+  Widget _buildRefundItem(dynamic refund) {
+    // Parse refund data based on its structure
+    final amount = int.tryParse(refund['amount']?.toString() ?? '0') ?? 0;
+    final reason = refund['reason']?.toString() ?? 'N/A';
+    final createdAt = refund['created_at'] != null
+        ? DateTime.parse(refund['created_at'].toString())
+        : null;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                CurrencyHelper.formatCurrency(amount),
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.orange,
+                ),
+              ),
+              const Icon(Icons.money_off, color: Colors.orange, size: 20),
+            ],
+          ),
+          const SizedBox(height: 6),
+          _buildPaymentInfo('Lý do', reason),
+          if (createdAt != null)
+            _buildPaymentInfo(
+              'Thời gian',
+              DateHelper.formatDateTime(createdAt),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Color _getPaymentStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'completed':
+      case 'success':
+      case 'paid':
+        return Colors.green;
+      case 'pending':
+        return Colors.orange;
+      case 'failed':
+      case 'cancelled':
+        return Colors.red;
+      default:
+        return colorScheme.onSurface;
+    }
+  }
+
+  Future<void> _copyRawAccountInfo(Map<String, dynamic> account) async {
+    final copyText = StringHelper.formatAccountString(account);
+
+    await Clipboard.setData(ClipboardData(text: copyText));
+
+    if (mounted) {
+      SnackBarHelper.success('Đã copy thông tin tài khoản');
+    }
+  }
+
+  Future<void> _copyAccountInfo(AccountSlot accountSlot) async {
+    final username = accountSlot.accountMaster?.username ?? 'N/A';
+    final slot = accountSlot.name;
+    final pin = accountSlot.pin;
+    final password = accountSlot.accountMaster?.password ?? 'N/A';
+
+    final copyText =
+        '''- Tài khoản: $username
+- Mật khẩu: $password
+- Slot: $slot
+- Pin: $pin''';
+
+    await Clipboard.setData(ClipboardData(text: copyText));
+
+    if (mounted) {
+      SnackBarHelper.success('Đã copy thông tin tài khoản');
+    }
+  }
+}

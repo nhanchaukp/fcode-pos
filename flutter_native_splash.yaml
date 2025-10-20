@@ -1,3 +1,4 @@
+# dart run flutter_native_splash:create
 flutter_native_splash:
   color: "#EDEDF0"
   color_dark: "#19191D"

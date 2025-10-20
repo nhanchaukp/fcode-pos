@@ -19,6 +19,3 @@ extension MediaQueryExtensions on BuildContext {
         (isMobile ? mobileFactor : largeScreenFactor);
   }
 }
-
-
-

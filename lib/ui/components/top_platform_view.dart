@@ -1,6 +1,6 @@
-import 'package:appwrite_flutter_starter_kit/data/models/status.dart';
-import 'package:appwrite_flutter_starter_kit/ui/icons/appwrite.dart';
-import 'package:appwrite_flutter_starter_kit/utils/extensions/build_context.dart';
+import 'package:fcode_pos/data/models/status.dart';
+import 'package:fcode_pos/ui/icons/appwrite.dart';
+import 'package:fcode_pos/utils/extensions/build_context.dart';
 import 'package:flutter/material.dart';
 
 import 'connection_line.dart';
@@ -58,7 +58,8 @@ class PlatformIcon extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         color: const Color(0xFFFAFAFD),
-        borderRadius: BorderRadius.circular(context.isExtraWideScreen ? size * 0.2 : 24),
+        borderRadius:
+            BorderRadius.circular(context.isExtraWideScreen ? size * 0.2 : 24),
         border: Border.all(color: const Color(0x0A19191C), width: 1),
         boxShadow: [
           BoxShadow(
@@ -75,7 +76,8 @@ class PlatformIcon extends StatelessWidget {
           margin: context.isExtraWideScreen ? EdgeInsets.all(8) : null,
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(context.isExtraWideScreen ? size * 0.2: 16),
+            borderRadius: BorderRadius.circular(
+                context.isExtraWideScreen ? size * 0.2 : 16),
             border: Border.all(color: const Color(0xFFFAFAFB), width: 1),
             boxShadow: [
               BoxShadow(
