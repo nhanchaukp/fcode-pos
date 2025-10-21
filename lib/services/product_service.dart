@@ -1,24 +1,41 @@
+import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/api_service.dart';
 
 class ProductService {
-  final _api = ApiService().dio;
+  ProductService() : _api = ApiService();
 
-  Future<ProductPageable> list({
+  final ApiService _api;
+
+  Future<ApiResponse<PaginatedData<Product>>> list({
     String search = '',
     int page = 1,
     int perPage = 20,
-  }) async {
-    final res = await _api.get(
+  }) {
+    return _api.get<PaginatedData<Product>>(
       '/product',
-      queryParameters: {'search': search, 'page': page, 'per_page': perPage},
+      queryParameters: {
+        'search': search,
+        'page': page,
+        'per_page': perPage,
+      },
+      parser: (json) => PaginatedData<Product>.fromJson(
+        _ensureMap(json),
+        (item) => Product.fromJson(_ensureMap(item)),
+      ),
     );
-
-    return ProductPageable.fromJson(res.data);
   }
 
-  Future<Product> detail(String id) async {
-    final res = await _api.get('/product/$id');
-    return Product.fromJson(res.data);
+  Future<ApiResponse<Product>> detail(String id) {
+    return _api.get<Product>(
+      '/product/$id',
+      parser: (json) => Product.fromJson(_ensureMap(json)),
+    );
   }
+}
+
+Map<String, dynamic> _ensureMap(dynamic data) {
+  if (data is Map<String, dynamic>) return data;
+  if (data is Map) return Map<String, dynamic>.from(data);
+  return <String, dynamic>{};
 }

@@ -1,34 +1,45 @@
+import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/api_service.dart';
 import 'package:fcode_pos/storage/secure_storage.dart';
 import 'package:fcode_pos/storage/user_prefs.dart';
 
 class AuthService {
-  final _api = ApiService().dio;
+  AuthService() : _api = ApiService();
 
-  Future<User> login(String email, String password) async {
-    final res = await _api.post(
+  final ApiService _api;
+
+  Future<ApiResponse<User>> login(String email, String password) async {
+    final response = await _api.post<_LoginPayload>(
       '/auth/login',
       data: {'email': email, 'password': password},
+      parser: (json) => _LoginPayload.fromJson(_ensureMap(json)),
     );
 
-    final data = res.data;
-    final access = data['access_token'];
-    final refresh = data['refresh_token'];
-    final user = User.fromJson(data['user']);
+    final payload = response.data;
+    if (payload != null) {
+      await SecureStorage.saveTokens(
+        payload.accessToken,
+        payload.refreshToken,
+      );
+      await UserPrefs.saveUser(payload.user);
+    }
 
-    // Lưu token và user
-    await SecureStorage.saveTokens(access, refresh);
-    await UserPrefs.saveUser(user);
-
-    return user;
+    return response.map((payload) => payload?.user);
   }
 
-  Future<User> getUserInfo() async {
-    final res = await _api.get('/user/me');
-    final user = User.fromJson(res.data);
-    await UserPrefs.saveUser(user);
-    return user;
+  Future<ApiResponse<User>> getUserInfo() async {
+    final response = await _api.get<User>(
+      '/user/me',
+      parser: (json) => User.fromJson(_ensureMap(json)),
+    );
+
+    final user = response.data;
+    if (user != null) {
+      await UserPrefs.saveUser(user);
+    }
+
+    return response;
   }
 
   Future<void> logout() async {
@@ -36,26 +47,57 @@ class AuthService {
     await UserPrefs.clear();
   }
 
-  Future<PasskeyOptions> getPasskeyOptions() async {
-    final res = await _api.get('/auth/passkeys/options');
-    return PasskeyOptions.fromJson(res.data);
+  Future<ApiResponse<PasskeyOptions>> getPasskeyOptions() {
+    return _api.get<PasskeyOptions>(
+      '/auth/passkeys/options',
+      parser: (json) => PasskeyOptions.fromJson(_ensureMap(json)),
+    );
   }
 
-  Future<User> loginWithPasskey(Map<String, dynamic> passkeyResponse) async {
-    final res = await _api.post(
+  Future<ApiResponse<User>> loginWithPasskey(
+    Map<String, dynamic> passkeyResponse,
+  ) async {
+    final response = await _api.post<_LoginPayload>(
       '/auth/passkeys/authenticate',
       data: {'start_authentication_response': passkeyResponse},
+      parser: (json) => _LoginPayload.fromJson(_ensureMap(json)),
     );
 
-    final data = res.data;
-    final access = data['access_token'];
-    final refresh = data['refresh_token'];
-    final user = User.fromJson(data['user']);
+    final payload = response.data;
+    if (payload != null) {
+      await SecureStorage.saveTokens(
+        payload.accessToken,
+        payload.refreshToken,
+      );
+      await UserPrefs.saveUser(payload.user);
+    }
 
-    // Lưu token và user
-    await SecureStorage.saveTokens(access, refresh);
-    await UserPrefs.saveUser(user);
+    return response.map((payload) => payload?.user);
+  }
+}
 
-    return user;
+Map<String, dynamic> _ensureMap(dynamic data) {
+  if (data is Map<String, dynamic>) return data;
+  if (data is Map) return Map<String, dynamic>.from(data);
+  return <String, dynamic>{};
+}
+
+class _LoginPayload {
+  _LoginPayload({
+    required this.accessToken,
+    required this.refreshToken,
+    required this.user,
+  });
+
+  final String accessToken;
+  final String refreshToken;
+  final User user;
+
+  factory _LoginPayload.fromJson(Map<String, dynamic> json) {
+    return _LoginPayload(
+      accessToken: json['access_token'] as String? ?? '',
+      refreshToken: json['refresh_token'] as String? ?? '',
+      user: User.fromJson(_ensureMap(json['user'])),
+    );
   }
 }

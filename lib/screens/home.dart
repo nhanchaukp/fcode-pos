@@ -5,6 +5,7 @@ import 'package:fcode_pos/ui/components/customer_search_dropdown.dart';
 import 'package:fcode_pos/ui/components/global_order_search.dart';
 import 'package:fcode_pos/ui/components/order_list_component.dart';
 import 'package:fcode_pos/ui/components/order_status_dropdown.dart';
+import 'package:fcode_pos/utils/extensions/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -79,7 +80,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             tooltip: 'Tìm kiếm',
           ),
           IconButton(
-            icon: const Icon(Icons.filter_list_alt),
+            icon: const Icon(Icons.filter_list),
             onPressed: () => _showFilterBottomSheet(context),
             tooltip: 'Bộ lọc',
           ),
@@ -94,7 +95,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             // Stats summary
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: Theme.of(context).colorScheme.surfaceVariant,
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurfaceVariant.applyOpacity(0.2),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -191,7 +194,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final result = await Navigator.push(
+          final result = await Navigator.push<bool>(
             context,
             MaterialPageRoute(builder: (context) => const OrderCreateScreen()),
           );
@@ -205,10 +208,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             });
           }
         },
-        tooltip: 'Tạo đơn hàng mới',
         child: const Icon(Icons.add),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 

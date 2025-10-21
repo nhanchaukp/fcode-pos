@@ -32,6 +32,9 @@ class ProductSupply {
   /// Supply information.
   final Supply? supply;
 
+  /// Product information.
+  final Product? product;
+
   ProductSupply({
     required this.id,
     required this.productId,
@@ -43,6 +46,7 @@ class ProductSupply {
     this.createdAt,
     this.updatedAt,
     this.supply,
+    this.product,
   });
 
   factory ProductSupply.fromJson(Map<String, dynamic> map) {
@@ -63,6 +67,9 @@ class ProductSupply {
       supply: map['supply'] != null
           ? Supply.fromJson(map['supply'] as Map<String, dynamic>)
           : null,
+      product: map['product'] != null
+          ? Product.fromJson(map['product'] as Map<String, dynamic>)
+          : null,
     );
   }
 
@@ -78,6 +85,7 @@ class ProductSupply {
       'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
       if (supply != null) 'supply': supply!.toMap(),
+      if (product != null) 'product': product!.toMap(),
     };
   }
 }

@@ -1,51 +1,55 @@
+import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/api_service.dart';
 
 class AccountSlotService {
-  final _api = ApiService().dio;
+  AccountSlotService() : _api = ApiService();
 
-  Future<List<AccountSlot>> list() async {
-    final res = await _api.get('/account-slots');
+  final ApiService _api;
 
-    // API trả về format: { "data": [...] }
-    if (res.data is Map && res.data['data'] is List) {
-      return (res.data['data'] as List)
-          .map((item) => AccountSlot.fromJson(item as Map<String, dynamic>))
-          .toList();
-    }
-
-    // Fallback: nếu API trả về trực tiếp là List
-    if (res.data is List) {
-      return (res.data as List)
-          .map((item) => AccountSlot.fromJson(item as Map<String, dynamic>))
-          .toList();
-    }
-
-    return [];
+  Future<ApiResponse<List<AccountSlot>>> list() {
+    return _api.get<List<AccountSlot>>(
+      '/account-slots',
+      parser: (json) => _parseAccountSlotList(json),
+    );
   }
 
-  Future<List<AccountSlot>> available() async {
-    final res = await _api.get('/account-slots/available');
-
-    // API trả về format: { "data": [...] }
-    if (res.data is Map && res.data['data'] is List) {
-      return (res.data['data'] as List)
-          .map((item) => AccountSlot.fromJson(item as Map<String, dynamic>))
-          .toList();
-    }
-
-    // Fallback: nếu API trả về trực tiếp là List
-    if (res.data is List) {
-      return (res.data as List)
-          .map((item) => AccountSlot.fromJson(item as Map<String, dynamic>))
-          .toList();
-    }
-
-    return [];
+  Future<ApiResponse<List<AccountSlot>>> available() {
+    return _api.get<List<AccountSlot>>(
+      '/account-slots/available',
+      parser: (json) => _parseAccountSlotList(json),
+    );
   }
 
-  Future<AccountSlot> detail(String id) async {
-    final res = await _api.get('/account-slots/$id');
-    return AccountSlot.fromJson(res.data);
+  Future<ApiResponse<AccountSlot>> detail(String id) {
+    return _api.get<AccountSlot>(
+      '/account-slots/$id',
+      parser: (json) => AccountSlot.fromJson(_ensureMap(json)),
+    );
   }
+}
+
+List<AccountSlot> _parseAccountSlotList(dynamic data) {
+  if (data is List) {
+    return data
+        .map((item) => AccountSlot.fromJson(_ensureMap(item)))
+        .toList(growable: false);
+  }
+
+  if (data is Map) {
+    final items = data['items'] ?? data['data'];
+    if (items is List) {
+      return items
+          .map((item) => AccountSlot.fromJson(_ensureMap(item)))
+          .toList(growable: false);
+    }
+  }
+
+  return <AccountSlot>[];
+}
+
+Map<String, dynamic> _ensureMap(dynamic data) {
+  if (data is Map<String, dynamic>) return data;
+  if (data is Map) return Map<String, dynamic>.from(data);
+  return <String, dynamic>{};
 }

@@ -15,7 +15,7 @@ class GlobalOrderSearch extends StatefulWidget {
 
 class _GlobalOrderSearchState extends State<GlobalOrderSearch> {
   final TextEditingController _searchController = TextEditingController();
-  final AuthService _orderService = AuthService();
+  final OrderService _orderService = OrderService();
 
   List<Order> _searchResults = [];
   bool _isSearching = false;
@@ -45,8 +45,11 @@ class _GlobalOrderSearchState extends State<GlobalOrderSearch> {
       // Gọi API với tham số search
       final result = await _orderService.globalSearch(query);
 
+      if (!mounted) return;
+
       setState(() {
-        _searchResults = result;
+        _searchResults = result.data ?? [];
+        _error = null;
         _isSearching = false;
       });
     } catch (e, st) {

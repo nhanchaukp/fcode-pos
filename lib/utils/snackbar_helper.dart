@@ -2,7 +2,7 @@ import 'package:fcode_pos/appwrite.dart';
 import 'package:flutter/material.dart';
 
 /// Helper class để hiển thị SnackBar ở bất kỳ đâu trong app
-class SnackBarHelper {
+class Toastr {
   /// Hiển thị SnackBar thành công (màu xanh lá)
   static void success(
     String message, {
@@ -60,11 +60,7 @@ class SnackBarHelper {
     final snackBar = SnackBar(
       content: Row(
         children: [
-          Icon(
-            icon,
-            color: Colors.white,
-            size: 24,
-          ),
+          Icon(icon, color: Colors.white, size: 24),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -82,9 +78,7 @@ class SnackBarHelper {
       duration: duration,
       action: action,
       behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       margin: const EdgeInsets.all(16),
     );
 

@@ -23,7 +23,7 @@ class OrderCreateScreen extends StatefulWidget {
 
 class _OrderCreateScreenState extends State<OrderCreateScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _orderService = AuthService();
+  final _orderService = OrderService();
   final _noteController = TextEditingController();
 
   // Order info
@@ -73,7 +73,7 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
 
     // Validate order items
     if (_orderItems.isEmpty) {
-      SnackBarHelper.error('Vui lòng thêm ít nhất một sản phẩm');
+      Toastr.error('Vui lòng thêm ít nhất một sản phẩm');
       return;
     }
 
@@ -81,11 +81,11 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
     for (int i = 0; i < _orderItems.length; i++) {
       final item = _orderItems[i];
       if (item.product == null) {
-        SnackBarHelper.error('Vui lòng chọn sản phẩm cho item ${i + 1}');
+        Toastr.error('Vui lòng chọn sản phẩm cho item ${i + 1}');
         return;
       }
       if (item.supply == null) {
-        SnackBarHelper.error('Vui lòng chọn nhà cung cấp cho item ${i + 1}');
+        Toastr.error('Vui lòng chọn nhà cung cấp cho item ${i + 1}');
         return;
       }
     }
@@ -119,14 +119,14 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
 
       if (!mounted) return;
 
-      SnackBarHelper.success('Tạo đơn hàng thành công');
+      Toastr.success('Tạo đơn hàng thành công');
 
       Navigator.of(context).pop(true);
     } catch (e, st) {
       debugPrintStack(stackTrace: st);
       if (!mounted) return;
 
-      SnackBarHelper.error('Lỗi: ${e.toString()}');
+      Toastr.error('Lỗi: ${e.toString()}');
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -645,16 +645,15 @@ class OrderItemForm {
     onStateChanged?.call();
 
     try {
-      final bestPrice = await _productSupplyService.bestPrice(
+      final bestPriceResult = await _productSupplyService.bestPrice(
         product!.id,
         supplyId: supplyId,
       );
 
-      if (bestPrice != null) {
+      if (bestPriceResult.data != null) {
+        final bestPrice = bestPriceResult.data!;
         // Auto-select supply if not specified
-        if (supply == null && bestPrice.supply != null) {
-          supply = bestPrice.supply;
-        }
+        supply ??= bestPrice.supply;
         // Auto-fill supply price
         priceSupply = bestPrice.price;
         priceSupplyController.text = bestPrice.price.toString();
@@ -667,7 +666,7 @@ class OrderItemForm {
               ? 'Đã tự động điền giá nhập: ${bestPrice.price}'
               : 'Đã tự động chọn nhà cung cấp: ${bestPrice.supply?.name ?? "N/A"} - Giá: ${bestPrice.price}';
 
-          SnackBarHelper.success(message, duration: const Duration(seconds: 2));
+          Toastr.success(message, duration: const Duration(seconds: 2));
         }
       } else {
         isLoadingBestPrice = false;
@@ -679,7 +678,7 @@ class OrderItemForm {
       onStateChanged?.call();
 
       if (context.mounted) {
-        SnackBarHelper.error('Không thể tải giá tốt nhất');
+        Toastr.error('Không thể tải giá tốt nhất');
       }
     }
   }

@@ -34,8 +34,9 @@ class _ProductSearchDropdownState extends State<ProductSearchDropdown> {
   void initState() {
     super.initState();
     _currentSelectedProduct = widget.selectedProduct;
-    _searchController =
-        TextEditingController(text: widget.selectedProduct?.name ?? '');
+    _searchController = TextEditingController(
+      text: widget.selectedProduct?.name ?? '',
+    );
     _searchController.addListener(_onSearchChanged);
     _loadAllProducts(); // Load tất cả sản phẩm khi khởi tạo
   }
@@ -57,10 +58,11 @@ class _ProductSearchDropdownState extends State<ProductSearchDropdown> {
         page: 1,
         perPage: 200, // Load nhiều sản phẩm
       );
+      final products = result.data?.items ?? [];
       if (!mounted) return;
       setState(() {
-        _allProducts = result.data;
-        _searchResults = result.data; // Hiển thị tất cả ban đầu
+        _allProducts = products;
+        _searchResults = products; // Hiển thị tất cả ban đầu
       });
     } catch (e) {
       debugPrint('Error loading products: $e');
@@ -151,7 +153,7 @@ class _ProductSearchDropdownState extends State<ProductSearchDropdown> {
           ),
           label: 'Đang tải...',
           enabled: false,
-        )
+        ),
       ];
     }
 
@@ -160,12 +162,14 @@ class _ProductSearchDropdownState extends State<ProductSearchDropdown> {
     }
 
     return _searchResults
-        .map((product) => DropdownMenuEntry<Product>(
-              value: product,
-              label: product.name,
-              leadingIcon: const Icon(Icons.inventory_2),
-              labelWidget: _buildProductLabel(product),
-            ))
+        .map(
+          (product) => DropdownMenuEntry<Product>(
+            value: product,
+            label: product.name,
+            leadingIcon: const Icon(Icons.inventory_2),
+            labelWidget: _buildProductLabel(product),
+          ),
+        )
         .toList();
   }
 
@@ -176,10 +180,7 @@ class _ProductSearchDropdownState extends State<ProductSearchDropdown> {
       children: [
         Text(
           product.name,
-          style: const TextStyle(
-            fontWeight: FontWeight.w500,
-            fontSize: 14,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
         ),
         Row(
           children: [

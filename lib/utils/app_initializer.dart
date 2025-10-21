@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:credential_manager/credential_manager.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -12,9 +11,6 @@ import 'package:window_manager/window_manager.dart';
 /// window dimensions for desktop applications, and sets the device
 /// orientation for mobile platforms.
 class AppInitializer {
-  // Instance of CredentialManager
-  static final CredentialManager credentialManager = CredentialManager();
-
   /// Initializes the application setup.
   ///
   /// Ensures Flutter bindings are initialized, sets up window dimensions,
@@ -23,17 +19,6 @@ class AppInitializer {
     _ensureInitialized();
     await _setupWindowDimensions();
     await _setupDeviceOrientation();
-    await initializeCredentialManager();
-  }
-
-  static Future<void> initializeCredentialManager() async {
-    // You can add any necessary initialization code for CredentialManager here.
-    // For example, checking platform support or setting up configurations.
-    if (credentialManager.isSupportedPlatform) {
-      credentialManager.init(
-        preferImmediatelyAvailableCredentials: true,
-      );
-    }
   }
 
   /// Ensures that Flutter bindings are initialized.
@@ -57,9 +42,7 @@ class AppInitializer {
   /// Locks the device orientation to portrait mode and ensures system
   /// UI overlays are manually configured.
   static Future<void> _setupDeviceOrientation() async {
-    await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-    ]);
+    await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
     await SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.manual,

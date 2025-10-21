@@ -1,6 +1,6 @@
+import 'package:fcode_pos/api/api_exception.dart';
 import 'package:fcode_pos/data/models/status.dart';
-import 'package:fcode_pos/exceptions/api_exception.dart';
-import 'package:fcode_pos/screens/home.dart';
+import 'package:fcode_pos/ui/components/loading_icon.dart';
 import 'package:fcode_pos/utils/safe_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fcode_pos/providers/auth_provider.dart';
@@ -16,8 +16,9 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _emailController =
-      TextEditingController(text: "nhanchauthai@gmail.com");
+  final _emailController = TextEditingController(
+    text: "nhanchauthai@gmail.com",
+  );
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   Status _status = Status.idle;
@@ -45,20 +46,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         );
 
         if (user != null && mounted) {
-          Navigator.pushReplacement(
+          Navigator.pushNamedAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (_) => const HomeScreen()),
+            '/home',
+            (route) => false,
           );
         }
       } on ApiException catch (e) {
         safeSetState(() => _status = Status.error);
-        SnackBarHelper.error(e.message);
+        Toastr.error(e.message);
       } catch (e, stack) {
         debugPrintStack(stackTrace: stack);
         safeSetState(() => _status = Status.error);
-        SnackBarHelper.error(
-          'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.',
-        );
+        Toastr.error('Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
       } finally {
         safeSetState(() => _status = Status.idle);
       }
@@ -75,21 +75,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final user = await auth.loginWithPasskey();
 
       if (user != null && mounted) {
-        Navigator.pushReplacement(
+        Navigator.pushNamedAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
+          '/home',
+          (route) => false,
         );
       }
     } on ApiException catch (e) {
       safeSetState(() => _passkeyLoading = Status.error);
-      SnackBarHelper.error(e.message);
+      Toastr.error(e.message);
     } catch (e, stack) {
       debugPrintStack(
-          stackTrace: stack, label: "Error during Passkey login: $e");
-      safeSetState(() => _passkeyLoading = Status.error);
-      SnackBarHelper.error(
-        'Đăng nhập bằng Passkey thất bại. Vui lòng thử lại.',
+        stackTrace: stack,
+        label: "Error during Passkey login: $e",
       );
+      safeSetState(() => _passkeyLoading = Status.error);
+      Toastr.error('Đăng nhập bằng Passkey thất bại. Vui lòng thử lại.');
     } finally {
       safeSetState(() => _passkeyLoading = Status.idle);
     }
@@ -101,8 +102,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 32.0,
+            ),
             child: Form(
               key: _formKey,
               child: Column(
@@ -126,9 +129,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const SizedBox(height: 16),
                   Text(
                     'Đăng nhập',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Colors.grey[600],
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 48),
@@ -176,7 +179,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ? null
                             : () {
                                 setState(
-                                    () => _obscurePassword = !_obscurePassword);
+                                  () => _obscurePassword = !_obscurePassword,
+                                );
                               },
                       ),
                     ),
@@ -198,8 +202,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     width: double.infinity,
                     height: 48,
                     child: ElevatedButton(
-                      onPressed:
-                          _status == Status.loading ? null : _handleLogin,
+                      onPressed: _status == Status.loading
+                          ? null
+                          : _handleLogin,
                       child: _status == Status.loading
                           ? const SizedBox(
                               height: 20,
@@ -214,23 +219,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   Row(
                     children: [
                       Expanded(
-                          child: Divider(
-                              color:
-                                  Theme.of(context).colorScheme.onSecondary)),
+                        child: Divider(
+                          color: Theme.of(context).colorScheme.onSecondary,
+                        ),
+                      ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Text(
                           'or',
                           style: TextStyle(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ),
                       Expanded(
-                          child: Divider(
-                              color:
-                                  Theme.of(context).colorScheme.onSecondary)),
+                        child: Divider(
+                          color: Theme.of(context).colorScheme.onSecondary,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -242,7 +250,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       onPressed: _passkeyLoading == Status.loading
                           ? null
                           : _handlePasskeyLogin,
-                      icon: const Icon(Icons.fingerprint),
+                      icon: LoadingIcon(
+                        icon: Icons.fingerprint,
+                        loading: _passkeyLoading == Status.loading,
+                      ),
                       label: const Text('Đăng nhập bằng Passkey'),
                     ),
                   ),

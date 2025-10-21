@@ -27,11 +27,9 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   shared_preferences: ^2.5.3
   flutter_riverpod: ^3.0.3
-  passkeys: ^2.8.2
-  google_sign_in: ^7.2.0
-  credential_manager: ^2.0.4
-  json_annotation: ^4.9.0
   currency_text_input_formatter: ^2.3.0
+  webauthn: ^0.2.5
+  pretty_dio_logger: ^1.4.0
 
 dependency_overrides:
   flutter_web_auth_2: 4.1.0

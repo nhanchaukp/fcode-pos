@@ -1,91 +1,86 @@
+import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/models.dart';
-import 'package:flutter/material.dart';
 import 'package:fcode_pos/services/api_service.dart';
 
 class ProductSupplyService {
-  final _api = ApiService().dio;
+  ProductSupplyService() : _api = ApiService();
+
+  final ApiService _api;
 
   /// Get best price for a product (lowest price from all supplies)
-  Future<ProductSupply?> bestPrice(int productId, {int? supplyId}) async {
-    try {
-      final res = await _api.get(
-        '/product-supply/best-price/$productId',
-        queryParameters: {'supply_id': supplyId},
-      );
-
-      if (res.data == null) {
-        return null;
-      }
-
-      // API returns {"data": [...]} or {"data": {}} structure
-      if (res.data is Map) {
-        final data = res.data['data'];
-
-        // If data is a list, get the first item
-        if (data is List) {
-          if (data.isEmpty) {
-            return null;
-          }
-          return ProductSupply.fromJson(data[0] as Map<String, dynamic>);
-        }
-
-        // If data is a map, use it directly
-        if (data is Map) {
-          return ProductSupply.fromJson(data as Map<String, dynamic>);
-        }
-      }
-      return null;
-    } catch (e) {
-      debugPrint('Error getting best price for product $productId: $e');
-      return null;
-    }
+  Future<ApiResponse<ProductSupply?>> bestPrice(
+    int productId, {
+    int? supplyId,
+  }) {
+    return _api.get<ProductSupply?>(
+      '/product-supply/best-price/$productId',
+      queryParameters: {'supply_id': supplyId},
+      parser: (json) => _parseSingleProductSupply(json),
+    );
   }
 
   /// Get a specific product-supply mapping
-  Future<ProductSupply?> detail(int id) async {
-    try {
-      final res = await _api.get('/product-supply/$id');
+  Future<ApiResponse<ProductSupply?>> detail(int id) {
+    return _api.get<ProductSupply?>(
+      '/product-supply/$id',
+      parser: (json) =>
+          json == null ? null : ProductSupply.fromJson(_ensureMap(json)),
+    );
+  }
 
-      if (res.data == null) {
-        return null;
+  /// List all product-supply mappings with pagination support
+  Future<ApiResponse<PaginatedData<ProductSupply>>> list({
+    int? productId,
+    int? supplyId,
+    String search = '',
+    int page = 1,
+    int perPage = 20,
+  }) {
+    return _api.get<PaginatedData<ProductSupply>>(
+      '/product-supply',
+      queryParameters: {
+        'product_id': productId,
+        'supply_id': supplyId,
+        'search': search,
+        'page': page,
+        'per_page': perPage,
+      },
+      parser: (json) => PaginatedData<ProductSupply>.fromJson(
+        _ensureMap(json),
+        (item) => ProductSupply.fromJson(_ensureMap(item)),
+      ),
+    );
+  }
+}
+
+ProductSupply? _parseSingleProductSupply(dynamic data) {
+  if (data == null) return null;
+
+  if (data is Map) {
+    if (data.containsKey('items')) {
+      final items = data['items'];
+      if (items is List && items.isNotEmpty) {
+        final first = items.first;
+        if (first is Map) {
+          return ProductSupply.fromJson(_ensureMap(first));
+        }
       }
+    }
+    return ProductSupply.fromJson(_ensureMap(data));
+  }
 
-      // API returns {"data": {...}} structure
-      if (res.data is Map) {
-        final data = res.data['data'] ?? res.data;
-        return ProductSupply.fromJson(data as Map<String, dynamic>);
-      }
-
-      return null;
-    } catch (e) {
-      debugPrint('Error getting product supply map $id: $e');
-      return null;
+  if (data is List && data.isNotEmpty) {
+    final first = data.first;
+    if (first is Map) {
+      return ProductSupply.fromJson(_ensureMap(first));
     }
   }
 
-  /// List all product-supply mappings
-  Future<List<ProductSupply>> list() async {
-    try {
-      final res = await _api.get('/product-supply');
+  return null;
+}
 
-      // API returns {"data": [...]} structure
-      if (res.data is Map && res.data['data'] is List) {
-        return (res.data['data'] as List)
-            .map((item) => ProductSupply.fromJson(item as Map<String, dynamic>))
-            .toList();
-      }
-
-      // Fallback for direct list response
-      if (res.data is List) {
-        return (res.data as List)
-            .map((item) => ProductSupply.fromJson(item as Map<String, dynamic>))
-            .toList();
-      }
-
-      return [];
-    } catch (e) {
-      debugPrint('Error listing product supply maps: $e');
-      return [];
-    }
-  }
+Map<String, dynamic> _ensureMap(dynamic data) {
+  if (data is Map<String, dynamic>) return data;
+  if (data is Map) return Map<String, dynamic>.from(data);
+  return <String, dynamic>{};
 }

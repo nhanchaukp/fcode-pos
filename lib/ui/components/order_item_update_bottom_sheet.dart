@@ -33,7 +33,7 @@ class OrderItemUpdateBottomSheet extends StatefulWidget {
 class _OrderItemUpdateBottomSheetState
     extends State<OrderItemUpdateBottomSheet> {
   final _formKey = GlobalKey<FormState>();
-  final _orderService = AuthService();
+  final _orderService = OrderService();
   final _productSupplyService = ProductSupplyService();
   final _priceController = TextEditingController();
   final _priceSupplyController = TextEditingController();
@@ -85,14 +85,15 @@ class _OrderItemUpdateBottomSheetState
     setState(() => _isLoadingBestPrice = true);
 
     try {
-      final bestPrice = await _productSupplyService.bestPrice(
+      final result = await _productSupplyService.bestPrice(
         productId,
         supplyId: supplyId,
       );
 
       if (!mounted) return;
 
-      if (bestPrice != null) {
+      if (result.data != null) {
+        final bestPrice = result.data!;
         setState(() {
           // Nếu chưa chọn supply và API trả về supply -> tự động set
           if (_selectedSupply == null && bestPrice.supply != null) {
@@ -107,7 +108,7 @@ class _OrderItemUpdateBottomSheetState
             ? 'Đã tự động điền giá nhập: ${bestPrice.price}'
             : 'Đã tự động chọn nhà cung cấp: ${bestPrice.supply?.name ?? "N/A"} - Giá: ${bestPrice.price}';
 
-        SnackBarHelper.success(message);
+        Toastr.success(message);
       } else {
         debugPrint(
           'No best price found for product $productId ${supplyId != null ? "and supply $supplyId" : ""}',
@@ -130,11 +131,11 @@ class _OrderItemUpdateBottomSheetState
     // Validate required fields for create mode
     if (widget.item == null) {
       if (_selectedProduct == null) {
-        SnackBarHelper.error('Vui lòng chọn sản phẩm');
+        Toastr.error('Vui lòng chọn sản phẩm');
         return;
       }
       if (_selectedSupply == null) {
-        SnackBarHelper.error('Vui lòng chọn nhà cung cấp');
+        Toastr.error('Vui lòng chọn nhà cung cấp');
         return;
       }
     }
@@ -167,7 +168,7 @@ class _OrderItemUpdateBottomSheetState
 
       if (!mounted) return;
 
-      SnackBarHelper.success(
+      Toastr.success(
         isCreateMode
             ? 'Đã thêm sản phẩm vào đơn hàng'
             : 'Cập nhật sản phẩm thành công',
@@ -178,7 +179,7 @@ class _OrderItemUpdateBottomSheetState
     } catch (e) {
       if (!mounted) return;
 
-      SnackBarHelper.error('Đã có lỗi xảy ra. Vui lòng thử lại.');
+      Toastr.error('Đã có lỗi xảy ra. Vui lòng thử lại.');
       debugPrint('Error updating order item: $e');
     } finally {
       if (mounted) {

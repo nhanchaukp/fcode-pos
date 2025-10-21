@@ -1,3 +1,4 @@
+import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/extensions/colors.dart';
@@ -58,8 +59,8 @@ class OrderListComponent extends StatefulWidget {
 }
 
 class _OrderListComponentState extends State<OrderListComponent> {
-  late AuthService _orderService;
-  OrderPageable? _orderPageable;
+  late OrderService _orderService;
+  ApiResponse<PaginatedData<Order>>? _orderPageable;
   bool _isLoading = false;
   String? _error;
   int _currentPage = 1;
@@ -68,7 +69,7 @@ class _OrderListComponentState extends State<OrderListComponent> {
   @override
   void initState() {
     super.initState();
-    _orderService = AuthService();
+    _orderService = OrderService();
     _loadOrders();
   }
 
@@ -122,22 +123,26 @@ class _OrderListComponentState extends State<OrderListComponent> {
         userId: widget.userId ?? '',
       );
 
+      if (!mounted) return;
+      final pagination = result.data?.pagination;
+
       setState(() {
         _orderPageable = result;
+        _error = null;
         _isLoading = false;
       });
 
       // Notify parent về pagination changes
-      if (widget.onPaginationChanged != null && result.meta != null) {
+      if (widget.onPaginationChanged != null && pagination != null) {
         widget.onPaginationChanged!(
-          result.meta!.currentPage,
-          result.meta!.lastPage,
+          pagination.currentPage,
+          pagination.lastPage,
         );
       }
 
       // Notify parent về total items
-      if (widget.onTotalChanged != null && result.meta != null) {
-        widget.onTotalChanged!(result.meta!.total);
+      if (widget.onTotalChanged != null && pagination != null) {
+        widget.onTotalChanged!(pagination.total);
       }
 
       // Notify parent loading completed
@@ -170,9 +175,7 @@ class _OrderListComponentState extends State<OrderListComponent> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading && _orderPageable == null) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (_error != null) {
@@ -197,7 +200,8 @@ class _OrderListComponentState extends State<OrderListComponent> {
       );
     }
 
-    if (_orderPageable?.data.isEmpty ?? true) {
+    final orders = _orderPageable?.data?.items ?? [];
+    if (_orderPageable == null || orders.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -219,143 +223,228 @@ class _OrderListComponentState extends State<OrderListComponent> {
           child: RefreshIndicator(
             onRefresh: () => _loadOrders(page: _currentPage),
             child: ListView.builder(
-              itemCount: _orderPageable!.data.length,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              physics: const AlwaysScrollableScrollPhysics(),
+              itemCount: orders.length,
               itemBuilder: (context, index) {
-                final order = _orderPageable!.data[index];
+                final order = orders[index];
                 return _buildOrderTile(order);
               },
             ),
           ),
         ),
-        // Không hiển thị pagination controls ở đây nữa vì đã chuyển lên BottomAppBar
+        _buildPaginationControls(),
       ],
     );
   }
 
   Widget _buildOrderTile(Order order) {
-    return Card.filled(
-      elevation: 0,
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(12),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Column(
+    final rawCustomerName = order.user?.name;
+    final customerName = rawCustomerName?.trim();
+    final rawCustomerEmail = order.user?.email;
+    final customerEmail = rawCustomerEmail?.trim();
+    final createdAtLabel = order.createdAt != null
+        ? DateHelper.formatDateTime(order.createdAt!)
+        : '—';
+    final totalFormatted = CurrencyHelper.formatCurrency(order.total);
+    final itemCount = order.itemCount;
+    final productCountLabel = itemCount > 0
+        ? '$itemCount sản phẩm'
+        : 'Chưa có sản phẩm';
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      child: InkWell(
+        onTap: () => _onOrderTap(order),
+        borderRadius: BorderRadius.circular(18),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Row(
-                          children: [
-                            Text(
-                              '#${order.id}',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: colorScheme.onSurfaceVariant,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                order.user?.name ?? 'Khách hàng',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '#${order.id}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: colorScheme.onSurface,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      OrderStatusBadge(
-                        status: order.status,
-                        fontSize: 10,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 4),
-                      ),
-                    ],
+                        const SizedBox(height: 4),
+                        Text(
+                          customerName?.isNotEmpty == true
+                              ? customerName!
+                              : 'Khách hàng',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        if (customerEmail?.isNotEmpty == true)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(
+                              customerEmail!,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: colorScheme.onSurfaceVariant
+                                    .applyOpacity(0.7),
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    order.user?.email ?? '',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: colorScheme.onSurfaceVariant.applyOpacity(0.7),
+                  OrderStatusBadge(
+                    status: order.status,
+                    fontSize: 12,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
                     ),
                   ),
                 ],
               ),
-            ),
-          ],
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Left column: Price info
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        CurrencyHelper.formatCurrency(order.total),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.inventory_2_outlined,
+                          size: 18,
+                          color: colorScheme.tertiary,
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            productCountLabel,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: colorScheme.onSurface,
+                                ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.schedule_outlined,
+                          size: 18,
+                          color: colorScheme.secondary,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          createdAtLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: colorScheme.onSurfaceVariant),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              if (order.note != null && order.note!.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.sticky_note_2_outlined,
+                      size: 16,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        order.note!,
                         style: TextStyle(
-                          fontWeight: FontWeight.w600,
                           fontSize: 14,
-                          color: colorScheme.primary,
+                          color: colorScheme.onSurfaceVariant.applyOpacity(0.9),
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ],
-                  ),
-                ),
-                // Right column: Dates
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        DateHelper.formatDateTime(order.createdAt!),
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: colorScheme.onSurfaceVariant.applyOpacity(0.7),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ],
-            ),
-            if (order.note != null && order.note!.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
+              const SizedBox(height: 16),
+              Align(
+                alignment: Alignment.centerRight,
                 child: Text(
-                  'Ghi chú: ${order.note}',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: colorScheme.onSurface,
-                    fontStyle: FontStyle.italic,
+                  totalFormatted,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.primary,
+                    fontSize: 18,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-          ],
+            ],
+          ),
         ),
-        isThreeLine: true,
-        onTap: () => _onOrderTap(order),
+      ),
+    );
+  }
+
+  Widget _buildPaginationControls() {
+    final pagination = _orderPageable?.data?.pagination;
+    if (pagination == null || pagination.lastPage <= 1) {
+      return const SizedBox.shrink();
+    }
+
+    final textStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
+      fontWeight: FontWeight.w600,
+      color: colorScheme.onSurfaceVariant,
+    );
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: Row(
+        children: [
+          Text(
+            'Trang ${pagination.currentPage}/${pagination.lastPage}',
+            style: textStyle,
+          ),
+          const Spacer(),
+          FilledButton.tonalIcon(
+            onPressed: pagination.currentPage > 1
+                ? () => _loadOrders(page: pagination.currentPage - 1)
+                : null,
+            icon: const Icon(Icons.chevron_left),
+            label: const Text('Trước'),
+          ),
+          const SizedBox(width: 8),
+          FilledButton.tonalIcon(
+            onPressed: pagination.currentPage < pagination.lastPage
+                ? () => _loadOrders(page: pagination.currentPage + 1)
+                : null,
+            icon: const Icon(Icons.chevron_right),
+            label: const Text('Sau'),
+          ),
+        ],
       ),
     );
   }

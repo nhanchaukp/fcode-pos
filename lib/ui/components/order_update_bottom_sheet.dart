@@ -23,7 +23,7 @@ class OrderUpdateBottomSheet extends StatefulWidget {
 
 class _OrderUpdateBottomSheetState extends State<OrderUpdateBottomSheet> {
   final _formKey = GlobalKey<FormState>();
-  final _orderService = AuthService();
+  final _orderService = OrderService();
   final _totalController = TextEditingController();
   final _noteController = TextEditingController();
 
@@ -78,11 +78,14 @@ class _OrderUpdateBottomSheetState extends State<OrderUpdateBottomSheet> {
         refunds: [],
       );
 
-      await _orderService.update(widget.order.id.toString(), updatedOrder);
+      await _orderService.update(
+        widget.order.id.toString(),
+        updatedOrder,
+      );
 
       if (!mounted) return;
 
-      SnackBarHelper.success('Cập nhật đơn hàng thành công');
+      Toastr.success('Cập nhật đơn hàng thành công');
 
       widget.onSuccess?.call();
       Navigator.of(context).pop(true);
@@ -90,7 +93,7 @@ class _OrderUpdateBottomSheetState extends State<OrderUpdateBottomSheet> {
       debugPrintStack(stackTrace: st);
       if (!mounted) return;
 
-      SnackBarHelper.error('Cập nhật đơn hàng thất bại. Vui lòng thử lại.');
+      Toastr.error('Cập nhật đơn hàng thất bại. Vui lòng thử lại.');
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);

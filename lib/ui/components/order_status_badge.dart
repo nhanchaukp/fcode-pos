@@ -24,24 +24,25 @@ class OrderStatusBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.applyOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color),
+        // border: Border.all(color: color),
+        // backgroundBlendMode: BlendMode.darken,
       ),
       child: Row(
         children: [
           Container(
             width: 6,
             height: 6,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
           const SizedBox(width: 6),
-          Text(orderStatus?.label.toString() ?? '',
-              style: TextStyle(
-                  color: color,
-                  fontSize: fontSize,
-                  fontWeight: FontWeight.bold)),
+          Text(
+            orderStatus?.label.toString() ?? '',
+            style: TextStyle(
+              color: color,
+              fontSize: fontSize,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );

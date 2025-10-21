@@ -1,3 +1,4 @@
+import 'package:fcode_pos/ui/components/copyable_icon_text.dart';
 import 'package:fcode_pos/utils/extensions/colors.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:fcode_pos/utils/string_helper.dart';
@@ -23,7 +24,7 @@ class OrderDetailScreen extends StatefulWidget {
 
 class _OrderDetailScreenState extends State<OrderDetailScreen>
     with SingleTickerProviderStateMixin {
-  late AuthService _orderService;
+  late OrderService _orderService;
   Order? _order;
   bool _isLoading = false;
   String? _error;
@@ -32,7 +33,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
   @override
   void initState() {
     super.initState();
-    _orderService = AuthService();
+    _orderService = OrderService();
     _tabController = TabController(length: 3, vsync: this);
     _loadOrderDetail();
   }
@@ -54,10 +55,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     });
 
     try {
-      final order = await _orderService.detail(widget.orderId);
+      final response = await _orderService.detail(widget.orderId);
       if (!mounted) return;
       setState(() {
-        _order = order;
+        _order = response.data;
         _isLoading = false;
       });
     } catch (e, st) {
@@ -407,27 +408,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
           ],
         // Phone (clickable)
         if (user.phone != null && user.phone!.isNotEmpty) ...[
-          const SizedBox(height: 2),
-          InkWell(
-            onTap: () => _makePhoneCall(user.phone!),
-            child: Row(
-              children: [
-                Icon(Icons.phone, size: 12, color: colorScheme.secondary),
-                SizedBox(width: 4),
-                Flexible(
-                  child: Text(
-                    user.phone!,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: colorScheme.secondary,
-                      decoration: TextDecoration.underline,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
+          const SizedBox(height: 4),
+          CopyableIconText(
+            icon: Icons.phone,
+            value: user.phone!,
+            color: colorScheme.secondary,
           ),
         ],
       ],
@@ -440,7 +425,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
       await launchUrl(uri);
     } else {
       if (mounted) {
-        SnackBarHelper.error('Không thể gọi số $phoneNumber');
+        Toastr.error('Không thể gọi số $phoneNumber');
       }
     }
   }
@@ -984,7 +969,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     await Clipboard.setData(ClipboardData(text: copyText));
 
     if (mounted) {
-      SnackBarHelper.success('Đã copy thông tin tài khoản');
+      Toastr.success('Đã copy thông tin tài khoản');
     }
   }
 
@@ -1003,7 +988,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     await Clipboard.setData(ClipboardData(text: copyText));
 
     if (mounted) {
-      SnackBarHelper.success('Đã copy thông tin tài khoản');
+      Toastr.success('Đã copy thông tin tài khoản');
     }
   }
 }

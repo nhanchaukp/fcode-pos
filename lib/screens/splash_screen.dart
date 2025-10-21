@@ -1,5 +1,5 @@
-import 'package:fcode_pos/screens/home.dart';
 import 'package:fcode_pos/providers/auth_provider.dart';
+import 'package:fcode_pos/screens/main_shell.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,7 +23,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       data: (user) {
         // Reset error flag khi load thành công
         _hasShownError = false;
-        return user != null ? const HomeScreen() : const LoginScreen();
+        return user != null ? const MainShell() : const LoginScreen();
       },
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
@@ -33,7 +33,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
           _hasShownError = true;
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
-              SnackBarHelper.error(
+              Toastr.error(
                 'Lỗi xác thực: ${error.toString()}',
                 duration: const Duration(seconds: 4),
               );

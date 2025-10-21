@@ -1,6 +1,7 @@
+import 'package:fcode_pos/screens/order_create_screen.dart';
+import 'package:fcode_pos/ui/components/order_list_component.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
-import 'package:fcode_pos/ui/components/order_list_component.dart';
 
 /// Màn hình danh sách đơn hàng
 /// Sử dụng OrderListComponent để hiển thị danh sách với các bộ lọc
@@ -53,13 +54,28 @@ class _OrdersScreenState extends State<OrdersScreen> {
               perPage: _perPage,
               onOrderTap: (order) {
                 // Xử lý khi click vào đơn hàng
-                SnackBarHelper.show(
-                  'Đã chọn đơn hàng #${order.id}',
-                );
+                Toastr.show('Đã chọn đơn hàng #${order.id}');
               },
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          final created = await Navigator.of(context).push<bool>(
+            MaterialPageRoute(
+              builder: (_) => const OrderCreateScreen(),
+              fullscreenDialog: true,
+            ),
+          );
+
+          if (created == true && mounted) {
+            Toastr.success('Đã tạo đơn hàng mới');
+            setState(() {});
+          }
+        },
+        icon: const Icon(Icons.add),
+        label: const Text('Tạo đơn hàng'),
       ),
     );
   }

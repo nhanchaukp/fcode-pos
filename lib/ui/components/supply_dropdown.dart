@@ -30,8 +30,9 @@ class _SupplyDropdownState extends State<SupplyDropdown> {
   void initState() {
     super.initState();
     _currentSelectedSupply = widget.selectedSupply;
-    _searchController =
-        TextEditingController(text: widget.selectedSupply?.name ?? '');
+    _searchController = TextEditingController(
+      text: widget.selectedSupply?.name ?? '',
+    );
     _searchController.addListener(_onSearchChanged);
     _loadSupplies();
   }
@@ -60,10 +61,11 @@ class _SupplyDropdownState extends State<SupplyDropdown> {
     setState(() => _isLoading = true);
     try {
       final supplies = await _supplyService.list();
+      final items = supplies.data?.items ?? [];
       if (!mounted) return;
       setState(() {
-        _allSupplies = supplies;
-        _filteredSupplies = supplies;
+        _allSupplies = items;
+        _filteredSupplies = items;
       });
     } catch (e) {
       debugPrint('Error loading supplies: $e');
@@ -138,36 +140,32 @@ class _SupplyDropdownState extends State<SupplyDropdown> {
     if (_isLoading) {
       return [
         DropdownMenuEntry<Supply>(
-          value: Supply(
-            id: 0,
-            name: 'Đang tải...',
-          ),
+          value: Supply(id: 0, name: 'Đang tải...'),
           label: 'Đang tải...',
           enabled: false,
-        )
+        ),
       ];
     }
 
     if (_filteredSupplies.isEmpty) {
       return [
         DropdownMenuEntry<Supply>(
-          value: Supply(
-            id: 0,
-            name: 'Không tìm thấy',
-          ),
+          value: Supply(id: 0, name: 'Không tìm thấy'),
           label: 'Không tìm thấy nhà cung cấp',
           enabled: false,
-        )
+        ),
       ];
     }
 
     return _filteredSupplies
-        .map((supply) => DropdownMenuEntry<Supply>(
-              value: supply,
-              label: supply.name,
-              leadingIcon: const Icon(Icons.business),
-              labelWidget: _buildSupplyLabel(supply),
-            ))
+        .map(
+          (supply) => DropdownMenuEntry<Supply>(
+            value: supply,
+            label: supply.name,
+            leadingIcon: const Icon(Icons.business),
+            labelWidget: _buildSupplyLabel(supply),
+          ),
+        )
         .toList();
   }
 
@@ -178,10 +176,7 @@ class _SupplyDropdownState extends State<SupplyDropdown> {
       children: [
         Text(
           supply.name,
-          style: const TextStyle(
-            fontWeight: FontWeight.w500,
-            fontSize: 14,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),

@@ -32,8 +32,9 @@ class _CustomerSearchDropdownState extends State<CustomerSearchDropdown> {
   void initState() {
     super.initState();
     _currentSelectedUser = widget.selectedUser;
-    _searchController =
-        TextEditingController(text: widget.selectedUser?.name ?? '');
+    _searchController = TextEditingController(
+      text: widget.selectedUser?.name ?? '',
+    );
     _searchController.addListener(_onSearchChanged);
   }
 
@@ -69,7 +70,7 @@ class _CustomerSearchDropdownState extends State<CustomerSearchDropdown> {
         perPage: 20,
       );
       if (!mounted) return;
-      setState(() => _searchResults = result.data);
+      setState(() => _searchResults = result.data?.items ?? []);
     } catch (e) {
       debugPrint('Error searching customers: $e');
       if (!mounted) return;
@@ -130,7 +131,7 @@ class _CustomerSearchDropdownState extends State<CustomerSearchDropdown> {
           ),
           label: 'Đang tải...',
           enabled: false,
-        )
+        ),
       ];
     }
 
@@ -139,12 +140,14 @@ class _CustomerSearchDropdownState extends State<CustomerSearchDropdown> {
     }
 
     return _searchResults
-        .map((user) => DropdownMenuEntry<User>(
-              value: user,
-              label: user.name,
-              leadingIcon: const Icon(Icons.person),
-              labelWidget: _buildUserLabel(user),
-            ))
+        .map(
+          (user) => DropdownMenuEntry<User>(
+            value: user,
+            label: user.name,
+            leadingIcon: const Icon(Icons.person),
+            labelWidget: _buildUserLabel(user),
+          ),
+        )
         .toList();
   }
 
@@ -155,19 +158,13 @@ class _CustomerSearchDropdownState extends State<CustomerSearchDropdown> {
       children: [
         Text(
           user.name,
-          style: const TextStyle(
-            fontWeight: FontWeight.w500,
-            fontSize: 14,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
         Text(
           user.email,
-          style: const TextStyle(
-            color: Colors.grey,
-            fontSize: 12,
-          ),
+          style: const TextStyle(color: Colors.grey, fontSize: 12),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),

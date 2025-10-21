@@ -7,10 +7,13 @@ class PasskeyOptions implements Model {
 
   final List<String>? allowCredentials;
 
+  final String? userVerification;
+
   PasskeyOptions({
     required this.challenge,
     required this.rpId,
     this.allowCredentials,
+    this.userVerification,
   });
 
   factory PasskeyOptions.fromJson(Map<String, dynamic> map) {
@@ -20,6 +23,7 @@ class PasskeyOptions implements Model {
       allowCredentials: map['allowCredentials'] != null
           ? List<String>.from(map['allowCredentials'] as List)
           : null,
+      userVerification: map['userVerification'],
     );
   }
 
@@ -29,6 +33,7 @@ class PasskeyOptions implements Model {
       'challenge': challenge,
       'rpId': rpId,
       'allowCredentials': allowCredentials,
+      'userVerification': userVerification,
     };
   }
 }

@@ -48,18 +48,16 @@ class OrderMetadata {
   /// List of renew items.
   final List<RenewItem> renewItems;
 
-  OrderMetadata({
-    required this.renewFrom,
-    required this.renewItems,
-  });
+  OrderMetadata({required this.renewFrom, required this.renewItems});
 
   factory OrderMetadata.fromJson(Map<String, dynamic> map) {
     return OrderMetadata(
       renewFrom: List<int>.from(
-          (map['renew_from'] as List?)?.map((e) => e?.toInt() ?? 0) ?? []),
+        (map['renew_from'] as List?)?.map((e) => e?.toInt() ?? 0) ?? [],
+      ),
       renewItems: List<RenewItem>.from(
-          (map['renew_items'] as List?)?.map((e) => RenewItem.fromJson(e)) ??
-              []),
+        (map['renew_items'] as List?)?.map((e) => RenewItem.fromJson(e)) ?? [],
+      ),
     );
   }
 
@@ -121,6 +119,8 @@ class Order implements Model {
   /// Order items.
   final List<OrderItem> items;
 
+  final int itemCount;
+
   /// Payment histories.
   final List<PaymentHistory> paymentHistories;
 
@@ -144,6 +144,7 @@ class Order implements Model {
     this.utmSource,
     this.user,
     this.items = const [],
+    this.itemCount = 0,
     this.paymentHistories = const [],
     this.refunds = const [],
   });
@@ -162,18 +163,23 @@ class Order implements Model {
       refundAmount: map['refund_amount']?.toInt() ?? 0,
       note: map['note']?.toString(),
       transactionId: map['transaction_id']?.toString(),
-      createdAt:
-          map['created_at'] != null ? DateTime.parse(map['created_at']) : null,
-      updatedAt:
-          map['updated_at'] != null ? DateTime.parse(map['updated_at']) : null,
+      createdAt: map['created_at'] != null
+          ? DateTime.parse(map['created_at'])
+          : null,
+      updatedAt: map['updated_at'] != null
+          ? DateTime.parse(map['updated_at'])
+          : null,
       paymentId: map['payment_id']?.toString(),
       utmSource: map['utm_source']?.toString(),
       user: map['user'] != null ? User.fromJson(map['user']) : null,
-      items: (map['items'] as List?)
+      items:
+          (map['items'] as List?)
               ?.map((e) => OrderItem.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      paymentHistories: (map['payment_histories'] as List?)
+      itemCount: int.tryParse(map['item_count']?.toString() ?? '') ?? 0,
+      paymentHistories:
+          (map['payment_histories'] as List?)
               ?.map((e) => PaymentHistory.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],

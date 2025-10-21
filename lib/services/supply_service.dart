@@ -1,31 +1,41 @@
+import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/api_service.dart';
 
 class SupplyService {
-  final _api = ApiService().dio;
+  SupplyService() : _api = ApiService();
 
-  Future<List<Supply>> list() async {
-    final res = await _api.get('/supply');
+  final ApiService _api;
 
-    // API returns {"data": [...]} structure
-    if (res.data is Map && res.data['data'] is List) {
-      return (res.data['data'] as List)
-          .map((item) => Supply.fromJson(item as Map<String, dynamic>))
-          .toList();
-    }
-
-    // Fallback for direct list response
-    if (res.data is List) {
-      return (res.data as List)
-          .map((item) => Supply.fromJson(item as Map<String, dynamic>))
-          .toList();
-    }
-
-    return [];
+  Future<ApiResponse<PaginatedData<Supply>>> list({
+    String search = '',
+    int page = 1,
+    int perPage = 20,
+  }) {
+    return _api.get<PaginatedData<Supply>>(
+      '/supply',
+      queryParameters: {
+        'search': search,
+        'page': page,
+        'per_page': perPage,
+      },
+      parser: (json) => PaginatedData<Supply>.fromJson(
+        _ensureMap(json),
+        (item) => Supply.fromJson(_ensureMap(item)),
+      ),
+    );
   }
 
-  Future<Supply> detail(String id) async {
-    final res = await _api.get('/supply/$id');
-    return Supply.fromJson(res.data);
+  Future<ApiResponse<Supply>> detail(String id) {
+    return _api.get<Supply>(
+      '/supply/$id',
+      parser: (json) => Supply.fromJson(_ensureMap(json)),
+    );
   }
+}
+
+Map<String, dynamic> _ensureMap(dynamic data) {
+  if (data is Map<String, dynamic>) return data;
+  if (data is Map) return Map<String, dynamic>.from(data);
+  return <String, dynamic>{};
 }

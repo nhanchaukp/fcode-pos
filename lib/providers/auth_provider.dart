@@ -1,11 +1,8 @@
-import 'package:credential_manager/credential_manager.dart' as cred;
+import 'dart:convert';
 import 'package:fcode_pos/models.dart';
-import 'package:fcode_pos/utils/app_initializer.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:passkeys/authenticator.dart';
-import 'package:passkeys/types.dart';
+import 'package:webauthn/webauthn.dart';
 import 'package:fcode_pos/services/auth_service.dart';
 import 'package:fcode_pos/storage/secure_storage.dart';
 
@@ -28,8 +25,8 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
         return;
       }
 
-      final user = await _auth.getUserInfo();
-      state = AsyncValue.data(user);
+      final response = await _auth.getUserInfo();
+      state = AsyncValue.data(response.data);
     } catch (e) {
       await SecureStorage.clear();
       state = AsyncValue.error(e, StackTrace.current);
@@ -37,16 +34,10 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
   }
 
   Future<User?> login(String email, String password) async {
-    state = const AsyncValue.loading();
-    try {
-      final user = await _auth.login(email, password);
-      state = AsyncValue.data(user);
-      return user;
-    } catch (e) {
-      debugPrint('Login error: $e');
-      state = AsyncValue.error(e, StackTrace.current);
-      rethrow;
-    }
+    final response = await _auth.login(email, password);
+    final user = response.data;
+    state = AsyncValue.data(user);
+    return user;
   }
 
   Future<void> logout() async {
@@ -57,31 +48,24 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
   Future<User?> loginWithPasskey() async {
     // state = const AsyncValue.loading();
     try {
-      final passkeyOptions = await _auth.getPasskeyOptions();
+      final Authenticator authenticator = Authenticator(true, false);
 
-      final credResponse = await AppInitializer.credentialManager
-          .getCredentials(
-            passKeyOption: cred.CredentialLoginOptions(
-              challenge: passkeyOptions.challenge,
-              rpId: passkeyOptions.rpId,
-              userVerification: 'preferred',
-            ),
-          );
-
-      // final passkeyAuthenticator = PasskeyAuthenticator();
-
-      // final authRequest = AuthenticateRequestType(
-      //     challenge: passkeyOptions.challenge,
-      //     relyingPartyId: passkeyOptions.rpId,
-      //     mediation: MediationType.Optional,
-      //     timeout: 30000,
-      //     preferImmediatelyAvailableCredentials: true);
-
-      // final platformRes = await passkeyAuthenticator.authenticate(authRequest);
-
-      final user = await _auth.loginWithPasskey(
-        credResponse.publicKeyCredential?.toJson() ?? {},
+      final passkeyOptionsResponse = await _auth.getPasskeyOptions();
+      final passkeyOptions = passkeyOptionsResponse.data;
+      if (passkeyOptions == null) {
+        throw StateError('Không thể lấy thông tin Passkey.');
+      }
+      final Assertion assertion = await authenticator.getAssertion(
+        GetAssertionOptions(
+          rpId: passkeyOptions.rpId,
+          clientDataHash: base64Url.decode(passkeyOptions.challenge),
+          requireUserPresence: true,
+          requireUserVerification: false,
+        ),
       );
+
+      final response = await _auth.loginWithPasskey(assertion.toJson());
+      final user = response.data;
       state = AsyncValue.data(user);
       return user;
     } catch (e) {

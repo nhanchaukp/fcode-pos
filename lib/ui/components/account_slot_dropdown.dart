@@ -45,7 +45,7 @@ class _AccountSlotDropdownState extends State<AccountSlotDropdown> {
 
       if (!mounted) return;
       setState(() {
-        _availableSlots = activeSlots;
+        _availableSlots = activeSlots.data ?? [];
       });
     } catch (e) {
       if (!mounted) return;
@@ -111,7 +111,7 @@ class _AccountSlotDropdownState extends State<AccountSlotDropdown> {
           ),
           label: 'Đang tải...',
           enabled: false,
-        )
+        ),
       ];
     }
 
@@ -128,17 +128,19 @@ class _AccountSlotDropdownState extends State<AccountSlotDropdown> {
           ),
           label: 'Không có account slot nào',
           enabled: false,
-        )
+        ),
       ];
     }
 
     return _availableSlots
-        .map((slot) => DropdownMenuEntry<AccountSlot>(
-              value: slot,
-              label: _buildSlotDisplayName(slot),
-              leadingIcon: const Icon(Icons.account_circle),
-              labelWidget: _buildSlotLabel(slot),
-            ))
+        .map(
+          (slot) => DropdownMenuEntry<AccountSlot>(
+            value: slot,
+            label: _buildSlotDisplayName(slot),
+            leadingIcon: const Icon(Icons.account_circle),
+            labelWidget: _buildSlotLabel(slot),
+          ),
+        )
         .toList();
   }
 
@@ -150,7 +152,8 @@ class _AccountSlotDropdownState extends State<AccountSlotDropdown> {
         : 'N/A';
 
     // Check if slot is about to expire (within 7 days)
-    final isExpiringSoon = slot.expiryDate != null &&
+    final isExpiringSoon =
+        slot.expiryDate != null &&
         slot.expiryDate!.difference(DateTime.now()).inDays <= 7;
 
     return Column(
@@ -160,28 +163,18 @@ class _AccountSlotDropdownState extends State<AccountSlotDropdown> {
         // Line 1: Service Type + Username
         Text(
           '$serviceType: $username',
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
           overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 4),
         // Line 2: Slot Name + Expiry Date
         Row(
           children: [
-            Icon(
-              Icons.badge_outlined,
-              size: 14,
-              color: Colors.grey.shade600,
-            ),
+            Icon(Icons.badge_outlined, size: 14, color: Colors.grey.shade600),
             const SizedBox(width: 4),
             Text(
               slot.name,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade700,
-              ),
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
             ),
             const SizedBox(width: 8),
             Icon(
@@ -195,8 +188,9 @@ class _AccountSlotDropdownState extends State<AccountSlotDropdown> {
               style: TextStyle(
                 fontSize: 12,
                 color: isExpiringSoon ? Colors.orange : Colors.grey.shade700,
-                fontWeight:
-                    isExpiringSoon ? FontWeight.w600 : FontWeight.normal,
+                fontWeight: isExpiringSoon
+                    ? FontWeight.w600
+                    : FontWeight.normal,
               ),
             ),
           ],
