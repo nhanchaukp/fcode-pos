@@ -23,8 +23,8 @@ class RenewItem {
 
   factory RenewItem.fromJson(Map<String, dynamic> map) {
     return RenewItem(
-      orderId: map['order_id']?.toInt() ?? 0,
-      orderItemId: map['order_item_id']?.toInt() ?? 0,
+      orderId: map['order_id'],
+      orderItemId: map['order_item_id'],
       expiredAt: map['expired_at']?.toString() ?? '',
       newExpiredAt: map['new_expired_at']?.toString() ?? '',
     );
@@ -36,35 +36,6 @@ class RenewItem {
       'order_item_id': orderItemId,
       'expired_at': expiredAt,
       'new_expired_at': newExpiredAt,
-    };
-  }
-}
-
-/// Order Metadata
-class OrderMetadata {
-  /// List of order IDs being renewed from.
-  final List<int> renewFrom;
-
-  /// List of renew items.
-  final List<RenewItem> renewItems;
-
-  OrderMetadata({required this.renewFrom, required this.renewItems});
-
-  factory OrderMetadata.fromJson(Map<String, dynamic> map) {
-    return OrderMetadata(
-      renewFrom: List<int>.from(
-        (map['renew_from'] as List?)?.map((e) => e?.toInt() ?? 0) ?? [],
-      ),
-      renewItems: List<RenewItem>.from(
-        (map['renew_items'] as List?)?.map((e) => RenewItem.fromJson(e)) ?? [],
-      ),
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'renew_from': renewFrom,
-      'renew_items': renewItems.map((e) => e.toMap()).toList(),
     };
   }
 }
@@ -88,9 +59,6 @@ class Order implements Model {
 
   /// Order type (e.g., "renew", "purchase").
   final String type;
-
-  /// Order metadata.
-  final OrderMetadata? metadata;
 
   /// Refund amount.
   final int? refundAmount;
@@ -134,7 +102,6 @@ class Order implements Model {
     this.discount,
     required this.status,
     required this.type,
-    this.metadata,
     this.refundAmount,
     this.note,
     this.transactionId,
@@ -151,16 +118,13 @@ class Order implements Model {
 
   factory Order.fromJson(Map<String, dynamic> map) {
     return Order(
-      id: map['id']?.toInt() ?? 0,
-      userId: map['user_id']?.toInt() ?? 0,
-      total: map['total']?.toInt() ?? 0,
-      discount: map['discount']?.toInt() ?? 0,
+      id: map['id'],
+      userId: asInt(map['user_id']),
+      total: asInt(map['total']),
+      discount: asInt(map['discount']),
       status: map['status']?.toString() ?? '',
       type: map['type']?.toString() ?? '',
-      metadata: map['metadata'] != null
-          ? OrderMetadata.fromJson(map['metadata'])
-          : null,
-      refundAmount: map['refund_amount']?.toInt() ?? 0,
+      refundAmount: asInt(map['refund_amount']),
       note: map['note']?.toString(),
       transactionId: map['transaction_id']?.toString(),
       createdAt: map['created_at'] != null
@@ -177,7 +141,7 @@ class Order implements Model {
               ?.map((e) => OrderItem.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      itemCount: int.tryParse(map['item_count']?.toString() ?? '') ?? 0,
+      itemCount: map['item_count'],
       paymentHistories:
           (map['payment_histories'] as List?)
               ?.map((e) => PaymentHistory.fromJson(e as Map<String, dynamic>))
@@ -196,7 +160,6 @@ class Order implements Model {
       'discount': discount,
       'status': status,
       'type': type,
-      'metadata': metadata?.toMap(),
       'refund_amount': refundAmount,
       'note': note,
       'transaction_id': transactionId,
