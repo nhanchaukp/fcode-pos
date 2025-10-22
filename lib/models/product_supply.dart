@@ -51,10 +51,10 @@ class ProductSupply {
 
   factory ProductSupply.fromJson(Map<String, dynamic> map) {
     return ProductSupply(
-      id: map['id']?.toInt() ?? 0,
-      productId: map['product_id']?.toInt() ?? 0,
-      supplyId: map['supply_id']?.toInt() ?? 0,
-      price: map['price']?.toInt() ?? 0,
+      id: map['id'],
+      productId: asInt(map['product_id']),
+      supplyId: asInt(map['supply_id']),
+      price: asInt(map['price']),
       sku: map['sku']?.toString(),
       note: map['note']?.toString(),
       isPreferred: map['is_preferred'] == true || map['is_preferred'] == 1,

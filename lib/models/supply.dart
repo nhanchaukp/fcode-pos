@@ -27,7 +27,7 @@ class Supply {
 
   factory Supply.fromJson(Map<String, dynamic> map) {
     return Supply(
-      id: map['id']?.toInt() ?? 0,
+      id: map['id'],
       name: map['name']?.toString() ?? '',
       content: map['content']?.toString(),
       createdAt: map['created_at'] != null

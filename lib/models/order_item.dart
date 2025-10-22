@@ -99,25 +99,24 @@ class OrderItem {
 
   factory OrderItem.fromJson(Map<String, dynamic> map) {
     return OrderItem(
-      id: map['id']?.toInt() ?? 0,
-      orderId: map['order_id']?.toInt() ?? 0,
-      productId: map['product_id']?.toInt() ?? 0,
+      id: map['id'],
+      orderId: asInt(map['order_id']),
+      productId: asInt(map['product_id']),
       note: map['note']?.toString(),
-      quantity: map['quantity']?.toInt() ?? 0,
+      quantity: asInt(map['quantity']),
       account: map['account'] is Map<String, dynamic>
           ? map['account'] as Map<String, dynamic>
           : null,
-      price: int.tryParse(map['price']?.toString() ?? '0') ?? 0,
-      priceSupply: int.tryParse(map['price_supply']?.toString() ?? '0') ?? 0,
-      supplyId: map['supply_id']?.toInt() ?? 0,
-      accountSlotId: map['account_slot_id']?.toInt(),
+      price: asInt(map['price']),
+      priceSupply: asInt(map['price_supply']),
+      supplyId: asInt(map['supply_id']),
+      accountSlotId: asInt(map['account_slot_id']),
       expiredAt: map['expired_at'] != null
           ? DateTime.parse(map['expired_at'].toString())
           : null,
       notified: map['notified'] == true || map['notified'] == 1,
       refundStatus: map['refund_status']?.toString() ?? 'none',
-      refundedAmount:
-          int.tryParse(map['refunded_amount']?.toString() ?? '0') ?? 0,
+      refundedAmount: asInt(map['refunded_amount']),
       refundedAt: map['refunded_at'] != null
           ? DateTime.parse(map['refunded_at'].toString())
           : null,

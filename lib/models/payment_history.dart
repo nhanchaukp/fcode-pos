@@ -59,11 +59,11 @@ class PaymentHistory {
 
   factory PaymentHistory.fromJson(Map<String, dynamic> map) {
     return PaymentHistory(
-      id: map['id']?.toInt() ?? 0,
+      id: map['id'],
       paymentableType: map['paymentable_type']?.toString() ?? '',
-      paymentableId: map['paymentable_id']?.toInt() ?? 0,
-      shopOrderId: map['shop_order_id']?.toInt() ?? 0,
-      amount: int.tryParse(map['amount']?.toString() ?? '0') ?? 0,
+      paymentableId: asInt(map['paymentable_id']),
+      shopOrderId: asInt(map['shop_order_id']),
+      amount: asInt(map['amount']),
       currency: map['currency']?.toString() ?? 'VND',
       status: map['status']?.toString() ?? '',
       notes: map['notes']?.toString(),

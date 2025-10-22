@@ -23,8 +23,8 @@ class RenewItem {
 
   factory RenewItem.fromJson(Map<String, dynamic> map) {
     return RenewItem(
-      orderId: map['order_id'],
-      orderItemId: map['order_item_id'],
+      orderId: asInt(map['order_id']),
+      orderItemId: asInt(map['order_item_id']),
       expiredAt: map['expired_at']?.toString() ?? '',
       newExpiredAt: map['new_expired_at']?.toString() ?? '',
     );
@@ -118,13 +118,13 @@ class Order implements Model {
 
   factory Order.fromJson(Map<String, dynamic> map) {
     return Order(
-      id: map['id'],
+      id: asInt(map['id']),
       userId: asInt(map['user_id']),
       total: asInt(map['total']),
-      discount: asInt(map['discount']),
+      discount: asIntOrNull(map['discount']),
       status: map['status']?.toString() ?? '',
       type: map['type']?.toString() ?? '',
-      refundAmount: asInt(map['refund_amount']),
+      refundAmount: asIntOrNull(map['refund_amount']),
       note: map['note']?.toString(),
       transactionId: map['transaction_id']?.toString(),
       createdAt: map['created_at'] != null
@@ -141,7 +141,7 @@ class Order implements Model {
               ?.map((e) => OrderItem.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      itemCount: map['item_count'],
+      itemCount: asInt(map['item_count']),
       paymentHistories:
           (map['payment_histories'] as List?)
               ?.map((e) => PaymentHistory.fromJson(e as Map<String, dynamic>))

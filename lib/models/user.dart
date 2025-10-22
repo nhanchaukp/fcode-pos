@@ -48,7 +48,6 @@ class User implements Model {
   final String? updatedAt;
 
   /// Role ID.
-  final int? roleId;
 
   /// Avatar URL.
   final String? avatar;
@@ -99,7 +98,6 @@ class User implements Model {
     this.profilePhotoPath,
     this.createdAt,
     this.updatedAt,
-    this.roleId,
     this.avatar,
     this.fullname,
     this.sessionLogin,
@@ -115,22 +113,21 @@ class User implements Model {
 
   factory User.fromJson(Map<String, dynamic> map) {
     return User(
-      id: map['id']?.toInt() ?? 0,
+      id: asInt(map['id']),
       username: map['username']?.toString() ?? '',
-      balance: map['balance']?.toInt() ?? 0,
+      balance: asInt(map['balance']),
       name: map['name']?.toString() ?? '',
       email: map['email']?.toString() ?? '',
       emailVerifiedAt: map['email_verified_at']?.toString(),
       phone: map['phone']?.toString(),
-      googleId: map['google_id']?.toString(),
-      facebookId: map['facebook_id']?.toString(),
-      telegramId: map['telegram_id']?.toString(),
+      googleId: map['google_id'],
+      facebookId: map['facebook_id'],
+      telegramId: map['telegram_id'],
       twoFactorConfirmedAt: map['two_factor_confirmed_at']?.toString(),
-      currentTeamId: map['current_team_id']?.toInt(),
+      currentTeamId: asIntOrNull(map['current_team_id']),
       profilePhotoPath: map['profile_photo_path']?.toString(),
       createdAt: map['created_at']?.toString(),
       updatedAt: map['updated_at']?.toString(),
-      roleId: map['role_id']?.toInt(),
       avatar: map['avatar']?.toString(),
       fullname: map['fullname']?.toString(),
       sessionLogin: map['session_login']?.toString(),
@@ -139,7 +136,7 @@ class User implements Model {
       fcmToken: map['fcm_token']?.toString(),
       settings: map['settings']?.toString(),
       address: map['address']?.toString(),
-      provinceId: map['province_id']?.toInt(),
+      provinceId: asIntOrNull(map['province_id']),
       facebookUrl: map['facebook_url']?.toString(),
       profilePhotoUrl: map['profile_photo_url']?.toString(),
     );
@@ -162,7 +159,6 @@ class User implements Model {
       'profile_photo_path': profilePhotoPath,
       'created_at': createdAt,
       'updated_at': updatedAt,
-      'role_id': roleId,
       'avatar': avatar,
       'fullname': fullname,
       'session_login': sessionLogin,

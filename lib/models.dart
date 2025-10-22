@@ -1,12 +1,11 @@
 /// Appwrite Models
-library appwrite.models;
+library;
 
 import 'dart:convert';
-import 'enums.dart' as enums;
+import 'utils/extensions/num_extensions.dart';
 
 part 'models/model.dart';
 part 'models/user.dart';
-part 'models/pageable.dart';
 part 'models/order.dart';
 part 'models/order_item.dart';
 part 'models/payment_history.dart';

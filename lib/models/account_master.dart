@@ -67,12 +67,12 @@ class AccountMaster {
 
   factory AccountMaster.fromJson(Map<String, dynamic> map) {
     return AccountMaster(
-      id: map['id']?.toInt() ?? 0,
+      id: map['id'],
       name: map['name']?.toString() ?? '',
       username: map['username']?.toString() ?? '',
       password: map['password']?.toString() ?? '',
       serviceType: map['service_type']?.toString() ?? '',
-      maxSlots: map['max_slots']?.toInt() ?? 0,
+      maxSlots: asInt(map['max_slots']),
       notes: map['notes']?.toString(),
       paymentDate: map['payment_date'] != null
           ? DateTime.parse(map['payment_date'].toString())

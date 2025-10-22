@@ -107,11 +107,11 @@ class Product {
 
   factory Product.fromJson(Map<String, dynamic> map) {
     return Product(
-      id: map['id']?.toInt() ?? 0,
+      id: asInt(map['id']),
       name: map['name']?.toString() ?? '',
       slug: map['slug']?.toString() ?? '',
       picture: map['picture']?.toString(),
-      instock: map['instock']?.toInt() ?? 0,
+      instock: asInt(map['instock']),
       seoMeta: map['seo_meta']?.toString(),
       description: map['description']?.toString(),
       warranty: map['warranty']?.toString(),
@@ -123,22 +123,22 @@ class Product {
           map['require_account'] == true || map['require_account'] == 1,
       requirePassword:
           map['require_password'] == true || map['require_password'] == 1,
-      price: double.tryParse(map['price']?.toString() ?? '0')?.toInt() ?? 0,
+      price: asInt(map['price']),
       isActive: map['is_active'] == true || map['is_active'] == 1,
-      priceSale: double.tryParse(map['price_sale']?.toString() ?? '0')?.toInt(),
+      priceSale: asIntOrNull(map['price_sale']),
       warning: map['warning']?.toString(),
-      expiryMonth: map['expiry_month']?.toInt(),
+      expiryMonth: asIntOrNull(map['expiry_month']),
       upgradeMethod: map['upgrade_method']?.toString(),
-      faqId: map['faq_id']?.toInt(),
+      faqId: asIntOrNull(map['faq_id']),
       createdAt: map['created_at'] != null
           ? DateTime.parse(map['created_at'].toString())
           : null,
       updatedAt: map['updated_at'] != null
           ? DateTime.parse(map['updated_at'].toString())
           : null,
-      pageId: map['page_id']?.toInt(),
+      pageId: asIntOrNull(map['page_id']),
       tags: (map['tags'] as List?) ?? [],
-      bestPrice: map['best_price']?.toInt(),
+      bestPrice: asIntOrNull(map['best_price']),
     );
   }
 

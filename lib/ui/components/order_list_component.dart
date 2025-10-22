@@ -49,7 +49,7 @@ class OrderListComponent extends StatefulWidget {
     this.userId,
     this.onOrderTap,
     this.onPaginationChanged,
-    this.currentPage,
+    this.currentPage = 1,
     this.onLoadingChanged,
     this.onTotalChanged,
   });
@@ -70,7 +70,7 @@ class _OrderListComponentState extends State<OrderListComponent> {
   void initState() {
     super.initState();
     _orderService = OrderService();
-    _loadOrders();
+    _loadOrders(page: widget.currentPage ?? 1);
   }
 
   @override

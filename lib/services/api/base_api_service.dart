@@ -5,6 +5,7 @@ import 'package:fcode_pos/api/api_exception.dart';
 import 'package:fcode_pos/config/environment.dart';
 import 'package:fcode_pos/services/api/api_response.dart';
 import 'package:fcode_pos/storage/secure_storage.dart';
+import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 class BaseApiService {
   BaseApiService({String? baseUrl}) {
@@ -18,11 +19,7 @@ class BaseApiService {
     );
 
     dio.interceptors.addAll([
-      LogInterceptor(
-        requestBody: true,
-        responseBody: true,
-        logPrint: (object) => debugPrint(object.toString()),
-      ),
+      PrettyDioLogger(),
       InterceptorsWrapper(
         onRequest: (options, handler) async {
           final token = await SecureStorage.getAccessToken();
@@ -189,7 +186,8 @@ class BaseApiService {
       case DioExceptionType.unknown:
         return ApiException(
           statusCode: 0,
-          message: error.message ??
+          message:
+              error.message ??
               'Không thể hoàn thành yêu cầu. Vui lòng thử lại sau.',
         );
       case DioExceptionType.cancel:
@@ -208,7 +206,8 @@ class BaseApiService {
 
   String _extractErrorMessage(dynamic data, int statusCode) {
     if (data is Map<String, dynamic>) {
-      final message = data['message'] ??
+      final message =
+          data['message'] ??
           data['error'] ??
           data['detail'] ??
           data['msg'] ??
