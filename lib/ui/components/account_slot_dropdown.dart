@@ -21,6 +21,7 @@ class AccountSlotDropdown extends StatefulWidget {
 
 class _AccountSlotDropdownState extends State<AccountSlotDropdown> {
   final _accountSlotService = AccountSlotService();
+  final _controller = TextEditingController();
   List<AccountSlot> _availableSlots = [];
   bool _isLoading = false;
   AccountSlot? _currentSelectedSlot;
@@ -29,11 +30,15 @@ class _AccountSlotDropdownState extends State<AccountSlotDropdown> {
   void initState() {
     super.initState();
     _currentSelectedSlot = widget.selectedSlot;
+    if (_currentSelectedSlot != null) {
+      _controller.text = _buildSlotDisplayName(_currentSelectedSlot!);
+    }
     _loadAvailableSlots();
   }
 
   @override
   void dispose() {
+    _controller.dispose();
     super.dispose();
   }
 
@@ -41,7 +46,9 @@ class _AccountSlotDropdownState extends State<AccountSlotDropdown> {
     if (!mounted) return;
     setState(() => _isLoading = true);
     try {
-      final activeSlots = await _accountSlotService.available();
+      final activeSlots = await _accountSlotService.available(
+        _currentSelectedSlot?.id,
+      );
 
       if (!mounted) return;
       setState(() {
@@ -66,6 +73,7 @@ class _AccountSlotDropdownState extends State<AccountSlotDropdown> {
   @override
   Widget build(BuildContext context) {
     return DropdownMenu<AccountSlot>(
+      controller: _controller,
       enableSearch: false,
       requestFocusOnTap: true,
       initialSelection: _currentSelectedSlot,
@@ -74,6 +82,7 @@ class _AccountSlotDropdownState extends State<AccountSlotDropdown> {
           widget.onSlotSelected(slot);
           setState(() {
             _currentSelectedSlot = slot;
+            _controller.text = _buildSlotDisplayName(slot);
           });
         }
       },
@@ -81,7 +90,7 @@ class _AccountSlotDropdownState extends State<AccountSlotDropdown> {
       menuHeight: 300,
       dropdownMenuEntries: _buildDropdownEntries(),
       hintText: 'Chọn account slot',
-      label: const Text('Account Slot (Tùy chọn)'),
+      label: const Text('Chọn account slot'),
       leadingIcon: const Icon(Icons.account_box_outlined),
       trailingIcon: _currentSelectedSlot != null
           ? GestureDetector(
@@ -89,6 +98,7 @@ class _AccountSlotDropdownState extends State<AccountSlotDropdown> {
                 widget.onSlotCleared();
                 setState(() {
                   _currentSelectedSlot = null;
+                  _controller.clear();
                 });
               },
               child: const Icon(Icons.close),

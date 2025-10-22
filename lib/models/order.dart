@@ -95,6 +95,8 @@ class Order implements Model {
   /// Refunds.
   final List<dynamic> refunds;
 
+  final String? urlQrCodePayment;
+
   Order({
     required this.id,
     required this.userId,
@@ -114,6 +116,7 @@ class Order implements Model {
     this.itemCount = 0,
     this.paymentHistories = const [],
     this.refunds = const [],
+    this.urlQrCodePayment,
   });
 
   factory Order.fromJson(Map<String, dynamic> map) {
@@ -148,6 +151,7 @@ class Order implements Model {
               .toList() ??
           [],
       refunds: (map['refunds'] as List?) ?? [],
+      urlQrCodePayment: map['url_qr_code_payment']?.toString(),
     );
   }
 
@@ -171,6 +175,7 @@ class Order implements Model {
       'items': items.map((e) => e.toMap()).toList(),
       'payment_histories': paymentHistories.map((e) => e.toMap()).toList(),
       'refunds': refunds,
+      'url_qr_code_payment': urlQrCodePayment,
     };
   }
 }

@@ -1,7 +1,6 @@
 import 'package:fcode_pos/screens/dashboard_screen.dart';
-import 'package:fcode_pos/screens/home.dart';
-import 'package:fcode_pos/screens/more_screen.dart';
 import 'package:fcode_pos/screens/orders_screen.dart';
+import 'package:fcode_pos/screens/more_screen.dart';
 import 'package:fcode_pos/screens/product_hub_screen.dart';
 import 'package:flutter/material.dart';
 

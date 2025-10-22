@@ -11,7 +11,8 @@ import 'package:fcode_pos/ui/components/order_update_bottom_sheet.dart';
 import 'package:fcode_pos/ui/components/order_item_update_bottom_sheet.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:http/http.dart' as http;
 
 class OrderDetailScreen extends StatefulWidget {
   final String orderId;
@@ -97,61 +98,137 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     }
   }
 
+  Future<void> _showQrCodeDialog() async {
+    if (_order == null ||
+        _order!.urlQrCodePayment == null ||
+        _order!.urlQrCodePayment!.isEmpty) {
+      Toastr.error('Không có mã QR thanh toán');
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Mã QR Thanh Toán',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.close),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Image.network(
+                _order!.urlQrCodePayment!,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 48,
+                          color: colorScheme.error,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Không thể tải ảnh QR',
+                          style: TextStyle(color: colorScheme.error),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Container(
+                    padding: const EdgeInsets.all(32),
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                                loadingProgress.expectedTotalBytes!
+                          : null,
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () => _downloadQrCode(),
+                  icon: const Icon(Icons.save_alt),
+                  label: const Text('Lưu vào thư viện'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _downloadQrCode() async {
+    if (_order?.urlQrCodePayment == null) return;
+
+    try {
+      // Download image
+      
+      final response = await http.get(Uri.parse(_order!.urlQrCodePayment!));
+
+      if (response.statusCode == 200) {
+        // Save to gallery
+        final result = await ImageGallerySaver.saveImage(
+          response.bodyBytes,
+          quality: 100,
+          name:
+              'qr_code_order_${_order!.id}_${DateTime.now().millisecondsSinceEpoch}',
+        );
+
+        if (mounted) {
+          if (result['isSuccess'] == true) {
+            Toastr.success('Đã lưu ảnh vào thư viện');
+          } else {
+            Toastr.error('Không thể lưu ảnh');
+          }
+        }
+      } else {
+        if (mounted) {
+          Toastr.error('Không thể tải xuống ảnh');
+        }
+      }
+    } catch (e) {
+      debugPrint('Error downloading QR code: $e');
+      if (mounted) {
+        Toastr.error('Lỗi khi tải xuống: ${e.toString()}');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         centerTitle: false,
-        title: Text('Chi tiết đơn hàng #${widget.orderId}'),
-        // title: Column(
-        //   crossAxisAlignment:
-        //       CrossAxisAlignment.start, // Align text to the start (left)
-        //   children: <Widget>[
-        //     Text(
-        //       'Chi tiết đơn hàng #${widget.orderId}',
-        //       style: TextStyle(
-        //         fontSize: 20.0,
-        //         fontWeight: FontWeight.bold,
-        //       ),
-        //     ),
-        //     Row(
-        //       children: [
-        //         Icon(Icons.access_time, size: 12, color: colorScheme.onSurface),
-        //         const SizedBox(width: 4),
-        //         Text(
-        //           DateHelper.formatDateTimeShort(_order?.createdAt),
-        //           style: TextStyle(
-        //             fontSize: 11,
-        //             color: colorScheme.onSurface,
-        //           ),
-        //         ),
-        //         const SizedBox(width: 12),
-        //         Icon(Icons.edit_calendar,
-        //             size: 12, color: colorScheme.onSurface),
-        //         const SizedBox(width: 4),
-        //         Text(
-        //           DateHelper.formatDateTimeShort(_order?.updatedAt),
-        //           style: TextStyle(
-        //             fontSize: 11,
-        //             color: colorScheme.onSurface,
-        //           ),
-        //         ),
-        //         const SizedBox(width: 12),
-        //         Icon(Icons.link, size: 12, color: colorScheme.onSurface),
-        //         const SizedBox(width: 4),
-        //         Text(
-        //           _order?.utmSource ?? 'Direct',
-        //           style: TextStyle(
-        //             fontSize: 11,
-        //             color: colorScheme.onSurface,
-        //           ),
-        //         ),
-        //       ],
-        //     ),
-        //   ],
-        // ),
+        title: Text('Đơn hàng #${widget.orderId}'),
         elevation: 0,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.qr_code),
+            onPressed: _order != null ? () => _showQrCodeDialog() : null,
+            tooltip: 'Hiện thị mã QR',
+          ),
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: _order != null ? () => _showUpdateDialog() : null,
@@ -419,17 +496,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     );
   }
 
-  Future<void> _makePhoneCall(String phoneNumber) async {
-    final uri = Uri(scheme: 'tel', path: phoneNumber);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    } else {
-      if (mounted) {
-        Toastr.error('Không thể gọi số $phoneNumber');
-      }
-    }
-  }
-
   Widget _buildCompactAmount(String label, int amount, {Color? color}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
@@ -460,7 +526,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
         onRefresh: _loadOrderDetail,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          child: Container(
+          child: SizedBox(
             height: MediaQuery.of(context).size.height * 0.5,
             child: Center(
               child: Column(
@@ -469,8 +535,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                   const Text('Không có sản phẩm nào'),
                   const SizedBox(height: 16),
                   FilledButton.icon(
-                    onPressed: () =>
-                        _showAddProductBottomSheet(order.id.toString()),
+                    onPressed: () => _showAddProductBottomSheet(order.id),
                     icon: const Icon(Icons.add),
                     label: const Text('Thêm sản phẩm'),
                   ),
@@ -491,7 +556,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             width: double.infinity,
             child: FilledButton.icon(
-              onPressed: () => _showAddProductBottomSheet(order.id.toString()),
+              onPressed: () => _showAddProductBottomSheet(order.id),
               icon: const Icon(Icons.add),
               label: const Text('Thêm sản phẩm'),
               style: FilledButton.styleFrom(
@@ -665,11 +730,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          StringHelper.formatAccountString(item.account![0]),
+                          StringHelper.formatAccountString(item.account!),
                           style: TextStyle(fontSize: 11),
                         ),
                         InkWell(
-                          onTap: () => _copyRawAccountInfo(item.account![0]),
+                          onTap: () => _copyRawAccountInfo(item.account!),
                           borderRadius: BorderRadius.circular(4),
                           child: Container(
                             padding: const EdgeInsets.all(4),
@@ -697,12 +762,15 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
   }
 
   Future<void> _showItemUpdateBottomSheet(OrderItem item) async {
+    if (_order == null) return;
+
     final result = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
       builder: (context) => OrderItemUpdateBottomSheet(
-        item: item,
+        orderId: _order!.id,
+        orderItem: item,
         onSuccess: () {
           // Reload order detail after successful update
           _loadOrderDetail();
@@ -715,13 +783,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     }
   }
 
-  Future<void> _showAddProductBottomSheet(String orderId) async {
+  Future<void> _showAddProductBottomSheet(int orderId) async {
     final result = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
       builder: (context) => OrderItemUpdateBottomSheet(
         orderId: orderId,
+        orderItem: null,
         onSuccess: () {
           // Reload order detail after successful addition
           _loadOrderDetail();
@@ -763,7 +832,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
         onRefresh: _loadOrderDetail,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          child: Container(
+          child: SizedBox(
             height: MediaQuery.of(context).size.height * 0.5,
             child: Center(
               child: Column(
@@ -874,7 +943,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
         onRefresh: _loadOrderDetail,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          child: Container(
+          child: SizedBox(
             height: MediaQuery.of(context).size.height * 0.5,
             child: Center(
               child: Column(

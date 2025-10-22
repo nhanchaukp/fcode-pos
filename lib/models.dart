@@ -8,6 +8,7 @@ part 'models/model.dart';
 part 'models/user.dart';
 part 'models/order.dart';
 part 'models/order_item.dart';
+part 'models/order_stats.dart';
 part 'models/payment_history.dart';
 part 'models/product.dart';
 part 'models/account_master.dart';

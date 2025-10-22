@@ -104,9 +104,16 @@ class OrderItem {
       productId: asInt(map['product_id']),
       note: map['note']?.toString(),
       quantity: asInt(map['quantity']),
-      account: map['account'] is Map<String, dynamic>
+      account: map['account'] is List<dynamic>
+          ? (map['account'] as List<dynamic>).isNotEmpty &&
+                    (map['account'] as List<dynamic>).first
+                        is Map<String, dynamic>
+                ? (map['account'] as List<dynamic>).first
+                      as Map<String, dynamic>
+                : {}
+          : map['account'] is Map<String, dynamic>
           ? map['account'] as Map<String, dynamic>
-          : null,
+          : {},
       price: asInt(map['price']),
       priceSupply: asInt(map['price_supply']),
       supplyId: asInt(map['supply_id']),

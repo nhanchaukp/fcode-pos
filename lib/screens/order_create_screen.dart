@@ -1,14 +1,8 @@
 import 'package:fcode_pos/enums.dart' as enums;
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/order_service.dart';
-import 'package:fcode_pos/services/product_supply_service.dart';
-import 'package:fcode_pos/ui/components/account_form_input.dart';
-import 'package:fcode_pos/ui/components/account_slot_dropdown.dart';
 import 'package:fcode_pos/ui/components/customer_search_dropdown.dart';
-import 'package:fcode_pos/ui/components/money_form_field.dart';
-import 'package:fcode_pos/ui/components/product_search_dropdown.dart';
-import 'package:fcode_pos/ui/components/quantity_input.dart';
-import 'package:fcode_pos/ui/components/supply_dropdown.dart';
+import 'package:fcode_pos/ui/components/order_item_editor_modal.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
@@ -27,7 +21,7 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
 
   User? _selectedUser;
   bool _isLoading = false;
-  final List<OrderItemForm> _orderItems = [];
+  final List<OrderItemFormData> _orderItems = [];
 
   @override
   void dispose() {
@@ -240,12 +234,6 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 16),
-          OutlinedButton.icon(
-            onPressed: _handleAddItem,
-            icon: const Icon(Icons.add),
-            label: const Text('Thêm sản phẩm'),
-          ),
         ],
       ),
     );
@@ -340,9 +328,23 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
   }
 
   Future<void> _handleAddItem() async {
-    final newItem = OrderItemForm();
-    final saved = await _openItemEditor(newItem);
-    if (saved) {
+    final newItem = OrderItemFormData();
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) => OrderItemEditorModal(
+        itemData: newItem,
+        title: 'Thêm sản phẩm',
+        primaryActionLabel: 'Thêm',
+        onPrimaryAction: (data) async {
+          // Just validate and close, actual adding is done below
+          return true;
+        },
+      ),
+    );
+
+    if (result == true) {
       setState(() {
         _orderItems.add(newItem);
       });
@@ -353,8 +355,22 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
 
   Future<void> _handleEditItem(int index) async {
     final item = _orderItems[index];
-    final saved = await _openItemEditor(item);
-    if (saved && mounted) {
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) => OrderItemEditorModal(
+        itemData: item,
+        title: 'Chỉnh sửa sản phẩm',
+        primaryActionLabel: 'Lưu',
+        onPrimaryAction: (data) async {
+          // Just validate and close, data is already updated
+          return true;
+        },
+      ),
+    );
+
+    if (result == true && mounted) {
       setState(() {});
     }
   }
@@ -364,216 +380,6 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
       _orderItems[index].dispose();
       _orderItems.removeAt(index);
     });
-  }
-
-  Future<bool> _openItemEditor(OrderItemForm item) async {
-    bool saved = false;
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (context) {
-        final modalFormKey = GlobalKey<FormState>();
-        return StatefulBuilder(
-          builder: (context, modalSetState) {
-            Future<void> syncState() async {
-              modalSetState(() {});
-              if (mounted) setState(() {});
-            }
-
-            Future<void> loadBestPrice({int? supplyId}) async {
-              await item.loadBestPrice(
-                context,
-                supplyId: supplyId,
-                onStateChanged: () {
-                  modalSetState(() {});
-                },
-              );
-            }
-
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-                left: 16,
-                right: 16,
-                top: 12,
-              ),
-              child: SingleChildScrollView(
-                child: Form(
-                  key: modalFormKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        children: [
-                          const Text(
-                            'Thông tin sản phẩm',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 18,
-                            ),
-                          ),
-                          const Spacer(),
-                          IconButton(
-                            onPressed: () => Navigator.pop(context),
-                            icon: const Icon(Icons.close),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      ProductSearchDropdown(
-                        selectedProduct: item.product,
-                        onProductSelected: (product) async {
-                          item.product = product;
-                          item.price = product.priceSale ?? product.price;
-                          item.priceController.text = item.price.toString();
-                          await loadBestPrice();
-                          syncState();
-                        },
-                        onProductCleared: () {
-                          item.product = null;
-                          syncState();
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      SupplyDropdown(
-                        selectedSupply: item.supply,
-                        onSupplySelected: (supply) async {
-                          item.supply = supply;
-                          if (item.product != null) {
-                            await loadBestPrice(supplyId: supply.id);
-                          }
-                          syncState();
-                        },
-                        onSupplyCleared: () {
-                          item.supply = null;
-                          syncState();
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      QuantityInput(
-                        initialQuantity: item.quantity,
-                        minQuantity: 1,
-                        onQuantityChanged: (quantity) {
-                          item.quantity = quantity;
-                          modalSetState(() {});
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: MoneyFormField(
-                              controller: item.priceSupplyController,
-                              labelText: 'Giá vốn',
-                              hintText: '0',
-                              prefixIcon: item.isLoadingBestPrice
-                                  ? const Padding(
-                                      padding: EdgeInsets.all(12.0),
-                                      child: SizedBox(
-                                        width: 18,
-                                        height: 18,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      ),
-                                    )
-                                  : null,
-                              onChanged: (value) {
-                                item.priceSupply = value;
-                              },
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Vui lòng nhập giá vốn';
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: MoneyFormField(
-                              controller: item.priceController,
-                              labelText: 'Giá bán',
-                              hintText: '0',
-                              onChanged: (value) {
-                                item.price = value;
-                              },
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Vui lòng nhập giá bán';
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      AccountFormInput(
-                        key: ValueKey('account-${item.hashCode}'),
-                        initialAccount: item.account,
-                        onAccountChanged: (accountData) {
-                          item.account = accountData;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      AccountSlotDropdown(
-                        selectedSlot: item.accountSlot,
-                        onSlotSelected: (slot) {
-                          item.accountSlot = slot;
-                          modalSetState(() {});
-                        },
-                        onSlotCleared: () {
-                          item.accountSlot = null;
-                          modalSetState(() {});
-                        },
-                      ),
-                      const SizedBox(height: 24),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text('Hủy'),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: FilledButton(
-                              onPressed: () {
-                                if (item.product == null) {
-                                  Toastr.error('Vui lòng chọn sản phẩm');
-                                  return;
-                                }
-                                if (item.supply == null) {
-                                  Toastr.error('Vui lòng chọn nhà cung cấp');
-                                  return;
-                                }
-                                if (modalFormKey.currentState!.validate()) {
-                                  item.price = item.priceController.moneyValue;
-                                  item.priceSupply =
-                                      item.priceSupplyController.moneyValue;
-                                  saved = true;
-                                  Navigator.pop(context);
-                                }
-                              },
-                              child: const Text('Lưu'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-    return saved;
   }
 
   Widget _buildCustomerField() {
@@ -600,43 +406,6 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
       maxLines: 3,
       keyboardType: TextInputType.multiline,
       textInputAction: TextInputAction.newline,
-    );
-  }
-
-  Widget _buildTotalDisplay() {
-    final total = _calculateTotal();
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Tổng tiền',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                CurrencyHelper.formatCurrency(total),
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-              ),
-            ],
-          ),
-          const Spacer(),
-          Chip(label: Text('${_orderItems.length} mục')),
-        ],
-      ),
     );
   }
 
@@ -692,91 +461,6 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class OrderItemForm {
-  Product? product;
-  Supply? supply;
-  int quantity;
-  int price;
-  int priceSupply;
-  Map<String, dynamic>? account;
-  AccountSlot? accountSlot;
-  String? note;
-  bool isLoadingBestPrice;
-
-  final ProductSupplyService _productSupplyService = ProductSupplyService();
-
-  final TextEditingController priceSupplyController;
-  final TextEditingController priceController;
-
-  OrderItemForm({
-    this.product,
-    this.supply,
-    this.quantity = 1,
-    this.price = 0,
-    this.priceSupply = 0,
-    this.account,
-    this.accountSlot,
-    this.note,
-    this.isLoadingBestPrice = false,
-  }) : priceSupplyController = TextEditingController(
-         text: priceSupply.toString(),
-       ),
-       priceController = TextEditingController(text: price.toString());
-
-  void dispose() {
-    priceSupplyController.dispose();
-    priceController.dispose();
-  }
-
-  Future<void> loadBestPrice(
-    BuildContext context, {
-    int? supplyId,
-    VoidCallback? onStateChanged,
-  }) async {
-    if (product == null) return;
-
-    isLoadingBestPrice = true;
-    onStateChanged?.call();
-
-    try {
-      final bestPriceResult = await _productSupplyService.bestPrice(
-        product!.id,
-        supplyId: supplyId,
-      );
-
-      if (bestPriceResult.data != null) {
-        final bestPrice = bestPriceResult.data!;
-        supply ??= bestPrice.supply;
-        priceSupply = bestPrice.price;
-        priceSupplyController.text = bestPrice.price.toString();
-      }
-    } catch (e) {
-      debugPrint('Error loading best price: $e');
-      if (context.mounted) {
-        Toastr.error('Không thể tải giá tốt nhất');
-      }
-    } finally {
-      isLoadingBestPrice = false;
-      onStateChanged?.call();
-    }
-  }
-
-  OrderItem toOrderItem(int orderId) {
-    return OrderItem(
-      orderId: orderId,
-      productId: product!.id,
-      supplyId: supply!.id,
-      quantity: quantity,
-      price: price,
-      priceSupply: priceSupply,
-      account: account,
-      accountSlotId: accountSlot?.id,
-      note: note?.isEmpty == true ? null : note,
-      refundedAmount: 0,
     );
   }
 }

@@ -14,9 +14,10 @@ class AccountSlotService {
     );
   }
 
-  Future<ApiResponse<List<AccountSlot>>> available() {
+  Future<ApiResponse<List<AccountSlot>>> available(int? includeId) {
     return _api.get<List<AccountSlot>>(
       '/account-slots/available',
+      queryParameters: {'include_id': includeId},
       parser: (json) => _parseAccountSlotList(json),
     );
   }

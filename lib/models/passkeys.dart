@@ -18,12 +18,12 @@ class PasskeyOptions implements Model {
 
   factory PasskeyOptions.fromJson(Map<String, dynamic> map) {
     return PasskeyOptions(
-      challenge: map['challenge'],
-      rpId: map['rpId'],
+      challenge: map['challenge'].toString(),
+      rpId: map['rpId'].toString(),
       allowCredentials: map['allowCredentials'] != null
           ? List<String>.from(map['allowCredentials'] as List)
           : null,
-      userVerification: map['userVerification'],
+      userVerification: map['userVerification']?.toString(),
     );
   }
 
