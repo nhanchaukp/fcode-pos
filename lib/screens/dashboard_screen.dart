@@ -341,102 +341,102 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         },
                       ),
                       const SizedBox(height: 20),
-                      DashboardTrendChart(
-                        data: _revenueTrend,
-                        color: Colors.teal,
-                        title: 'Doanh thu theo tuần',
-                        subtitle: 'Doanh thu 7 ngày gần nhất (triệu đồng)',
-                      ),
-                      const SizedBox(height: 12),
-                      DashboardTrendChart(
-                        data: _profitTrend,
-                        color: Colors.indigo,
-                        title: 'Lợi nhuận gộp',
-                        subtitle: 'Lợi nhuận trước thuế (triệu đồng)',
-                      ),
-                      const SizedBox(height: 20),
-                      DashboardSection(
-                        title: 'Hoạt động gần đây',
-                        children: _recentActivities
-                            .map(
-                              (activity) => Card(
-                                elevation: 0,
-                                margin: const EdgeInsets.only(bottom: 8),
-                                child: ListTile(
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 4,
-                                  ),
-                                  leading: Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: activity.color.withValues(
-                                        alpha: 0.12,
-                                      ),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Icon(
-                                      activity.leadingIcon,
-                                      color: activity.color,
-                                      size: 20,
-                                    ),
-                                  ),
-                                  title: Text(
-                                    activity.title,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.copyWith(fontWeight: FontWeight.w600),
-                                  ),
-                                  subtitle: Text(
-                                    activity.subtitle,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall,
-                                  ),
-                                  trailing: Text(
-                                    activity.amount,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.copyWith(fontWeight: FontWeight.w600),
-                                  ),
-                                ),
-                              ),
-                            )
-                            .toList(),
-                      ),
-                      const SizedBox(height: 20),
-                      DashboardSection(
-                        title: 'Nhắc việc',
-                        trailing: TextButton(
-                          onPressed: () {},
-                          child: const Text('Xem tất cả'),
-                        ),
-                        children: [
-                          _ReminderTile(
-                            icon: Icons.pending_actions_outlined,
-                            title: '5 đơn hàng đang chờ xác nhận',
-                            subtitle:
-                                'Kiểm tra và xác nhận trước 17:00 hôm nay',
-                          ),
-                          const SizedBox(height: 8),
-                          _ReminderTile(
-                            icon: Icons.warning_amber_outlined,
-                            title: '2 sản phẩm sắp hết hàng',
-                            subtitle:
-                                'Apple Watch Series 9, Apple AirPods Pro – tồn kho < 5',
-                          ),
-                          const SizedBox(height: 8),
-                          _ReminderTile(
-                            icon: Icons.campaign_outlined,
-                            title: 'Chiến dịch marketing tuần sau',
-                            subtitle:
-                                'Chuẩn bị nội dung và ngân sách cho tuần 42',
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
+                      // DashboardTrendChart(
+                      //   data: _revenueTrend,
+                      //   color: Colors.teal,
+                      //   title: 'Doanh thu theo tuần',
+                      //   subtitle: 'Doanh thu 7 ngày gần nhất (triệu đồng)',
+                      // ),
+                      // const SizedBox(height: 12),
+                      // DashboardTrendChart(
+                      //   data: _profitTrend,
+                      //   color: Colors.indigo,
+                      //   title: 'Lợi nhuận gộp',
+                      //   subtitle: 'Lợi nhuận trước thuế (triệu đồng)',
+                      // ),
+                      // const SizedBox(height: 20),
+                      // DashboardSection(
+                      //   title: 'Hoạt động gần đây',
+                      //   children: _recentActivities
+                      //       .map(
+                      //         (activity) => Card(
+                      //           elevation: 0,
+                      //           margin: const EdgeInsets.only(bottom: 8),
+                      //           child: ListTile(
+                      //             contentPadding: const EdgeInsets.symmetric(
+                      //               horizontal: 12,
+                      //               vertical: 4,
+                      //             ),
+                      //             leading: Container(
+                      //               padding: const EdgeInsets.all(8),
+                      //               decoration: BoxDecoration(
+                      //                 color: activity.color.withValues(
+                      //                   alpha: 0.12,
+                      //                 ),
+                      //                 borderRadius: BorderRadius.circular(8),
+                      //               ),
+                      //               child: Icon(
+                      //                 activity.leadingIcon,
+                      //                 color: activity.color,
+                      //                 size: 20,
+                      //               ),
+                      //             ),
+                      //             title: Text(
+                      //               activity.title,
+                      //               style: Theme.of(context)
+                      //                   .textTheme
+                      //                   .bodyMedium
+                      //                   ?.copyWith(fontWeight: FontWeight.w600),
+                      //             ),
+                      //             subtitle: Text(
+                      //               activity.subtitle,
+                      //               style: Theme.of(
+                      //                 context,
+                      //               ).textTheme.bodySmall,
+                      //             ),
+                      //             trailing: Text(
+                      //               activity.amount,
+                      //               style: Theme.of(context)
+                      //                   .textTheme
+                      //                   .bodyMedium
+                      //                   ?.copyWith(fontWeight: FontWeight.w600),
+                      //             ),
+                      //           ),
+                      //         ),
+                      //       )
+                      //       .toList(),
+                      // ),
+                      // const SizedBox(height: 20),
+                      // DashboardSection(
+                      //   title: 'Nhắc việc',
+                      //   trailing: TextButton(
+                      //     onPressed: () {},
+                      //     child: const Text('Xem tất cả'),
+                      //   ),
+                      //   children: [
+                      //     _ReminderTile(
+                      //       icon: Icons.pending_actions_outlined,
+                      //       title: '5 đơn hàng đang chờ xác nhận',
+                      //       subtitle:
+                      //           'Kiểm tra và xác nhận trước 17:00 hôm nay',
+                      //     ),
+                      //     const SizedBox(height: 8),
+                      //     _ReminderTile(
+                      //       icon: Icons.warning_amber_outlined,
+                      //       title: '2 sản phẩm sắp hết hàng',
+                      //       subtitle:
+                      //           'Apple Watch Series 9, Apple AirPods Pro – tồn kho < 5',
+                      //     ),
+                      //     const SizedBox(height: 8),
+                      //     _ReminderTile(
+                      //       icon: Icons.campaign_outlined,
+                      //       title: 'Chiến dịch marketing tuần sau',
+                      //       subtitle:
+                      //           'Chuẩn bị nội dung và ngân sách cho tuần 42',
+                      //     ),
+                      //   ],
+                      // ),
+                      // const SizedBox(height: 20),
                       // Financial Report Section
                       DashboardSection(
                         title: 'Báo cáo tài chính',
@@ -575,72 +575,112 @@ class _FinancialReportContent extends StatelessWidget {
         const SizedBox(height: 12),
 
         // Order Statistics Card
-        Card(
-          elevation: 0,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Thống kê đơn hàng',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
               children: [
-                Text(
-                  'Thống kê đơn hàng',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                Expanded(
+                  child: _StatisticCard(
+                    icon: Icons.shopping_bag_outlined,
+                    label: 'Tổng đơn',
+                    value: '${report.orderStatistics.totalOrders}',
+                    color: Colors.indigo,
                   ),
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _StatisticItem(
-                        label: 'Tổng đơn',
-                        value: '${report.orderStatistics.totalOrders}',
-                        color: Colors.indigo,
-                      ),
-                    ),
-                    Expanded(
-                      child: _StatisticItem(
-                        label: 'Hoàn thành',
-                        value: '${report.orderStatistics.completedOrders}',
-                        color: Colors.green,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _StatisticItem(
-                        label: 'Thành công',
-                        value: '${report.orderStatistics.successfulOrders}',
-                        color: Colors.teal,
-                      ),
-                    ),
-                    Expanded(
-                      child: _StatisticItem(
-                        label: 'Đã hủy',
-                        value: '${report.orderStatistics.cancelledOrders}',
-                        color: Colors.red,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                _FinancialRow(
-                  label: 'Giá trị trung bình/đơn',
-                  value: CurrencyHelper.formatCurrency(
-                    double.tryParse(
-                          report.orderStatistics.avgOrderValue,
-                        )?.toInt() ??
-                        0,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _StatisticCard(
+                    icon: Icons.check_circle_outline,
+                    label: 'Hoàn thành',
+                    value: '${report.orderStatistics.completedOrders}',
+                    color: Colors.green,
                   ),
-                  icon: Icons.attach_money,
-                  color: Colors.amber,
                 ),
               ],
             ),
-          ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _StatisticCard(
+                    icon: Icons.verified_outlined,
+                    label: 'Thành công',
+                    value: '${report.orderStatistics.successfulOrders}',
+                    color: Colors.teal,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _StatisticCard(
+                    icon: Icons.cancel_outlined,
+                    label: 'Đã hủy',
+                    value: '${report.orderStatistics.cancelledOrders}',
+                    color: Colors.red,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Card(
+              elevation: 0,
+              color: Colors.amber.withValues(alpha: 0.1),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.attach_money,
+                        color: Colors.amber,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Giá trị trung bình/đơn',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: Colors.amber.shade800,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            CurrencyHelper.formatCurrency(
+                              double.tryParse(
+                                    report.orderStatistics.avgOrderValue,
+                                  )?.toInt() ??
+                                  0,
+                            ),
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.amber.shade900,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 12),
 
@@ -749,43 +789,65 @@ class _FinancialRow extends StatelessWidget {
   }
 }
 
-class _StatisticItem extends StatelessWidget {
-  const _StatisticItem({
+class _StatisticCard extends StatelessWidget {
+  const _StatisticCard({
+    required this.icon,
     required this.label,
     required this.value,
     required this.color,
   });
 
+  final IconData icon;
   final String label;
   final String value;
   final Color color;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(8),
+    final theme = Theme.of(context);
+    return Card(
+      elevation: 0,
+      color: color.withValues(alpha: 0.1),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: color.withValues(alpha: 0.2), width: 1),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: color),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: color,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, color: color, size: 20),
+                ),
+                const Spacer(),
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+            Text(
+              label,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: color.withValues(alpha: 0.8),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

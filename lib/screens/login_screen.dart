@@ -1,5 +1,6 @@
 import 'package:fcode_pos/api/api_exception.dart';
 import 'package:fcode_pos/data/models/status.dart';
+import 'package:fcode_pos/screens/main_shell.dart';
 import 'package:fcode_pos/ui/components/loading_icon.dart';
 import 'package:fcode_pos/utils/safe_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,9 +17,7 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _emailController = TextEditingController(
-    text: "nhanchauthai@gmail.com",
-  );
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   Status _status = Status.idle;
@@ -46,10 +45,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         );
 
         if (user != null && mounted) {
-          Navigator.pushNamedAndRemoveUntil(
+          Navigator.push(
             context,
-            '/home',
-            (route) => false,
+            MaterialPageRoute(builder: (context) => const MainShell()),
           );
         }
       } on ApiException catch (e) {
@@ -65,20 +63,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  Future<void> _handlePasskeyLogin() async {
+  Future<void> _handleGoogleLogin() async {
     if (!mounted) return;
-    setState(() => _passkeyLoading = Status.loading);
+    safeSetState(() => _passkeyLoading = Status.loading);
 
     final auth = ref.read(authProvider.notifier);
 
     try {
-      final user = await auth.loginWithPasskey();
+      final user = await auth.loginWithGoogle();
 
       if (user != null && mounted) {
-        Navigator.pushNamedAndRemoveUntil(
+        Navigator.push(
           context,
-          '/home',
-          (route) => false,
+          MaterialPageRoute(builder: (context) => const MainShell()),
         );
       }
     } on ApiException catch (e) {
@@ -87,14 +84,44 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } catch (e, stack) {
       debugPrintStack(
         stackTrace: stack,
-        label: "Error during Passkey login: $e",
+        label: "Error during Google login: $e",
       );
       safeSetState(() => _passkeyLoading = Status.error);
-      Toastr.error('Đăng nhập bằng Passkey thất bại. Vui lòng thử lại.');
+      Toastr.error('Đăng nhập bằng Google thất bại. Vui lòng thử lại.');
     } finally {
       safeSetState(() => _passkeyLoading = Status.idle);
     }
   }
+
+  // Future<void> _handlePasskeyLogin() async {
+  //   if (!mounted) return;
+  //   setState(() => _passkeyLoading = Status.loading);
+
+  //   final auth = ref.read(authProvider.notifier);
+
+  //   try {
+  //     final user = await auth.loginWithPasskey();
+
+  //     if (user != null && mounted) {
+  //       Navigator.push(
+  //         context,
+  //         MaterialPageRoute(builder: (context) => const MainShell()),
+  //       );
+  //     }
+  //   } on ApiException catch (e) {
+  //     safeSetState(() => _passkeyLoading = Status.error);
+  //     Toastr.error(e.message);
+  //   } catch (e, stack) {
+  //     debugPrintStack(
+  //       stackTrace: stack,
+  //       label: "Error during Passkey login: $e",
+  //     );
+  //     safeSetState(() => _passkeyLoading = Status.error);
+  //     Toastr.error('Đăng nhập bằng Passkey thất bại. Vui lòng thử lại.');
+  //   } finally {
+  //     safeSetState(() => _passkeyLoading = Status.idle);
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -226,7 +253,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Text(
-                          'or',
+                          'hoặc',
                           style: TextStyle(
                             color: Theme.of(
                               context,
@@ -242,21 +269,64 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  // Secondary Passkey Button
+                  // Google Sign In Button
                   SizedBox(
                     width: double.infinity,
                     height: 48,
                     child: OutlinedButton.icon(
                       onPressed: _passkeyLoading == Status.loading
                           ? null
-                          : _handlePasskeyLogin,
+                          : _handleGoogleLogin,
                       icon: LoadingIcon(
-                        icon: Icons.fingerprint,
+                        icon: Icons.g_mobiledata,
                         loading: _passkeyLoading == Status.loading,
                       ),
-                      label: const Text('Đăng nhập bằng Passkey'),
+                      label: const Text('Đăng nhập bằng Google'),
                     ),
                   ),
+                  // const SizedBox(height: 16),
+                  // // Divider
+                  // Row(
+                  //   children: [
+                  //     Expanded(
+                  //       child: Divider(
+                  //         color: Theme.of(context).colorScheme.onSecondary,
+                  //       ),
+                  //     ),
+                  //     Padding(
+                  //       padding: const EdgeInsets.symmetric(horizontal: 16),
+                  //       child: Text(
+                  //         'or',
+                  //         style: TextStyle(
+                  //           color: Theme.of(
+                  //             context,
+                  //           ).colorScheme.onSurfaceVariant,
+                  //         ),
+                  //       ),
+                  //     ),
+                  //     Expanded(
+                  //       child: Divider(
+                  //         color: Theme.of(context).colorScheme.onSecondary,
+                  //       ),
+                  //     ),
+                  //   ],
+                  // ),
+                  // const SizedBox(height: 16),
+                  // // Secondary Passkey Button
+                  // SizedBox(
+                  //   width: double.infinity,
+                  //   height: 48,
+                  //   child: OutlinedButton.icon(
+                  //     onPressed: _passkeyLoading == Status.loading
+                  //         ? null
+                  //         : _handlePasskeyLogin,
+                  //     icon: LoadingIcon(
+                  //       icon: Icons.fingerprint,
+                  //       loading: _passkeyLoading == Status.loading,
+                  //     ),
+                  //     label: const Text('Đăng nhập bằng Passkey'),
+                  //   ),
+                  // ),
                 ],
               ),
             ),

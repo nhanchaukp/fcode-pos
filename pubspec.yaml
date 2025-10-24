@@ -28,7 +28,8 @@ dependencies:
   shared_preferences: ^2.5.3
   flutter_riverpod: ^3.0.3
   currency_text_input_formatter: ^2.3.0
-  webauthn: ^0.2.5
+  google_sign_in: ^6.2.2
+  # passkeys: ^2.1.0
   pretty_dio_logger: ^1.4.0
   image_gallery_saver: ^2.0.3
   flutter_datetime_picker_plus: ^2.2.0
