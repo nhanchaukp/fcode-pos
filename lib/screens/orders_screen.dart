@@ -1,13 +1,11 @@
 import 'package:fcode_pos/enums.dart';
 import 'package:fcode_pos/models.dart';
+import 'package:fcode_pos/screens/global_search_screen.dart';
 import 'package:fcode_pos/screens/order_create_screen.dart';
 import 'package:fcode_pos/services/order_service.dart';
 import 'package:fcode_pos/ui/components/customer_search_dropdown.dart';
-import 'package:fcode_pos/ui/components/global_order_search.dart';
 import 'package:fcode_pos/ui/components/order_list_component.dart';
 import 'package:fcode_pos/ui/components/order_status_dropdown.dart';
-import 'package:fcode_pos/utils/currency_helper.dart';
-import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -29,12 +27,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   // Pagination state
   int _currentPage = 1;
   int _totalPages = 1;
-  int _totalItems = 0;
-  bool _isLoading = false;
-
-  // Stats state
-  OrderStats? _stats;
-  bool _isLoadingStats = false;
 
   // Orders state
   List<Order> _orders = [];
@@ -50,26 +42,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     _fromDate = DateTime.now();
     _toDate = DateTime.now();
     _selectedStatus = OrderStatus.all;
-    _loadStats();
     _loadOrders();
-  }
-
-  Future<void> _loadStats() async {
-    if (_fromDate == null || _toDate == null) return;
-
-    try {
-      final response = await _orderService.stats(_fromDate!, _toDate!);
-
-      if (mounted) {
-        setState(() {
-          _stats = response.data;
-          _isLoadingStats = false;
-        });
-      }
-    } catch (e) {
-      debugPrint('Error loading stats: $e');
-      Toastr.error('Lỗi tải thống kê đơn hàng.');
-    }
   }
 
   Future<void> _loadOrders({int? page}) async {
@@ -80,13 +53,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     setState(() {
       _isLoadingOrders = true;
       _ordersError = null;
-      _isLoading = true;
     });
 
     try {
       final response = await _orderService.list(
-        _fromDate!,
-        _toDate!,
+        fromDate: _fromDate,
+        toDate: _toDate,
         page: targetPage,
         perPage: 20,
         status: _selectedStatus?.value ?? '',
@@ -99,9 +71,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           _orders = response.data?.items ?? [];
           _currentPage = pagination?.currentPage ?? 1;
           _totalPages = pagination?.lastPage ?? 1;
-          _totalItems = pagination?.total ?? 0;
           _isLoadingOrders = false;
-          _isLoading = false;
         });
       }
     } catch (e, st) {
@@ -110,7 +80,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         setState(() {
           _ordersError = e.toString();
           _isLoadingOrders = false;
-          _isLoading = false;
         });
       }
     }
@@ -139,13 +108,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           break;
       }
     });
-    _loadStats(); // Reload stats when date range changes
     _loadOrders(page: 1); // Reload orders when date range changes
   }
 
   Future<void> _refreshAll() async {
-    // Reload stats and orders
-    await Future.wait([_loadStats(), _loadOrders(page: 1)]);
+    // Reload orders
+    await _loadOrders(page: 1);
   }
 
   @override
@@ -154,11 +122,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Đơn hàng'),
+        title: const Text('Đơn hàng'),
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
-            onPressed: () => showGlobalOrderSearch(context),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const GlobalSearchScreen(),
+                ),
+              );
+            },
             tooltip: 'Tìm kiếm',
           ),
           IconButton(
@@ -173,9 +148,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           onRefresh: _refreshAll,
           child: Column(
             children: [
-              // Stats cards
-              _buildStatsCards(),
-
               // Orders List
               Expanded(
                 child: OrderListComponent(
@@ -201,112 +173,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
           // Refresh list if order was created successfully
           if (result == true && mounted) {
-            _loadStats(); // Reload stats after creating new order
             _loadOrders(page: 1); // Reload orders after creating new order
           }
         },
         child: const Icon(Icons.add),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-    );
-  }
-
-  Widget _buildStatsCards() {
-    if (_isLoadingStats) {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        child: const Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    if (_stats == null) {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(12),
-      child: GridView.count(
-        crossAxisCount: 2,
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        mainAxisSpacing: 8,
-        crossAxisSpacing: 8,
-        childAspectRatio: 2.2,
-        children: [
-          _buildStatCard(
-            'Tổng đơn',
-            _stats!.totalOrdersCount.toString(),
-            Icons.shopping_cart,
-            Colors.blue,
-          ),
-          _buildStatCard(
-            'Đơn hoàn tất',
-            _stats!.completeOrderCount.toString(),
-            Icons.check_circle,
-            Colors.green,
-          ),
-          _buildStatCard(
-            'Tổng doanh thu',
-            CurrencyHelper.formatCurrency(_stats!.totalMoney),
-            Icons.attach_money,
-            Colors.orange,
-          ),
-          _buildStatCard(
-            'Lợi nhuận',
-            CurrencyHelper.formatCurrency(_stats!.revenue),
-            Icons.trending_up,
-            Colors.purple,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatCard(
-    String label,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.w500,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Icon(icon, size: 18, color: color),
-              ],
-            ),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -411,7 +283,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               Expanded(
                 child: FilledButton(
                   onPressed: () {
-                    _loadStats(); // Reload stats when filter applied
                     _loadOrders(page: 1); // Reload orders when filter applied
                     Navigator.pop(context);
                   },
@@ -496,7 +367,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       _selectedStatus = OrderStatus.all;
       _selectedUser = null;
     });
-    _loadStats(); // Reload stats when filters reset
     _loadOrders(page: 1); // Reload orders when filters reset
   }
 }

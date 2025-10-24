@@ -344,11 +344,13 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
       ),
     );
 
-    if (result == true) {
+    if (result == true && mounted) {
       setState(() {
         _orderItems.add(newItem);
       });
     } else {
+      // Delay dispose to ensure modal animation completes
+      await Future.delayed(const Duration(milliseconds: 300));
       newItem.dispose();
     }
   }

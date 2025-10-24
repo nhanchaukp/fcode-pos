@@ -16,20 +16,24 @@ class OrderService {
     );
   }
 
-  Future<ApiResponse<PaginatedData<Order>>> list(
-    DateTime fromDate,
-    DateTime toDate, {
+  Future<ApiResponse<PaginatedData<Order>>> list({
+    DateTime? fromDate,
+    DateTime? toDate,
     int page = 1,
     int perPage = 20,
-    String status = 'completed',
+    String status = '',
     String userId = '',
     String search = '',
   }) {
     return _api.get<PaginatedData<Order>>(
       '/order',
       queryParameters: {
-        'date_from': DateFormat('yyyy-MM-dd').format(fromDate),
-        'date_to': DateFormat('yyyy-MM-dd').format(toDate),
+        'date_from': fromDate != null
+            ? DateFormat('yyyy-MM-dd').format(fromDate)
+            : null,
+        'date_to': toDate != null
+            ? DateFormat('yyyy-MM-dd').format(toDate)
+            : null,
         'page': page,
         'per_page': perPage,
         'status': status,

@@ -57,7 +57,7 @@ class _MainShellState extends State<MainShell> {
           ),
           NavigationDestination(
             icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.more_horiz),
+            selectedIcon: Icon(Icons.settings),
             label: 'Khác',
           ),
         ],

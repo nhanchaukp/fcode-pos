@@ -19,6 +19,7 @@ class _ProductCostScreenState extends State<ProductCostScreen> {
   final _productSupplyService = ProductSupplyService();
   final TextEditingController _searchController = TextEditingController();
   Timer? _searchDebounce;
+  String _lastSearchValue = '';
 
   PaginatedData<ProductSupply>? _page;
   bool _isLoading = false;
@@ -42,12 +43,22 @@ class _ProductCostScreenState extends State<ProductCostScreen> {
   }
 
   void _onSearchChanged() {
+    final currentValue = _searchController.text.trim();
+
+    // Only trigger search if text actually changed
+    if (currentValue == _lastSearchValue) {
+      return;
+    }
+
     _searchDebounce?.cancel();
     _searchDebounce = Timer(const Duration(milliseconds: 350), () {
       if (!mounted) return;
+      _lastSearchValue = currentValue;
       _loadProductSupplies(page: 1);
     });
-    setState(() {});
+
+    // Update UI for suffix icon
+    if (mounted) setState(() {});
   }
 
   Future<void> _loadProductSupplies({int page = 1}) async {
@@ -76,7 +87,10 @@ class _ProductCostScreenState extends State<ProductCostScreen> {
         _page = null;
       });
     } catch (e, stackTrace) {
-      debugPrintStack(stackTrace: stackTrace, label: 'Load product costs error: $e');
+      debugPrintStack(
+        stackTrace: stackTrace,
+        label: 'Load product costs error: $e',
+      );
       if (!mounted) return;
       setState(() {
         _error = 'Không thể tải giá nhập sản phẩm.';
@@ -96,41 +110,49 @@ class _ProductCostScreenState extends State<ProductCostScreen> {
     final items = _page?.items ?? const <ProductSupply>[];
     final pagination = _page?.pagination;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Giá nhập sản phẩm'),
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: TextField(
-              controller: _searchController,
-              textInputAction: TextInputAction.search,
-              onSubmitted: (_) => _loadProductSupplies(page: 1),
-              decoration: InputDecoration(
-                hintText: 'Tìm theo sản phẩm hoặc nhà cung cấp...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchController.text.isEmpty
-                    ? null
-                    : IconButton(
-                        tooltip: 'Xóa',
-                        icon: const Icon(Icons.close),
-                        onPressed: () {
-                          _searchController.clear();
-                          _loadProductSupplies(page: 1);
-                        },
-                      ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Scaffold(
+        appBar: AppBar(
+          toolbarHeight: 64,
+          automaticallyImplyLeading: false,
+          title: SearchBar(
+            controller: _searchController,
+            hintText: 'Tìm sản phẩm hoặc nhà cung cấp',
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            trailing: _searchController.text.isEmpty
+                ? null
+                : [
+                    IconButton(
+                      tooltip: 'Xóa',
+                      icon: const Icon(Icons.close),
+                      onPressed: () {
+                        _searchController.clear();
+                        _loadProductSupplies(page: 1);
+                      },
+                    ),
+                  ],
+            onSubmitted: (_) => _loadProductSupplies(page: 1),
+            textInputAction: TextInputAction.search,
+            elevation: const WidgetStatePropertyAll(0),
+            backgroundColor: WidgetStatePropertyAll(
+              Theme.of(context).colorScheme.surfaceContainerHigh,
+            ),
+            padding: const WidgetStatePropertyAll<EdgeInsets>(
+              EdgeInsets.symmetric(horizontal: 8),
             ),
           ),
-          if (_isLoading) const LinearProgressIndicator(minHeight: 2),
-          Expanded(child: _buildContent(items)),
-          _buildPaginationControls(pagination),
-        ],
+        ),
+        body: Column(
+          children: [
+            if (_isLoading) const LinearProgressIndicator(minHeight: 2),
+            Expanded(child: _buildContent(items)),
+            _buildPaginationControls(pagination),
+          ],
+        ),
       ),
     );
   }
@@ -204,9 +226,9 @@ class _ProductCostScreenState extends State<ProductCostScreen> {
         children: [
           Text(
             'Trang ${pagination.currentPage}/${pagination.lastPage}',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
           FilledButton.tonalIcon(
@@ -218,8 +240,8 @@ class _ProductCostScreenState extends State<ProductCostScreen> {
           ),
           const SizedBox(width: 8),
           FilledButton.tonalIcon(
-            onPressed: !_isLoading &&
-                    pagination.currentPage < pagination.lastPage
+            onPressed:
+                !_isLoading && pagination.currentPage < pagination.lastPage
                 ? () => _loadProductSupplies(page: pagination.currentPage + 1)
                 : null,
             icon: const Icon(Icons.chevron_right),
@@ -258,42 +280,46 @@ class _ProductSupplyCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.inventory_2_outlined,
-                    size: 22, color: colorScheme.primary),
+                Icon(
+                  Icons.inventory_2_outlined,
+                  size: 22,
+                  color: colorScheme.primary,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     productName,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w700),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
                 Text(
                   priceLabel,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: colorScheme.primary,
-                      ),
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.primary,
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
             Row(
               children: [
-                Icon(Icons.local_shipping_outlined,
-                    size: 18, color: colorScheme.secondary),
+                Icon(
+                  Icons.local_shipping_outlined,
+                  size: 18,
+                  color: colorScheme.secondary,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     supplyName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyMedium
-                        ?.copyWith(fontWeight: FontWeight.w600),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
@@ -301,14 +327,17 @@ class _ProductSupplyCard extends StatelessWidget {
             const SizedBox(height: 8),
             Row(
               children: [
-                Icon(Icons.access_time_outlined,
-                    size: 18, color: colorScheme.onSurfaceVariant),
+                Icon(
+                  Icons.access_time_outlined,
+                  size: 18,
+                  color: colorScheme.onSurfaceVariant,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   'Cập nhật $updatedLabel',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -318,20 +347,20 @@ class _ProductSupplyCard extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.sticky_note_2_outlined,
-                        size: 18, color: colorScheme.onSurfaceVariant),
+                    Icon(
+                      Icons.sticky_note_2_outlined,
+                      size: 18,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         productSupply.note!,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
                   ],

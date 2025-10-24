@@ -1,5 +1,25 @@
 part of '../models.dart';
 
+class ShopOrderItem {
+  final int orderId;
+  final Order? order;
+  // Placeholder for ShopOrderItem model
+  ShopOrderItem({required this.orderId, this.order});
+
+  factory ShopOrderItem.fromJson(Map<String, dynamic> json) {
+    return ShopOrderItem(
+      orderId: asInt(json['order_id']),
+      order: json['order'] != null
+          ? Order.fromJson(ensureMap(json['order']))
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {'order_id': orderId, 'order': order?.toMap()};
+  }
+}
+
 /// Account Slot
 class AccountSlot {
   /// Slot ID.
@@ -41,6 +61,12 @@ class AccountSlot {
   /// Account master information.
   final AccountMaster? accountMaster;
 
+  final ShopOrderItem? shopOrderItem;
+
+  final String? color;
+
+  final int daysUntilExpiry;
+
   AccountSlot({
     required this.id,
     required this.accountMasterId,
@@ -55,6 +81,9 @@ class AccountSlot {
     this.createdAt,
     this.updatedAt,
     this.accountMaster,
+    this.shopOrderItem,
+    this.color,
+    this.daysUntilExpiry = 0,
   });
 
   factory AccountSlot.fromJson(Map<String, dynamic> map) {
@@ -84,6 +113,11 @@ class AccountSlot {
               map['account_master'] as Map<String, dynamic>,
             )
           : null,
+      shopOrderItem: map['order_item'] != null
+          ? ShopOrderItem.fromJson(ensureMap(map['order_item']))
+          : null,
+      color: map['color']?.toString(),
+      daysUntilExpiry: asInt(map['days_until_expiry']),
     );
   }
 
@@ -102,6 +136,9 @@ class AccountSlot {
       'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
       'account_master': accountMaster?.toMap(),
+      'order_item': shopOrderItem?.toMap(),
+      'color': color,
+      'days_until_expiry': daysUntilExpiry,
     };
   }
 }

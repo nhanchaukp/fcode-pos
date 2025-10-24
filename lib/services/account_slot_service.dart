@@ -7,10 +7,23 @@ class AccountSlotService {
 
   final ApiService _api;
 
-  Future<ApiResponse<List<AccountSlot>>> list() {
-    return _api.get<List<AccountSlot>>(
+  Future<ApiResponse<List<AccountMaster>>> listMaster({
+    int? accountMasterId,
+    bool? isActive,
+    String? serviceType,
+    String? search,
+    int? daysRemaining,
+  }) {
+    return _api.get<List<AccountMaster>>(
       '/account-slots',
-      parser: (json) => _parseAccountSlotList(json),
+      queryParameters: {
+        if (accountMasterId != null) 'account_master_id': accountMasterId,
+        if (isActive != null) 'is_active': isActive,
+        if (serviceType != null) 'service_type': serviceType.toLowerCase(),
+        if (search != null) 'search': search,
+        if (daysRemaining != null) 'days_remaining': daysRemaining,
+      },
+      parser: (json) => _parseAccountMasterList(json),
     );
   }
 
@@ -47,6 +60,25 @@ List<AccountSlot> _parseAccountSlotList(dynamic data) {
   }
 
   return <AccountSlot>[];
+}
+
+List<AccountMaster> _parseAccountMasterList(dynamic data) {
+  if (data is List) {
+    return data
+        .map((item) => AccountMaster.fromJson(_ensureMap(item)))
+        .toList(growable: false);
+  }
+
+  if (data is Map) {
+    final items = data['items'] ?? data['data'];
+    if (items is List) {
+      return items
+          .map((item) => AccountMaster.fromJson(_ensureMap(item)))
+          .toList(growable: false);
+    }
+  }
+
+  return <AccountMaster>[];
 }
 
 Map<String, dynamic> _ensureMap(dynamic data) {

@@ -6,8 +6,11 @@ import 'package:fcode_pos/ui/components/money_form_field.dart';
 import 'package:fcode_pos/ui/components/product_search_dropdown.dart';
 import 'package:fcode_pos/ui/components/quantity_input.dart';
 import 'package:fcode_pos/ui/components/supply_dropdown.dart';
+import 'package:fcode_pos/utils/functions.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart'
+    as picker;
 
 /// A reusable modal for editing order item details.
 /// Can be used for both creating new items and updating existing ones.
@@ -47,13 +50,28 @@ class OrderItemEditorModal extends StatefulWidget {
 class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
   final _formKey = GlobalKey<FormState>();
   final _productSupplyService = ProductSupplyService();
+  late final TextEditingController _expiredAtController;
 
   bool _isLoadingBestPrice = false;
   bool _isProcessing = false;
 
   @override
+  void initState() {
+    super.initState();
+    _expiredAtController = TextEditingController(
+      text: _formatExpiredAt(widget.itemData.expiredAt),
+    );
+  }
+
+  @override
   void dispose() {
+    _expiredAtController.dispose();
     super.dispose();
+  }
+
+  String _formatExpiredAt(DateTime? dateTime) {
+    if (dateTime == null) return '';
+    return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 
   Future<void> _loadBestPrice({int? supplyId}) async {
@@ -182,6 +200,8 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
                     const SizedBox(height: 16),
                     _buildPriceFields(),
                     const SizedBox(height: 16),
+                    _buildExpiredAtField(),
+                    const SizedBox(height: 16),
                     _buildNoteField(),
                     const SizedBox(height: 16),
                     _buildAccountSection(),
@@ -239,6 +259,17 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
           widget.itemData.price = product.priceSale ?? product.price;
           widget.itemData.priceController.text = widget.itemData.price
               .toString();
+
+          // Auto-calculate expiredAt based on product.expiryMonth
+          if (product.expiryMonth != null && product.expiryMonth! > 0) {
+            widget.itemData.expiredAt = addMonths(
+              DateTime.now(),
+              product.expiryMonth!,
+            );
+            _expiredAtController.text = _formatExpiredAt(
+              widget.itemData.expiredAt,
+            );
+          }
         });
         await _loadBestPrice();
       },
@@ -289,16 +320,7 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
             controller: widget.itemData.priceSupplyController,
             labelText: 'Giá vốn',
             hintText: '0',
-            prefixIcon: _isLoadingBestPrice
-                ? const Padding(
-                    padding: EdgeInsets.all(12.0),
-                    child: SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  )
-                : null,
+            isLoading: _isLoadingBestPrice,
             onChanged: (value) {
               widget.itemData.priceSupply = value;
             },
@@ -331,6 +353,40 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
     );
   }
 
+  Widget _buildExpiredAtField() {
+    return TextFormField(
+      readOnly: true,
+      onTap: _selectDateTime,
+      decoration: const InputDecoration(
+        labelText: 'Ngày hết hạn',
+        hintText: 'Chọn ngày giờ hết hạn',
+        border: OutlineInputBorder(),
+        suffixIcon: Icon(Icons.calendar_today),
+      ),
+      controller: _expiredAtController,
+    );
+  }
+
+  Future<void> _selectDateTime() async {
+    final now = DateTime.now();
+    final initialDate = widget.itemData.expiredAt ?? now;
+
+    picker.DatePicker.showDateTimePicker(
+      context,
+      showTitleActions: true,
+      minTime: now.subtract(const Duration(days: 365)),
+      maxTime: now.add(const Duration(days: 365 * 5)),
+      currentTime: initialDate,
+      locale: picker.LocaleType.vi,
+      onConfirm: (date) {
+        setState(() {
+          widget.itemData.expiredAt = date;
+          _expiredAtController.text = _formatExpiredAt(date);
+        });
+      },
+    );
+  }
+
   Widget _buildNoteField() {
     return TextFormField(
       initialValue: widget.itemData.note,
@@ -357,11 +413,11 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
       ),
       initiallyExpanded: false,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       collapsedShape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       children: [
@@ -480,6 +536,7 @@ class OrderItemFormData {
   Map<String, dynamic>? account;
   AccountSlot? accountSlot;
   String? note;
+  DateTime? expiredAt;
 
   final TextEditingController priceSupplyController;
   final TextEditingController priceController;
@@ -494,6 +551,7 @@ class OrderItemFormData {
     this.account,
     this.accountSlot,
     this.note,
+    this.expiredAt,
   }) : priceSupplyController = TextEditingController(
          text: priceSupply.toString(),
        ),
@@ -514,6 +572,7 @@ class OrderItemFormData {
       account: item.account,
       accountSlot: item.accountSlot,
       note: item.note,
+      expiredAt: item.expiredAt,
     );
   }
 
@@ -536,6 +595,7 @@ class OrderItemFormData {
       accountSlotId: accountSlot?.id,
       note: note?.isEmpty == true ? null : note,
       refundedAmount: 0,
+      expiredAt: expiredAt,
     );
   }
 
@@ -550,6 +610,7 @@ class OrderItemFormData {
     Map<String, dynamic>? account,
     AccountSlot? accountSlot,
     String? note,
+    DateTime? expiredAt,
   }) {
     return OrderItemFormData(
       id: id ?? this.id,
@@ -561,6 +622,7 @@ class OrderItemFormData {
       account: account ?? this.account,
       accountSlot: accountSlot ?? this.accountSlot,
       note: note ?? this.note,
+      expiredAt: expiredAt ?? this.expiredAt,
     );
   }
 }

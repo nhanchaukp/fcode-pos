@@ -17,3 +17,4 @@ part 'models/supply.dart';
 part 'models/product_supply.dart';
 part 'models/passkeys.dart';
 part 'models/login_response.dart';
+part 'models/financial_report.dart';

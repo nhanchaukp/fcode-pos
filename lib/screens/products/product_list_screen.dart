@@ -18,6 +18,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   final _productService = ProductService();
   final TextEditingController _searchController = TextEditingController();
   Timer? _searchDebounce;
+  String _lastSearchValue = '';
 
   PaginatedData<Product>? _page;
   bool _isLoading = false;
@@ -42,13 +43,20 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   void _handleSearchChanged() {
     _searchDebounce?.cancel();
-    _searchDebounce = Timer(const Duration(milliseconds: 350), () {
+    _searchDebounce = Timer(const Duration(milliseconds: 550), () {
       if (!mounted) return;
+      final currentValue = _searchController.text.trim();
+
+      // Only trigger search if text actually changed
+      if (currentValue == _lastSearchValue) {
+        return;
+      }
+      _lastSearchValue = currentValue;
       _loadProducts(page: 1);
     });
 
     // Trigger rebuild so suffix icon visibility updates
-    setState(() {});
+    if (mounted) setState(() {});
   }
 
   Future<void> _loadProducts({int page = 1}) async {
@@ -97,39 +105,49 @@ class _ProductListScreenState extends State<ProductListScreen> {
     final products = _page?.items ?? const <Product>[];
     final pagination = _page?.pagination;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Danh sách sản phẩm')),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: TextField(
-              controller: _searchController,
-              textInputAction: TextInputAction.search,
-              onSubmitted: (_) => _loadProducts(page: 1),
-              decoration: InputDecoration(
-                hintText: 'Tìm kiếm sản phẩm...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchController.text.isEmpty
-                    ? null
-                    : IconButton(
-                        tooltip: 'Xóa',
-                        icon: const Icon(Icons.close),
-                        onPressed: () {
-                          _searchController.clear();
-                          _loadProducts(page: 1);
-                        },
-                      ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Scaffold(
+        appBar: AppBar(
+          toolbarHeight: 64,
+          automaticallyImplyLeading: false,
+          title: SearchBar(
+            controller: _searchController,
+            hintText: 'Tìm kiếm sản phẩm',
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            trailing: _searchController.text.isEmpty
+                ? null
+                : [
+                    IconButton(
+                      tooltip: 'Xóa',
+                      icon: const Icon(Icons.close),
+                      onPressed: () {
+                        _searchController.clear();
+                        _loadProducts(page: 1);
+                      },
+                    ),
+                  ],
+            onSubmitted: (_) => _loadProducts(page: 1),
+            textInputAction: TextInputAction.search,
+            elevation: const WidgetStatePropertyAll(0),
+            backgroundColor: WidgetStatePropertyAll(
+              Theme.of(context).colorScheme.surfaceContainerHigh,
+            ),
+            padding: const WidgetStatePropertyAll<EdgeInsets>(
+              EdgeInsets.symmetric(horizontal: 8),
             ),
           ),
-          if (_isLoading) const LinearProgressIndicator(minHeight: 2),
-          Expanded(child: _buildContent(products)),
-          _buildPaginationControls(pagination),
-        ],
+        ),
+        body: Column(
+          children: [
+            if (_isLoading) const LinearProgressIndicator(minHeight: 2),
+            Expanded(child: _buildContent(products)),
+            _buildPaginationControls(pagination),
+          ],
+        ),
       ),
     );
   }

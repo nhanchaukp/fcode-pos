@@ -1,8 +1,9 @@
+import 'package:fcode_pos/screens/products/account_slot_management_screen.dart';
 import 'package:fcode_pos/screens/products/categories_screen.dart';
 import 'package:fcode_pos/screens/products/customer_list_screen.dart';
 import 'package:fcode_pos/screens/products/product_cost_screen.dart';
 import 'package:fcode_pos/screens/products/product_list_screen.dart';
-import 'package:fcode_pos/screens/products/suppliers_screen.dart';
+import 'package:fcode_pos/screens/supply/suppliers_screen.dart';
 import 'package:flutter/material.dart';
 
 class ProductHubScreen extends StatelessWidget {
@@ -14,6 +15,12 @@ class ProductHubScreen extends StatelessWidget {
       description: 'Quản lý danh mục sản phẩm, tồn kho và giá bán.',
       icon: Icons.inventory_2_outlined,
       builder: (context) => const ProductListScreen(),
+    ),
+    _ProductHubItem(
+      title: 'Account Slots',
+      description: 'Quản lý tài khoản master và slots dịch vụ.',
+      icon: Icons.vpn_key_outlined,
+      builder: (context) => const AccountSlotManagementScreen(),
     ),
     _ProductHubItem(
       title: 'Nhà cung cấp',

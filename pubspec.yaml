@@ -31,6 +31,7 @@ dependencies:
   webauthn: ^0.2.5
   pretty_dio_logger: ^1.4.0
   image_gallery_saver: ^2.0.3
+  flutter_datetime_picker_plus: ^2.2.0
 
 dependency_overrides:
   flutter_web_auth_2: 4.1.0

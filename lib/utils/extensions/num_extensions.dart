@@ -39,3 +39,9 @@ int? asIntOrNull(dynamic value) {
 
   return null;
 }
+
+Map<String, dynamic> ensureMap(dynamic data) {
+  if (data is Map<String, dynamic>) return data;
+  if (data is Map) return Map<String, dynamic>.from(data);
+  return <String, dynamic>{};
+}

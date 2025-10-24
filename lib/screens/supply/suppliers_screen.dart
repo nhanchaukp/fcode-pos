@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:fcode_pos/api/api_exception.dart';
 import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/models.dart';
+import 'package:fcode_pos/screens/supply/supply_form_screen.dart';
 import 'package:fcode_pos/services/supply_service.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +19,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
   final _supplyService = SupplyService();
   final TextEditingController _searchController = TextEditingController();
   Timer? _searchDebounce;
+  String _lastSearchValue = '';
 
   PaginatedData<Supply>? _page;
   bool _isLoading = false;
@@ -41,12 +43,22 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
   }
 
   void _onSearchChanged() {
+    final currentValue = _searchController.text.trim();
+
+    // Only trigger search if text actually changed
+    if (currentValue == _lastSearchValue) {
+      return;
+    }
+
     _searchDebounce?.cancel();
     _searchDebounce = Timer(const Duration(milliseconds: 350), () {
       if (!mounted) return;
+      _lastSearchValue = currentValue;
       _loadSuppliers(page: 1);
     });
-    setState(() {});
+
+    // Update UI for suffix icon
+    if (mounted) setState(() {});
   }
 
   Future<void> _loadSuppliers({int page = 1}) async {
@@ -75,7 +87,10 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
         _page = null;
       });
     } catch (e, stackTrace) {
-      debugPrintStack(stackTrace: stackTrace, label: 'Load suppliers error: $e');
+      debugPrintStack(
+        stackTrace: stackTrace,
+        label: 'Load suppliers error: $e',
+      );
       if (!mounted) return;
       setState(() {
         _error = 'Không thể tải danh sách nhà cung cấp.';
@@ -95,43 +110,78 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
     final supplies = _page?.items ?? const <Supply>[];
     final pagination = _page?.pagination;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Nhà cung cấp'),
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: TextField(
-              controller: _searchController,
-              textInputAction: TextInputAction.search,
-              onSubmitted: (_) => _loadSuppliers(page: 1),
-              decoration: InputDecoration(
-                hintText: 'Tìm kiếm nhà cung cấp...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchController.text.isEmpty
-                    ? null
-                    : IconButton(
-                        tooltip: 'Xóa',
-                        icon: const Icon(Icons.close),
-                        onPressed: () {
-                          _searchController.clear();
-                          _loadSuppliers(page: 1);
-                        },
-                      ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Scaffold(
+        appBar: AppBar(
+          toolbarHeight: 64,
+          automaticallyImplyLeading: false,
+          title: SearchBar(
+            controller: _searchController,
+            hintText: 'Tìm kiếm nhà cung cấp',
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            trailing: _searchController.text.isEmpty
+                ? null
+                : [
+                    IconButton(
+                      tooltip: 'Xóa',
+                      icon: const Icon(Icons.close),
+                      onPressed: () {
+                        _searchController.clear();
+                        _loadSuppliers(page: 1);
+                      },
+                    ),
+                  ],
+            onSubmitted: (_) => _loadSuppliers(page: 1),
+            textInputAction: TextInputAction.search,
+            elevation: const WidgetStatePropertyAll(0),
+            backgroundColor: WidgetStatePropertyAll(
+              Theme.of(context).colorScheme.surfaceContainerHigh,
+            ),
+            padding: const WidgetStatePropertyAll<EdgeInsets>(
+              EdgeInsets.symmetric(horizontal: 8),
             ),
           ),
-          if (_isLoading) const LinearProgressIndicator(minHeight: 2),
-          Expanded(child: _buildContent(supplies)),
-          _buildPaginationControls(pagination),
-        ],
+        ),
+        body: Column(
+          children: [
+            if (_isLoading) const LinearProgressIndicator(minHeight: 2),
+            Expanded(child: _buildContent(supplies)),
+            _buildPaginationControls(pagination),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: _handleCreateSupply,
+          tooltip: 'Thêm nhà cung cấp',
+          child: const Icon(Icons.add),
+        ),
       ),
     );
+  }
+
+  Future<void> _handleCreateSupply() async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (context) => const SupplyFormScreen()),
+    );
+
+    if (result == true && mounted) {
+      _loadSuppliers(page: _currentPage);
+    }
+  }
+
+  Future<void> _handleEditSupply(Supply supply) async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (context) => SupplyFormScreen(supply: supply)),
+    );
+
+    if (result == true && mounted) {
+      _loadSuppliers(page: _currentPage);
+    }
   }
 
   Widget _buildContent(List<Supply> supplies) {
@@ -169,8 +219,11 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.store_mall_directory_outlined,
-                size: 48, color: Colors.grey),
+            Icon(
+              Icons.store_mall_directory_outlined,
+              size: 48,
+              color: Colors.grey,
+            ),
             SizedBox(height: 12),
             Text('Không tìm thấy nhà cung cấp phù hợp'),
           ],
@@ -187,7 +240,10 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
         separatorBuilder: (context, _) => const SizedBox(height: 10),
         itemBuilder: (context, index) {
           final supply = supplies[index];
-          return _SupplyCard(supply: supply);
+          return _SupplyCard(
+            supply: supply,
+            onTap: () => _handleEditSupply(supply),
+          );
         },
       ),
     );
@@ -204,9 +260,9 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
         children: [
           Text(
             'Trang ${pagination.currentPage}/${pagination.lastPage}',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
           FilledButton.tonalIcon(
@@ -218,8 +274,8 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
           ),
           const SizedBox(width: 8),
           FilledButton.tonalIcon(
-            onPressed: !_isLoading &&
-                    pagination.currentPage < pagination.lastPage
+            onPressed:
+                !_isLoading && pagination.currentPage < pagination.lastPage
                 ? () => _loadSuppliers(page: pagination.currentPage + 1)
                 : null,
             icon: const Icon(Icons.chevron_right),
@@ -232,9 +288,10 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
 }
 
 class _SupplyCard extends StatelessWidget {
-  const _SupplyCard({required this.supply});
+  const _SupplyCard({required this.supply, required this.onTap});
 
   final Supply supply;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -246,73 +303,80 @@ class _SupplyCard extends StatelessWidget {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.warehouse_outlined,
-                  size: 22,
-                  color: colorScheme.primary,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    supply.name,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w700),
-                  ),
-                ),
-              ],
-            ),
-            if (description != null && description.isNotEmpty) ...[
-              const SizedBox(height: 12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.notes_outlined,
-                      size: 18, color: colorScheme.onSurfaceVariant),
-                  const SizedBox(width: 8),
+                  Icon(
+                    Icons.warehouse_outlined,
+                    size: 22,
+                    color: colorScheme.primary,
+                  ),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      description,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
+                      supply.name,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ],
+              ),
+              if (description != null && description.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.notes_outlined,
+                      size: 18,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        description,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _IconValue(
+                      icon: Icons.event_outlined,
+                      value: createdLabel,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _IconValue(
+                      icon: Icons.update_outlined,
+                      value: updatedLabel,
                     ),
                   ),
                 ],
               ),
             ],
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _IconValue(
-                    icon: Icons.event_outlined,
-                    value: createdLabel,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _IconValue(
-                    icon: Icons.update_outlined,
-                    value: updatedLabel,
-                  ),
-                ),
-              ],
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -320,10 +384,7 @@ class _SupplyCard extends StatelessWidget {
 }
 
 class _IconValue extends StatelessWidget {
-  const _IconValue({
-    required this.icon,
-    required this.value,
-  });
+  const _IconValue({required this.icon, required this.value});
 
   final IconData icon;
   final String value;
@@ -340,10 +401,9 @@ class _IconValue extends StatelessWidget {
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(fontWeight: FontWeight.w600),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
         ),
       ],

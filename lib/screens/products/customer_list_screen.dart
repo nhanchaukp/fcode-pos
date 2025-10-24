@@ -3,12 +3,13 @@ import 'dart:async';
 import 'package:fcode_pos/api/api_exception.dart';
 import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/models.dart';
+import 'package:fcode_pos/screens/customer_detail_screen.dart';
 import 'package:fcode_pos/services/customer_service.dart';
 import 'package:fcode_pos/ui/components/copyable_icon_text.dart';
 import 'package:fcode_pos/ui/components/icon_text.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
+import 'package:fcode_pos/utils/functions.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class CustomerListScreen extends StatefulWidget {
   const CustomerListScreen({super.key});
@@ -21,6 +22,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
   final _customerService = CustomerService();
   final TextEditingController _searchController = TextEditingController();
   Timer? _searchDebounce;
+  String _lastSearchValue = '';
 
   PaginatedData<User>? _page;
   bool _isLoading = false;
@@ -44,12 +46,22 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
   }
 
   void _onSearchChanged() {
+    final currentValue = _searchController.text.trim();
+
+    // Only trigger search if text actually changed
+    if (currentValue == _lastSearchValue) {
+      return;
+    }
+
     _searchDebounce?.cancel();
     _searchDebounce = Timer(const Duration(milliseconds: 350), () {
       if (!mounted) return;
+      _lastSearchValue = currentValue;
       _loadCustomers(page: 1);
     });
-    setState(() {});
+
+    // Update UI for suffix icon
+    if (mounted) setState(() {});
   }
 
   Future<void> _loadCustomers({int page = 1}) async {
@@ -96,44 +108,61 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
     }
   }
 
+  Future<void> _navigateToCustomerDetail(User user) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => CustomerDetailScreen(user: user)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final customers = _page?.items ?? const <User>[];
     final pagination = _page?.pagination;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Khách hàng')),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: TextField(
-              controller: _searchController,
-              textInputAction: TextInputAction.search,
-              onSubmitted: (_) => _loadCustomers(page: 1),
-              decoration: InputDecoration(
-                hintText: 'Tìm kiếm khách hàng...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchController.text.isEmpty
-                    ? null
-                    : IconButton(
-                        tooltip: 'Xóa',
-                        icon: const Icon(Icons.close),
-                        onPressed: () {
-                          _searchController.clear();
-                          _loadCustomers(page: 1);
-                        },
-                      ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Scaffold(
+        appBar: AppBar(
+          toolbarHeight: 64,
+          automaticallyImplyLeading: false,
+          title: SearchBar(
+            controller: _searchController,
+            hintText: 'Tìm kiếm khách hàng',
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            trailing: _searchController.text.isEmpty
+                ? null
+                : [
+                    IconButton(
+                      tooltip: 'Xóa',
+                      icon: const Icon(Icons.close),
+                      onPressed: () {
+                        _searchController.clear();
+                        _loadCustomers(page: 1);
+                      },
+                    ),
+                  ],
+            onSubmitted: (_) => _loadCustomers(page: 1),
+            textInputAction: TextInputAction.search,
+            elevation: const WidgetStatePropertyAll(0),
+            backgroundColor: WidgetStatePropertyAll(
+              Theme.of(context).colorScheme.surfaceContainerHigh,
+            ),
+            padding: const WidgetStatePropertyAll<EdgeInsets>(
+              EdgeInsets.symmetric(horizontal: 8),
             ),
           ),
-          if (_isLoading) const LinearProgressIndicator(minHeight: 2),
-          Expanded(child: _buildContent(customers)),
-          _buildPaginationControls(pagination),
-        ],
+        ),
+        body: Column(
+          children: [
+            if (_isLoading) const LinearProgressIndicator(minHeight: 2),
+            Expanded(child: _buildContent(customers)),
+            _buildPaginationControls(pagination),
+          ],
+        ),
       ),
     );
   }
@@ -190,7 +219,10 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
         separatorBuilder: (context, _) => const SizedBox(height: 10),
         itemBuilder: (context, index) {
           final customer = customers[index];
-          return _CustomerCard(user: customer);
+          return _CustomerCard(
+            user: customer,
+            onTap: () => _navigateToCustomerDetail(customer),
+          );
         },
       ),
     );
@@ -235,9 +267,10 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
 }
 
 class _CustomerCard extends StatelessWidget {
-  const _CustomerCard({required this.user});
+  const _CustomerCard({required this.user, this.onTap});
 
   final User user;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -254,96 +287,92 @@ class _CustomerCard extends StatelessWidget {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CircleAvatar(radius: 22, child: Text(initial)),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        displayName,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w700),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.mail_outlined,
-                            size: 16,
-                            color: colorScheme.primary,
-                          ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              email,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: IconText(
-                    icon: Icons.account_balance_wallet_outlined,
-                    value: balanceLabel,
-                    color: colorScheme.primary,
-                  ),
-                ),
-                if (facebookUrl != null && facebookUrl.isNotEmpty) ...[
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(radius: 22, child: Text(initial)),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: InkWell(
-                      onTap: () => _launchUrl(facebookUrl),
-                      child: IconText(
-                        icon: Icons.link,
-                        value: 'Facebook',
-                        color: colorScheme.secondary,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          displayName,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.mail_outlined,
+                              size: 16,
+                              color: colorScheme.primary,
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                email,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ],
-              ],
-            ),
-            if (phone != null && phone.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              CopyableIconText(
-                icon: Icons.phone_outlined,
-                value: phone,
-                color: colorScheme.tertiary,
               ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: IconText(
+                      icon: Icons.account_balance_wallet_outlined,
+                      value: balanceLabel,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                  if (facebookUrl != null && facebookUrl.isNotEmpty) ...[
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: InkWell(
+                        onTap: () => openUrl(facebookUrl),
+                        child: IconText(
+                          icon: Icons.link,
+                          value: 'Facebook',
+                          color: colorScheme.secondary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              if (phone != null && phone.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                CopyableIconText(
+                  icon: Icons.phone_outlined,
+                  value: phone,
+                  color: colorScheme.tertiary,
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
-  }
-}
-
-Future<void> _launchUrl(String url) async {
-  final uri = Uri.tryParse(url);
-  if (uri == null) return;
-  if (await canLaunchUrl(uri)) {
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 }

@@ -47,6 +47,8 @@ class AccountMaster {
   /// Details.
   final String? details;
 
+  final List<AccountSlot>? slots;
+
   AccountMaster({
     required this.id,
     required this.name,
@@ -63,6 +65,7 @@ class AccountMaster {
     this.updatedAt,
     this.cookies,
     this.details,
+    this.slots,
   });
 
   factory AccountMaster.fromJson(Map<String, dynamic> map) {
@@ -88,6 +91,11 @@ class AccountMaster {
           : null,
       cookies: map['cookies']?.toString(),
       details: map['details']?.toString(),
+      slots: map['slots'] is List
+          ? (map['slots'] as List)
+                .map((item) => AccountSlot.fromJson(ensureMap(item)))
+                .toList(growable: false)
+          : null,
     );
   }
 
@@ -108,6 +116,7 @@ class AccountMaster {
       'updated_at': updatedAt?.toIso8601String(),
       'cookies': cookies,
       'details': details,
+      'slots': slots?.map((slot) => slot.toMap()).toList(),
     };
   }
 }

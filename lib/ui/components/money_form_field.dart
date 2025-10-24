@@ -18,6 +18,7 @@ class MoneyFormField extends StatefulWidget {
   final bool autofocus;
   final FocusNode? focusNode;
   final InputDecoration? decoration;
+  final bool isLoading;
 
   const MoneyFormField({
     super.key,
@@ -35,6 +36,7 @@ class MoneyFormField extends StatefulWidget {
     this.autofocus = false,
     this.focusNode,
     this.decoration,
+    this.isLoading = false,
   });
 
   @override
@@ -80,6 +82,9 @@ class _MoneyFormFieldState extends State<MoneyFormField> {
   void _handleControllerChange() {
     // Prevent infinite loop
     if (_isFormatting) return;
+
+    // Check if controller is still valid
+    if (!mounted) return;
 
     final text = _controller.text;
 
@@ -133,9 +138,18 @@ class _MoneyFormFieldState extends State<MoneyFormField> {
             labelText: widget.labelText,
             hintText: widget.hintText,
             border: const OutlineInputBorder(),
-            suffixText: widget.suffixText,
+            suffixText: widget.isLoading ? null : widget.suffixText,
             prefixIcon: widget.prefixIcon,
-            suffixIcon: widget.suffixIcon,
+            suffixIcon: widget.isLoading
+                ? const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: SizedBox(
+                      width: 8,
+                      height: 8,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                : widget.suffixIcon,
           ),
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [_formatter],

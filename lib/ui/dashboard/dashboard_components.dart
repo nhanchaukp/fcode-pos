@@ -31,54 +31,60 @@ class DashboardStatCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Header: Icon + Title + Trend
             Row(
               children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: color.withValues(alpha: 0.15),
-                  child: Icon(icon, color: color),
+                Icon(icon, color: color, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ),
-                if (trendLabel != null) ...[
-                  const Spacer(),
+                if (trendLabel != null)
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: color.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(999),
+                      borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
                       trendLabel!,
-                      style: theme.textTheme.labelMedium?.copyWith(
+                      style: theme.textTheme.labelSmall?.copyWith(
                         color: color,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
-                ],
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
+            // Value
             Text(
               value,
-              style: theme.textTheme.headlineSmall?.copyWith(
+              style: theme.textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.bold,
+                height: 1.2,
               ),
             ),
             const SizedBox(height: 4),
-            Text(
-              title,
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 8),
+            // Subtitle
             Text(
               subtitle,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant
-                    .withValues(alpha: 0.7),
+                color: theme.colorScheme.onSurfaceVariant.withValues(
+                  alpha: 0.7,
+                ),
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -114,24 +120,21 @@ class DashboardTrendChart extends StatelessWidget {
           children: [
             Text(
               title,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             Text(
               subtitle,
-              style: theme.textTheme.bodyMedium?.copyWith(
+              style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
             SizedBox(
-              height: 180,
-              child: _Sparkline(
-                data: data,
-                color: color,
-              ),
+              height: 140,
+              child: _Sparkline(data: data, color: color),
             ),
           ],
         ),
@@ -189,10 +192,7 @@ class _Sparkline extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         return CustomPaint(
-          painter: _SparklinePainter(
-            data: data,
-            strokeColor: color,
-          ),
+          painter: _SparklinePainter(data: data, strokeColor: color),
           size: Size(constraints.maxWidth, constraints.maxHeight),
         );
       },
