@@ -1,7 +1,8 @@
 import 'package:fcode_pos/models.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+// import 'package:passkeys/authenticator.dart';
+// import 'package:passkeys/types.dart';
 import 'package:fcode_pos/services/auth_service.dart';
 import 'package:fcode_pos/storage/secure_storage.dart';
 
@@ -42,44 +43,6 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
   Future<void> logout() async {
     await _auth.logout();
     state = const AsyncValue.data(null);
-  }
-
-  Future<User?> loginWithGoogle() async {
-    try {
-      final GoogleSignIn googleSignIn = GoogleSignIn(
-        scopes: ['email', 'profile'],
-      );
-
-      // Sign out first to always show account picker
-      await googleSignIn.signOut();
-
-      // Trigger Google Sign In flow
-      final GoogleSignInAccount? googleAccount = await googleSignIn.signIn();
-
-      if (googleAccount == null) {
-        // User canceled the sign-in
-        throw StateError('Đăng nhập bị hủy');
-      }
-
-      // Get authentication details
-      final GoogleSignInAuthentication googleAuth =
-          await googleAccount.authentication;
-
-      final String? idToken = googleAuth.idToken;
-
-      if (idToken == null) {
-        throw StateError('Không thể lấy ID Token từ Google');
-      }
-
-      // Send ID token to backend
-      final response = await _auth.loginWithGoogle(idToken);
-      final user = response.data;
-      state = AsyncValue.data(user);
-      return user;
-    } catch (e) {
-      state = AsyncValue.error(e, StackTrace.current);
-      rethrow;
-    }
   }
 
   // Future<User?> loginWithPasskey() async {

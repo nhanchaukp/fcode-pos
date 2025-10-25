@@ -1,7 +1,5 @@
 import 'package:fcode_pos/appwrite.dart';
 import 'package:fcode_pos/providers/theme_provider.dart';
-import 'package:fcode_pos/screens/login_screen.dart';
-import 'package:fcode_pos/screens/main_shell.dart';
 import 'package:fcode_pos/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,6 +25,9 @@ class AppwriteApp extends ConsumerWidget {
           foregroundColor: base.colorScheme.onPrimary,
         ),
       ),
+      inputDecorationTheme: base.inputDecorationTheme.copyWith(
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      ),
       appBarTheme: base.appBarTheme.copyWith(elevation: 0, centerTitle: false),
     );
   }
@@ -49,6 +50,9 @@ class AppwriteApp extends ConsumerWidget {
           foregroundColor: base.colorScheme.onPrimary,
         ),
       ),
+      inputDecorationTheme: base.inputDecorationTheme.copyWith(
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      ),
       appBarTheme: base.appBarTheme.copyWith(elevation: 0, centerTitle: false),
     );
   }
@@ -65,10 +69,6 @@ class AppwriteApp extends ConsumerWidget {
       darkTheme: _buildDarkTheme(),
       themeMode: themeMode,
       home: const SplashScreen(),
-      routes: {
-        '/home': (context) => const MainShell(),
-        '/login': (context) => const LoginScreen(),
-      },
     );
   }
 }

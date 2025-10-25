@@ -5,7 +5,7 @@ import 'package:fcode_pos/screens/order_create_screen.dart';
 import 'package:fcode_pos/services/order_service.dart';
 import 'package:fcode_pos/ui/components/customer_search_dropdown.dart';
 import 'package:fcode_pos/ui/components/order_list_component.dart';
-import 'package:fcode_pos/ui/components/order_status_dropdown.dart';
+import 'package:fcode_pos/ui/components/dropdown/order_status_dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';

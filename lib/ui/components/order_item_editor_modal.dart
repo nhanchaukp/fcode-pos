@@ -3,14 +3,12 @@ import 'package:fcode_pos/services/product_supply_service.dart';
 import 'package:fcode_pos/ui/components/account_form_input.dart';
 import 'package:fcode_pos/ui/components/account_slot_dropdown.dart';
 import 'package:fcode_pos/ui/components/money_form_field.dart';
-import 'package:fcode_pos/ui/components/product_search_dropdown.dart';
+import 'package:fcode_pos/ui/components/dropdown/product_dropdown.dart';
 import 'package:fcode_pos/ui/components/quantity_input.dart';
-import 'package:fcode_pos/ui/components/supply_dropdown.dart';
+import 'package:fcode_pos/ui/components/dropdown/supply_dropdown.dart';
 import 'package:fcode_pos/utils/functions.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart'
-    as picker;
 
 /// A reusable modal for editing order item details.
 /// Can be used for both creating new items and updating existing ones.
@@ -253,30 +251,29 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
   Widget _buildProductField() {
     return ProductSearchDropdown(
       selectedProduct: widget.itemData.product,
-      onProductSelected: (product) async {
+      onChanged: (product) async {
         setState(() {
           widget.itemData.product = product;
-          widget.itemData.price = product.priceSale ?? product.price;
-          widget.itemData.priceController.text = widget.itemData.price
-              .toString();
+          if (product != null) {
+            widget.itemData.price = product.priceSale ?? product.price;
+            widget.itemData.priceController.text = widget.itemData.price
+                .toString();
 
-          // Auto-calculate expiredAt based on product.expiryMonth
-          if (product.expiryMonth != null && product.expiryMonth! > 0) {
-            widget.itemData.expiredAt = addMonths(
-              DateTime.now(),
-              product.expiryMonth!,
-            );
-            _expiredAtController.text = _formatExpiredAt(
-              widget.itemData.expiredAt,
-            );
+            // Auto-calculate expiredAt based on product.expiryMonth
+            if (product.expiryMonth != null && product.expiryMonth! > 0) {
+              widget.itemData.expiredAt = addMonths(
+                DateTime.now(),
+                product.expiryMonth!,
+              );
+              _expiredAtController.text = _formatExpiredAt(
+                widget.itemData.expiredAt,
+              );
+            }
           }
         });
-        await _loadBestPrice();
-      },
-      onProductCleared: () {
-        setState(() {
-          widget.itemData.product = null;
-        });
+        if (product != null) {
+          await _loadBestPrice();
+        }
       },
     );
   }
@@ -284,18 +281,13 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
   Widget _buildSupplyField() {
     return SupplyDropdown(
       selectedSupply: widget.itemData.supply,
-      onSupplySelected: (supply) async {
+      onChanged: (supply) async {
         setState(() {
           widget.itemData.supply = supply;
         });
-        if (widget.itemData.product != null) {
+        if (supply != null && widget.itemData.product != null) {
           await _loadBestPrice(supplyId: supply.id);
         }
-      },
-      onSupplyCleared: () {
-        setState(() {
-          widget.itemData.supply = null;
-        });
       },
     );
   }
@@ -370,21 +362,35 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
   Future<void> _selectDateTime() async {
     final now = DateTime.now();
     final initialDate = widget.itemData.expiredAt ?? now;
+    final firstDate = now.subtract(const Duration(days: 365));
+    final lastDate = now.add(const Duration(days: 365 * 5));
 
-    picker.DatePicker.showDateTimePicker(
-      context,
-      showTitleActions: true,
-      minTime: now.subtract(const Duration(days: 365)),
-      maxTime: now.add(const Duration(days: 365 * 5)),
-      currentTime: initialDate,
-      locale: picker.LocaleType.vi,
-      onConfirm: (date) {
-        setState(() {
-          widget.itemData.expiredAt = date;
-          _expiredAtController.text = _formatExpiredAt(date);
-        });
-      },
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
+      locale: const Locale('vi'),
     );
+    if (pickedDate == null) return;
+
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(initialDate),
+    );
+    if (pickedTime == null) return;
+
+    final combined = DateTime(
+      pickedDate.year,
+      pickedDate.month,
+      pickedDate.day,
+      pickedTime.hour,
+      pickedTime.minute,
+    );
+    setState(() {
+      widget.itemData.expiredAt = combined;
+      _expiredAtController.text = _formatExpiredAt(combined);
+    });
   }
 
   Widget _buildNoteField() {

@@ -18,7 +18,10 @@ class AuthService {
 
     final payload = response.data;
     if (payload != null) {
-      await SecureStorage.saveTokens(payload.accessToken, payload.refreshToken);
+      await SecureStorage.saveTokens(
+        payload.accessToken,
+        payload.refreshToken,
+      );
       await UserPrefs.saveUser(payload.user);
     }
 
@@ -62,23 +65,10 @@ class AuthService {
 
     final payload = response.data;
     if (payload != null) {
-      await SecureStorage.saveTokens(payload.accessToken, payload.refreshToken);
-      await UserPrefs.saveUser(payload.user);
-    }
-
-    return response.map((payload) => payload?.user);
-  }
-
-  Future<ApiResponse<User>> loginWithGoogle(String idToken) async {
-    final response = await _api.post<_LoginPayload>(
-      '/auth/google',
-      data: {'id_token': idToken},
-      parser: (json) => _LoginPayload.fromJson(_ensureMap(json)),
-    );
-
-    final payload = response.data;
-    if (payload != null) {
-      await SecureStorage.saveTokens(payload.accessToken, payload.refreshToken);
+      await SecureStorage.saveTokens(
+        payload.accessToken,
+        payload.refreshToken,
+      );
       await UserPrefs.saveUser(payload.user);
     }
 

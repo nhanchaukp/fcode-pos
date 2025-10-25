@@ -51,6 +51,53 @@ class ProductSupplyService {
       ),
     );
   }
+
+  Future<ApiResponse<ProductSupply>> create(
+    int productId,
+    int supplyId,
+    int price, {
+    String? sku,
+    String? note,
+    bool isPreferred = false,
+  }) {
+    final data = {
+      'product_id': productId,
+      'supply_id': supplyId,
+      'price': price,
+      if (sku != null) 'sku': sku,
+      if (note != null) 'note': note,
+      'is_preferred': isPreferred,
+    };
+    return _api.post<ProductSupply>(
+      '/product-supply',
+      data: data,
+      parser: (json) => ProductSupply.fromJson(_ensureMap(json)),
+    );
+  }
+
+  Future<ApiResponse<ProductSupply>> update(
+    int id,
+    int productId,
+    int supplyId,
+    int price, {
+    String? sku,
+    String? note,
+    bool isPreferred = false,
+  }) {
+    final data = {
+      'product_id': productId,
+      'supply_id': supplyId,
+      'price': price,
+      if (sku != null) 'sku': sku,
+      if (note != null) 'note': note,
+      'is_preferred': isPreferred,
+    };
+    return _api.put<ProductSupply>(
+      '/product-supply/$id',
+      data: data,
+      parser: (json) => ProductSupply.fromJson(_ensureMap(json)),
+    );
+  }
 }
 
 ProductSupply? _parseSingleProductSupply(dynamic data) {

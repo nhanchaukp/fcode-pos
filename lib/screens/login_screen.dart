@@ -63,36 +63,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  Future<void> _handleGoogleLogin() async {
-    if (!mounted) return;
-    safeSetState(() => _passkeyLoading = Status.loading);
-
-    final auth = ref.read(authProvider.notifier);
-
-    try {
-      final user = await auth.loginWithGoogle();
-
-      if (user != null && mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const MainShell()),
-        );
-      }
-    } on ApiException catch (e) {
-      safeSetState(() => _passkeyLoading = Status.error);
-      Toastr.error(e.message);
-    } catch (e, stack) {
-      debugPrintStack(
-        stackTrace: stack,
-        label: "Error during Google login: $e",
-      );
-      safeSetState(() => _passkeyLoading = Status.error);
-      Toastr.error('Đăng nhập bằng Google thất bại. Vui lòng thử lại.');
-    } finally {
-      safeSetState(() => _passkeyLoading = Status.idle);
-    }
-  }
-
   // Future<void> _handlePasskeyLogin() async {
   //   if (!mounted) return;
   //   setState(() => _passkeyLoading = Status.loading);
@@ -239,49 +209,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : const Text('Đăng Nhập'),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  // Divider
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Divider(
-                          color: Theme.of(context).colorScheme.onSecondary,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          'hoặc',
-                          style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Divider(
-                          color: Theme.of(context).colorScheme.onSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  // Google Sign In Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: OutlinedButton.icon(
-                      onPressed: _passkeyLoading == Status.loading
-                          ? null
-                          : _handleGoogleLogin,
-                      icon: LoadingIcon(
-                        icon: Icons.g_mobiledata,
-                        loading: _passkeyLoading == Status.loading,
-                      ),
-                      label: const Text('Đăng nhập bằng Google'),
                     ),
                   ),
                   // const SizedBox(height: 16),

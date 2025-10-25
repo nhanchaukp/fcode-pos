@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:fcode_pos/api/api_exception.dart';
 import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/models.dart';
+import 'package:fcode_pos/screens/product-supply/product_supply_form_screen.dart';
 import 'package:fcode_pos/services/product_supply_service.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
@@ -153,8 +154,36 @@ class _ProductCostScreenState extends State<ProductCostScreen> {
             _buildPaginationControls(pagination),
           ],
         ),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: _navigateToAddScreen,
+          icon: const Icon(Icons.add),
+          label: const Text('Thêm giá nhập'),
+        ),
       ),
     );
+  }
+
+  Future<void> _navigateToAddScreen() async {
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (context) => const ProductSupplyFormScreen()),
+    );
+
+    if (result == true && mounted) {
+      _loadProductSupplies(page: _currentPage);
+    }
+  }
+
+  Future<void> _navigateToEditScreen(ProductSupply productSupply) async {
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (context) =>
+            ProductSupplyFormScreen(productSupply: productSupply),
+      ),
+    );
+
+    if (result == true && mounted) {
+      _loadProductSupplies(page: _currentPage);
+    }
   }
 
   Widget _buildContent(List<ProductSupply> items) {
@@ -209,7 +238,10 @@ class _ProductCostScreenState extends State<ProductCostScreen> {
         separatorBuilder: (context, _) => const SizedBox(height: 10),
         itemBuilder: (context, index) {
           final item = items[index];
-          return _ProductSupplyCard(productSupply: item);
+          return _ProductSupplyCard(
+            productSupply: item,
+            onTap: () => _navigateToEditScreen(item),
+          );
         },
       ),
     );
@@ -254,9 +286,10 @@ class _ProductCostScreenState extends State<ProductCostScreen> {
 }
 
 class _ProductSupplyCard extends StatelessWidget {
-  const _ProductSupplyCard({required this.productSupply});
+  const _ProductSupplyCard({required this.productSupply, this.onTap});
 
   final ProductSupply productSupply;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -273,100 +306,103 @@ class _ProductSupplyCard extends StatelessWidget {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.inventory_2_outlined,
-                  size: 22,
-                  color: colorScheme.primary,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    productName,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                Text(
-                  priceLabel,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.inventory_2_outlined,
+                    size: 22,
                     color: colorScheme.primary,
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Icon(
-                  Icons.local_shipping_outlined,
-                  size: 18,
-                  color: colorScheme.secondary,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    supplyName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(
-                  Icons.access_time_outlined,
-                  size: 18,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Cập nhật $updatedLabel',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-            if (productSupply.note != null && productSupply.note!.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.sticky_note_2_outlined,
-                      size: 18,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        productSupply.note!,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      productName,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  Text(
+                    priceLabel,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                ],
               ),
-          ],
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Icon(
+                    Icons.local_shipping_outlined,
+                    size: 18,
+                    color: colorScheme.secondary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      supplyName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(
+                    Icons.access_time_outlined,
+                    size: 18,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Cập nhật $updatedLabel',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+              if (productSupply.note != null && productSupply.note!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.sticky_note_2_outlined,
+                        size: 18,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          productSupply.note!,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: colorScheme.onSurfaceVariant),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

@@ -137,7 +137,8 @@ class _MoneyFormFieldState extends State<MoneyFormField> {
           InputDecoration(
             labelText: widget.labelText,
             hintText: widget.hintText,
-            border: const OutlineInputBorder(),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+
             suffixText: widget.isLoading ? null : widget.suffixText,
             prefixIcon: widget.prefixIcon,
             suffixIcon: widget.isLoading

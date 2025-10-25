@@ -1,5 +1,6 @@
 import 'package:fcode_pos/ui/components/copyable_icon_text.dart';
 import 'package:fcode_pos/utils/extensions/colors.dart';
+import 'package:fcode_pos/utils/image_clipboard.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:fcode_pos/utils/string_helper.dart';
 import 'package:flutter/material.dart';
@@ -164,13 +165,24 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                 },
               ),
               const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: () => _downloadQrCode(),
-                  icon: const Icon(Icons.save_alt),
-                  label: const Text('Lưu vào thư viện'),
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: _copyQrCodeToClipboard,
+                      icon: const Icon(Icons.copy),
+                      label: const Text('Sao chép'),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: () => _downloadQrCode(),
+                      icon: const Icon(Icons.save_alt),
+                      label: const Text('Lưu'),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -179,12 +191,24 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     );
   }
 
+  Future<void> _copyQrCodeToClipboard() async {
+    if (_order?.urlQrCodePayment == null) return;
+
+    try {
+      await ImageClipboard.copyFromUrl(_order!.urlQrCodePayment!);
+      Toastr.success('Mã QR đã được sao chép vào clipboard');
+    } catch (e) {
+      debugPrint('Error copying QR code to clipboard: $e');
+      Toastr.error('Lỗi khi sao chép mã QR: ${e.toString()}');
+    }
+  }
+
   Future<void> _downloadQrCode() async {
     if (_order?.urlQrCodePayment == null) return;
 
     try {
       // Download image
-      
+
       final response = await http.get(Uri.parse(_order!.urlQrCodePayment!));
 
       if (response.statusCode == 200) {
