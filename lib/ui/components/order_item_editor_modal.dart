@@ -316,12 +316,6 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
             onChanged: (value) {
               widget.itemData.priceSupply = value;
             },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Vui lòng nhập giá vốn';
-              }
-              return null;
-            },
           ),
         ),
         const SizedBox(width: 12),
@@ -332,12 +326,6 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
             hintText: '0',
             onChanged: (value) {
               widget.itemData.price = value;
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Vui lòng nhập giá bán';
-              }
-              return null;
             },
           ),
         ),

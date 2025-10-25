@@ -218,30 +218,9 @@ class _ProductSupplyFormScreenState extends State<ProductSupplyFormScreen> {
 
   Widget _buildPriceField() {
     return MoneyFormField(
+      labelText: 'Giá nhập',
       controller: _priceController,
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Vui lòng nhập giá';
-        }
-        final price = int.tryParse(value);
-        if (price == null || price <= 0) {
-          return 'Giá phải lớn hơn 0';
-        }
-        return null;
-      },
       onChanged: (_) => setState(() {}),
-    );
-  }
-
-  Widget _buildSkuField() {
-    return TextFormField(
-      controller: _skuController,
-      decoration: InputDecoration(
-        labelText: 'Mã SKU',
-        prefixIcon: const Icon(Icons.qr_code),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-      textCapitalization: TextCapitalization.characters,
     );
   }
 

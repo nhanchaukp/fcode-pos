@@ -78,10 +78,7 @@ class _OrderUpdateBottomSheetState extends State<OrderUpdateBottomSheet> {
         refunds: [],
       );
 
-      await _orderService.update(
-        widget.order.id.toString(),
-        updatedOrder,
-      );
+      await _orderService.update(widget.order.id.toString(), updatedOrder);
 
       if (!mounted) return;
 
@@ -167,12 +164,6 @@ class _OrderUpdateBottomSheetState extends State<OrderUpdateBottomSheet> {
       hintText: 'Nhập tổng tiền',
       prefixIcon: const Icon(Icons.attach_money),
       suffixText: 'đ',
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Vui lòng nhập tổng tiền';
-        }
-        return null;
-      },
     );
   }
 
