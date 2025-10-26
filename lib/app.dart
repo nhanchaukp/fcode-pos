@@ -1,7 +1,9 @@
 import 'package:fcode_pos/appwrite.dart';
 import 'package:fcode_pos/providers/theme_provider.dart';
 import 'package:fcode_pos/screens/splash_screen.dart';
+import 'package:fcode_pos/utils/extensions.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class AppwriteApp extends ConsumerWidget {
@@ -25,8 +27,9 @@ class AppwriteApp extends ConsumerWidget {
           foregroundColor: base.colorScheme.onPrimary,
         ),
       ),
-      inputDecorationTheme: base.inputDecorationTheme.copyWith(
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      inputDecorationTheme: _buildInputDecorationTheme(
+        base.inputDecorationTheme,
+        base.colorScheme,
       ),
       appBarTheme: base.appBarTheme.copyWith(elevation: 0, centerTitle: false),
     );
@@ -50,10 +53,31 @@ class AppwriteApp extends ConsumerWidget {
           foregroundColor: base.colorScheme.onPrimary,
         ),
       ),
-      inputDecorationTheme: base.inputDecorationTheme.copyWith(
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      inputDecorationTheme: _buildInputDecorationTheme(
+        base.inputDecorationTheme,
+        base.colorScheme,
       ),
       appBarTheme: base.appBarTheme.copyWith(elevation: 0, centerTitle: false),
+    );
+  }
+
+  InputDecorationThemeData _buildInputDecorationTheme(
+    InputDecorationThemeData baseTheme,
+    ColorScheme colorScheme,
+  ) {
+    const inputRadius = BorderRadius.all(Radius.circular(12));
+    OutlineInputBorder outline(Color color) => OutlineInputBorder(
+      borderRadius: inputRadius,
+      borderSide: BorderSide(color: color),
+    );
+
+    return baseTheme.copyWith(
+      border: outline(colorScheme.outlineVariant),
+      enabledBorder: outline(colorScheme.outlineVariant),
+      disabledBorder: outline(colorScheme.outlineVariant.applyOpacity(0.5)),
+      focusedBorder: outline(colorScheme.primary),
+      errorBorder: outline(colorScheme.error),
+      focusedErrorBorder: outline(colorScheme.error),
     );
   }
 
@@ -68,6 +92,13 @@ class AppwriteApp extends ConsumerWidget {
       theme: _buildLightTheme(),
       darkTheme: _buildDarkTheme(),
       themeMode: themeMode,
+      locale: const Locale('vi'),
+      supportedLocales: const [Locale('vi'), Locale('en')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
       home: const SplashScreen(),
     );
   }

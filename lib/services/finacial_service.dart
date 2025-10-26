@@ -21,4 +21,15 @@ class FinacialService {
       parser: (json) => FinancialReport.fromJson(ensureMap(json)),
     );
   }
+
+  Future<ApiResponse<List<FinancialSummary>>> monthly() {
+    return _api.get<List<FinancialSummary>>(
+      '/financial/monthly',
+      parser: (json) =>
+          (json as List?)
+              ?.map((e) => FinancialSummary.fromJson(ensureMap(e)))
+              .toList() ??
+          [],
+    );
+  }
 }

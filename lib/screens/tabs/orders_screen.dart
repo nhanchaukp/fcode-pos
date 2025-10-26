@@ -1,7 +1,7 @@
 import 'package:fcode_pos/enums.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/global_search_screen.dart';
-import 'package:fcode_pos/screens/order_create_screen.dart';
+import 'package:fcode_pos/screens/order/order_create_screen.dart';
 import 'package:fcode_pos/services/order_service.dart';
 import 'package:fcode_pos/ui/components/customer_search_dropdown.dart';
 import 'package:fcode_pos/ui/components/order_list_component.dart';

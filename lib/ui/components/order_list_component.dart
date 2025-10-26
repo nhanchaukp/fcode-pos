@@ -3,7 +3,7 @@ import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/extensions/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:fcode_pos/models.dart';
-import 'package:fcode_pos/screens/order_detail_screen.dart';
+import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/ui/components/order_status_badge.dart';
 
 class OrderListComponent extends StatelessWidget {

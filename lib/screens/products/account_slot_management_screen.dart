@@ -1,6 +1,6 @@
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/customer_detail_screen.dart';
-import 'package:fcode_pos/screens/order_detail_screen.dart';
+import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/services/account_slot_service.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/extensions/colors.dart';
@@ -33,9 +33,8 @@ class _AccountSlotManagementScreenState
   final List<String> _serviceTypes = [
     'Netflix',
     'Spotify',
-    'YouTube Premium',
-    'Disney+',
-    'HBO Max',
+    'YouTube',
+    'ChatGpt',
   ];
 
   @override
@@ -692,11 +691,7 @@ class _AccountSlotManagementScreenState
                         ),
                       ),
                     ),
-                    child: _buildSlotInfo(
-                      Icons.person,
-                      'Khách hàng',
-                      customerName,
-                    ),
+                    child: _buildSlotInfo(Icons.person, 'Khách', customerName),
                   ),
                 ),
                 if (hasOrder)

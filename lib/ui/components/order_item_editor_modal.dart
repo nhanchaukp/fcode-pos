@@ -348,6 +348,7 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
   }
 
   Future<void> _selectDateTime() async {
+    FocusScope.of(context).unfocus();
     final now = DateTime.now();
     final initialDate = widget.itemData.expiredAt ?? now;
     final firstDate = now.subtract(const Duration(days: 365));
@@ -375,6 +376,7 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
       pickedTime.hour,
       pickedTime.minute,
     );
+
     setState(() {
       widget.itemData.expiredAt = combined;
       _expiredAtController.text = _formatExpiredAt(combined);

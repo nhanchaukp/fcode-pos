@@ -77,6 +77,8 @@ class FinancialSummary {
     required this.grossProfit,
     required this.netProfit,
     required this.profitMargin,
+    required this.month,
+    required this.monthName,
   });
 
   final Period period;
@@ -88,6 +90,8 @@ class FinancialSummary {
   final num grossProfit;
   final num netProfit;
   final num profitMargin;
+  final num? month;
+  final String monthName;
 
   factory FinancialSummary.fromJson(Map<String, dynamic> json) {
     return FinancialSummary(
@@ -100,6 +104,8 @@ class FinancialSummary {
       grossProfit: asInt(json['gross_profit']),
       netProfit: asInt(json['net_profit']),
       profitMargin: asInt(json['profit_margin']),
+      month: asIntOrNull(json['month']),
+      monthName: json['month_name'] as String? ?? '',
     );
   }
 
@@ -114,6 +120,8 @@ class FinancialSummary {
       'gross_profit': grossProfit,
       'net_profit': netProfit,
       'profit_margin': profitMargin,
+      'month': month,
+      'month_name': monthName,
     };
   }
 }

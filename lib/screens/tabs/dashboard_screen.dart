@@ -98,25 +98,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (_stats == null) return [];
 
     final profitMargin = _stats!.revenue > 0
-        ? ((_stats!.revenue - _stats!.totalMoney) / _stats!.revenue * 100)
+        ? ((_stats!.totalMoney - _stats!.revenue) / _stats!.revenue * 100)
               .toStringAsFixed(1)
         : '0.0';
 
     return [
       _StatConfig(
-        icon: Icons.payments_outlined,
+        icon: Icons.attach_money_outlined,
         title: 'Doanh thu',
-        value: CurrencyHelper.formatCurrency(_stats!.revenue),
+        value: CurrencyHelper.formatCurrency(_stats!.totalMoney),
         subtitle: 'Tổng doanh thu trong khoảng thời gian',
-        color: Colors.teal,
+        color: Colors.amber,
         trendLabel: null,
       ),
       _StatConfig(
-        icon: Icons.attach_money_outlined,
-        title: 'Tổng tiền',
-        value: CurrencyHelper.formatCurrency(_stats!.totalMoney),
+        icon: Icons.payments_outlined,
+        title: 'Lợi nhuận',
+        value: CurrencyHelper.formatCurrency(_stats!.revenue),
         subtitle: 'Biên lợi nhuận $profitMargin%',
-        color: Colors.amber,
+        color: Colors.teal,
         trendLabel: null,
       ),
       _StatConfig(
@@ -206,7 +206,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tổng quan'),
+        title: const Text('Báo cáo'),
         actions: [
           IconButton(
             tooltip: 'Làm mới',

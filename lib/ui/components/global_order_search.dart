@@ -1,5 +1,5 @@
 import 'package:fcode_pos/models.dart';
-import 'package:fcode_pos/screens/order_detail_screen.dart';
+import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/services/order_service.dart';
 import 'package:fcode_pos/ui/components/order_status_badge.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';

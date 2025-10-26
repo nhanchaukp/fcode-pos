@@ -1,7 +1,7 @@
-import 'package:fcode_pos/screens/dashboard_screen.dart';
-import 'package:fcode_pos/screens/orders_screen.dart';
-import 'package:fcode_pos/screens/more_screen.dart';
-import 'package:fcode_pos/screens/product_hub_screen.dart';
+import 'package:fcode_pos/screens/tabs/dashboard_screen.dart';
+import 'package:fcode_pos/screens/tabs/orders_screen.dart';
+import 'package:fcode_pos/screens/tabs/more_screen.dart';
+import 'package:fcode_pos/screens/tabs/product_hub_screen.dart';
 import 'package:flutter/material.dart';
 
 class MainShell extends StatefulWidget {
@@ -16,8 +16,8 @@ class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
 
   late final List<Widget> _screens = [
-    const DashboardScreen(key: PageStorageKey('dashboard')),
     const HomeScreen(key: PageStorageKey('orders')),
+    const DashboardScreen(key: PageStorageKey('dashboard')),
     const ProductHubScreen(key: PageStorageKey('products')),
     const MoreScreen(key: PageStorageKey('more')),
   ];
@@ -41,14 +41,14 @@ class _MainShellState extends State<MainShell> {
         indicatorColor: colorScheme.secondaryContainer,
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard),
-            label: 'Tổng quan',
-          ),
-          NavigationDestination(
             icon: Icon(Icons.receipt_long_outlined),
             selectedIcon: Icon(Icons.receipt_long),
             label: 'Đơn hàng',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.dashboard_outlined),
+            selectedIcon: Icon(Icons.dashboard),
+            label: 'Báo cáo',
           ),
           NavigationDestination(
             icon: Icon(Icons.widgets_outlined),

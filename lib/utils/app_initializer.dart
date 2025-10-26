@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:window_manager/window_manager.dart';
 
 /// A utility class for initializing the Flutter application.
@@ -19,6 +20,7 @@ class AppInitializer {
     _ensureInitialized();
     await _setupWindowDimensions();
     await _setupDeviceOrientation();
+    await _setupLocaleData();
   }
 
   /// Ensures that Flutter bindings are initialized.
@@ -48,5 +50,10 @@ class AppInitializer {
       SystemUiMode.manual,
       overlays: [SystemUiOverlay.bottom, SystemUiOverlay.top],
     );
+  }
+
+  /// Loads locale data required by intl formatters.
+  static Future<void> _setupLocaleData() async {
+    await initializeDateFormatting('vi');
   }
 }

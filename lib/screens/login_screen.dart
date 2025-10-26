@@ -1,6 +1,6 @@
 import 'package:fcode_pos/api/api_exception.dart';
 import 'package:fcode_pos/data/models/status.dart';
-import 'package:fcode_pos/screens/main_shell.dart';
+import 'package:fcode_pos/screens/tabs/main_shell.dart';
 import 'package:fcode_pos/ui/components/loading_icon.dart';
 import 'package:fcode_pos/utils/safe_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
