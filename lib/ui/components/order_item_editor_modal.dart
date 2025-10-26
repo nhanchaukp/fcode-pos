@@ -640,4 +640,19 @@ class OrderItemFormData {
       expiredAt: expiredAt ?? this.expiredAt,
     );
   }
+
+  String toMap() {
+    return {
+      'id': id,
+      'productId': product?.id,
+      'supplyId': supply?.id,
+      'quantity': quantity,
+      'price': price,
+      'priceSupply': priceSupply,
+      'account': account,
+      'accountSlotId': accountSlot?.id,
+      'note': note,
+      'expiredAt': expiredAt?.toIso8601String(),
+    }.toString();
+  }
 }

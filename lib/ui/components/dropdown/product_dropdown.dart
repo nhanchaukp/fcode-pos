@@ -235,6 +235,7 @@ class _ProductSelectSheetState extends State<_ProductSelectSheet> {
                 ),
               ),
               TextField(
+                autofocus: true,
                 controller: _searchController,
                 decoration: const InputDecoration(
                   hintText: 'Tìm kiếm sản phẩm...',
@@ -269,55 +270,6 @@ class _ProductSelectSheetState extends State<_ProductSelectSheet> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildProductItem(Product product) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          product.name,
-          style: const TextStyle(fontWeight: FontWeight.w500),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 2),
-        Row(
-          children: [
-            Text(
-              CurrencyHelper.formatCurrency(product.price),
-              style: TextStyle(
-                color: product.priceSale != null ? Colors.grey : Colors.green,
-                fontSize: 12,
-                decoration: product.priceSale != null
-                    ? TextDecoration.lineThrough
-                    : null,
-              ),
-            ),
-            if (product.priceSale != null) ...[
-              const SizedBox(width: 8),
-              Text(
-                CurrencyHelper.formatCurrency(product.priceSale!),
-                style: const TextStyle(
-                  color: Colors.green,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-            const SizedBox(width: 8),
-            Text(
-              'Kho: ${product.instock}',
-              style: TextStyle(
-                color: product.instock > 0 ? Colors.blue : Colors.red,
-                fontSize: 12,
-              ),
-            ),
-          ],
-        ),
-      ],
     );
   }
 }

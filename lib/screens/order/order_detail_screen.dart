@@ -486,27 +486,27 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Name
-        if (user.name.isNotEmpty)
-          if (user.email.isNotEmpty) ...[
-            if (user.name.isNotEmpty) const SizedBox(height: 2),
-            Row(
-              children: [
-                Icon(Icons.email, size: 12, color: colorScheme.secondary),
-                SizedBox(width: 4),
-                Flexible(
-                  child: Text(
-                    user.email,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: colorScheme.secondary,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+        if (user.email.isNotEmpty) ...[
+          if (user.name.isNotEmpty) const SizedBox(height: 2),
+          Row(
+            children: [
+              Icon(
+                Icons.email_outlined,
+                size: 14,
+                color: colorScheme.secondary,
+              ),
+              SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  user.email,
+                  style: TextStyle(fontSize: 14, color: colorScheme.secondary),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
+        ],
         // Phone (clickable)
         if (user.phone != null && user.phone!.isNotEmpty) ...[
           const SizedBox(height: 4),

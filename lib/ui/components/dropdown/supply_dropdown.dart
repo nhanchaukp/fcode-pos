@@ -219,6 +219,7 @@ class _SupplySelectSheetState extends State<_SupplySelectSheet> {
                 ),
               ),
               TextField(
+                autofocus: true,
                 controller: _searchController,
                 decoration: const InputDecoration(
                   hintText: 'Tìm kiếm nhà cung cấp...',
