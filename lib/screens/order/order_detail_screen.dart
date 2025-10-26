@@ -495,14 +495,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                 size: 14,
                 color: colorScheme.secondary,
               ),
-              SizedBox(width: 4),
-              Flexible(
-                child: Text(
-                  user.email,
-                  style: TextStyle(fontSize: 14, color: colorScheme.secondary),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+              const SizedBox(width: 6),
+              Text(
+                user.email,
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.4,
+                  color: colorScheme.secondary,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -628,7 +630,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                         children: [
                           Expanded(
                             child: Text(
-                              '${item.product?.name} (x${item.quantity})',
+                              item.product?.name ?? 'N/A',
                               style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
@@ -641,7 +643,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                       Row(
                         children: [
                           Text(
-                            item.supply?.name ?? 'N/A',
+                            'Nhập từ: ${item.supply?.name ?? 'N/A'}',
                             style: TextStyle(
                               fontSize: 12,
                               color: colorScheme.onSurface,
@@ -658,13 +660,24 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                         ],
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        CurrencyHelper.formatCurrency(item.price),
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.green,
-                        ),
+                      Row(
+                        children: [
+                          Text(
+                            'Số lượng: ${item.quantity}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            CurrencyHelper.formatCurrency(item.price),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.primary,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
