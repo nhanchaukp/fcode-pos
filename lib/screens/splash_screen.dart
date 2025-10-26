@@ -3,6 +3,7 @@ import 'package:fcode_pos/screens/tabs/main_shell.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../ui/components/app_version_text.dart';
 import 'login_screen.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
@@ -25,8 +26,18 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         _hasShownError = false;
         return user != null ? const MainShell() : const LoginScreen();
       },
-      loading: () =>
-          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      loading: () => Scaffold(
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: const [
+            Spacer(),
+            Center(child: CircularProgressIndicator()),
+            Spacer(),
+            AppVersionText(),
+          ],
+        ),
+      ),
       error: (error, stackTrace) {
         // Chỉ show error một lần để tránh spam
         if (!_hasShownError) {

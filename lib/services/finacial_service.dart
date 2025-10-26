@@ -1,7 +1,7 @@
 import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/api_service.dart';
-import 'package:fcode_pos/utils/extensions/num_extensions.dart';
+import 'package:fcode_pos/utils/extensions.dart';
 
 class FinacialService {
   FinacialService() : _api = ApiService();

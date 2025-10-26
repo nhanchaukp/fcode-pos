@@ -17,7 +17,7 @@ class ProductHubScreen extends StatelessWidget {
       builder: (context) => const ProductListScreen(),
     ),
     _ProductHubItem(
-      title: 'Account Slots',
+      title: 'Kho tài khoản',
       description: 'Quản lý tài khoản master và slots dịch vụ.',
       icon: Icons.vpn_key_outlined,
       builder: (context) => const AccountSlotManagementScreen(),
@@ -28,12 +28,12 @@ class ProductHubScreen extends StatelessWidget {
       icon: Icons.local_shipping_outlined,
       builder: (context) => const SuppliersScreen(),
     ),
-    _ProductHubItem(
-      title: 'Danh mục',
-      description: 'Tổ chức sản phẩm theo nhóm để báo cáo chính xác.',
-      icon: Icons.category_outlined,
-      builder: (context) => const CategoriesScreen(),
-    ),
+    // _ProductHubItem(
+    //   title: 'Danh mục',
+    //   description: 'Tổ chức sản phẩm theo nhóm để báo cáo chính xác.',
+    //   icon: Icons.category_outlined,
+    //   builder: (context) => const CategoriesScreen(),
+    // ),
     _ProductHubItem(
       title: 'Giá nhập sản phẩm',
       description: 'Theo dõi lịch sử giá nhập và đề xuất giá bán.',
@@ -51,7 +51,7 @@ class ProductHubScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Quản lý sản phẩm')),
+      appBar: AppBar(title: const Text('Quản lý')),
       body: SafeArea(
         child: ListView.separated(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),

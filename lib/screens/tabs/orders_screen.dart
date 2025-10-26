@@ -3,7 +3,7 @@ import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/global_search_screen.dart';
 import 'package:fcode_pos/screens/order/order_create_screen.dart';
 import 'package:fcode_pos/services/order_service.dart';
-import 'package:fcode_pos/ui/components/customer_search_dropdown.dart';
+import 'package:fcode_pos/ui/components/dropdown/customer_dropdown.dart';
 import 'package:fcode_pos/ui/components/order_list_component.dart';
 import 'package:fcode_pos/ui/components/dropdown/order_status_dropdown.dart';
 import 'package:flutter/material.dart';
@@ -351,12 +351,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget _buildCustomerSearch() {
     return CustomerSearchDropdown(
       selectedUser: _selectedUser,
-      onUserSelected: (User user) {
+      onChanged: (user) {
         setState(() => _selectedUser = user);
       },
-      onUserCleared: () {
-        setState(() => _selectedUser = null);
-      },
+      isRequired: false,
     );
   }
 

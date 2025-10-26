@@ -2,7 +2,7 @@
 library;
 
 import 'dart:convert';
-import 'utils/extensions/num_extensions.dart';
+import 'utils/extensions.dart';
 
 part 'models/model.dart';
 part 'models/user.dart';

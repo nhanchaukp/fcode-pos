@@ -1,6 +1,7 @@
 import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/api_service.dart';
+import 'package:fcode_pos/utils/extensions.dart';
 
 class ProductSupplyService {
   ProductSupplyService() : _api = ApiService();
@@ -24,7 +25,7 @@ class ProductSupplyService {
     return _api.get<ProductSupply?>(
       '/product-supply/$id',
       parser: (json) =>
-          json == null ? null : ProductSupply.fromJson(_ensureMap(json)),
+          json == null ? null : ProductSupply.fromJson(ensureMap(json)),
     );
   }
 
@@ -46,8 +47,8 @@ class ProductSupplyService {
         'per_page': perPage,
       },
       parser: (json) => PaginatedData<ProductSupply>.fromJson(
-        _ensureMap(json),
-        (item) => ProductSupply.fromJson(_ensureMap(item)),
+        ensureMap(json),
+        (item) => ProductSupply.fromJson(ensureMap(item)),
       ),
     );
   }
@@ -71,7 +72,7 @@ class ProductSupplyService {
     return _api.post<ProductSupply>(
       '/product-supply',
       data: data,
-      parser: (json) => ProductSupply.fromJson(_ensureMap(json)),
+      parser: (json) => ProductSupply.fromJson(ensureMap(json)),
     );
   }
 
@@ -95,7 +96,7 @@ class ProductSupplyService {
     return _api.put<ProductSupply>(
       '/product-supply/$id',
       data: data,
-      parser: (json) => ProductSupply.fromJson(_ensureMap(json)),
+      parser: (json) => ProductSupply.fromJson(ensureMap(json)),
     );
   }
 }
@@ -109,25 +110,19 @@ ProductSupply? _parseSingleProductSupply(dynamic data) {
       if (items is List && items.isNotEmpty) {
         final first = items.first;
         if (first is Map) {
-          return ProductSupply.fromJson(_ensureMap(first));
+          return ProductSupply.fromJson(ensureMap(first));
         }
       }
     }
-    return ProductSupply.fromJson(_ensureMap(data));
+    return ProductSupply.fromJson(ensureMap(data));
   }
 
   if (data is List && data.isNotEmpty) {
     final first = data.first;
     if (first is Map) {
-      return ProductSupply.fromJson(_ensureMap(first));
+      return ProductSupply.fromJson(ensureMap(first));
     }
   }
 
   return null;
-}
-
-Map<String, dynamic> _ensureMap(dynamic data) {
-  if (data is Map<String, dynamic>) return data;
-  if (data is Map) return Map<String, dynamic>.from(data);
-  return <String, dynamic>{};
 }

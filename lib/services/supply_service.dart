@@ -1,6 +1,7 @@
 import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/api_service.dart';
+import 'package:fcode_pos/utils/extensions.dart';
 
 class SupplyService {
   SupplyService() : _api = ApiService();
@@ -16,8 +17,8 @@ class SupplyService {
       '/supply',
       queryParameters: {'search': search, 'page': page, 'per_page': perPage},
       parser: (json) => PaginatedData<Supply>.fromJson(
-        _ensureMap(json),
-        (item) => Supply.fromJson(_ensureMap(item)),
+        ensureMap(json),
+        (item) => Supply.fromJson(ensureMap(item)),
       ),
     );
   }
@@ -25,7 +26,7 @@ class SupplyService {
   Future<ApiResponse<Supply>> detail(String id) {
     return _api.get<Supply>(
       '/supply/$id',
-      parser: (json) => Supply.fromJson(_ensureMap(json)),
+      parser: (json) => Supply.fromJson(ensureMap(json)),
     );
   }
 
@@ -33,7 +34,7 @@ class SupplyService {
     return _api.post<Supply>(
       '/supply',
       data: data,
-      parser: (json) => Supply.fromJson(_ensureMap(json)),
+      parser: (json) => Supply.fromJson(ensureMap(json)),
     );
   }
 
@@ -41,13 +42,7 @@ class SupplyService {
     return _api.put<Supply>(
       '/supply/$id',
       data: data,
-      parser: (json) => Supply.fromJson(_ensureMap(json)),
+      parser: (json) => Supply.fromJson(ensureMap(json)),
     );
   }
-}
-
-Map<String, dynamic> _ensureMap(dynamic data) {
-  if (data is Map<String, dynamic>) return data;
-  if (data is Map) return Map<String, dynamic>.from(data);
-  return <String, dynamic>{};
 }

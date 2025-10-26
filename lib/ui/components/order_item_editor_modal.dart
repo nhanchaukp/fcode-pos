@@ -2,6 +2,7 @@ import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/product_supply_service.dart';
 import 'package:fcode_pos/ui/components/account_form_input.dart';
 import 'package:fcode_pos/ui/components/account_slot_dropdown.dart';
+import 'package:fcode_pos/ui/components/loading_icon.dart';
 import 'package:fcode_pos/ui/components/money_form_field.dart';
 import 'package:fcode_pos/ui/components/dropdown/product_dropdown.dart';
 import 'package:fcode_pos/ui/components/quantity_input.dart';
@@ -105,14 +106,14 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
   }
 
   Future<void> _handlePrimaryAction() async {
-    if (widget.itemData.product == null) {
-      Toastr.error('Vui lòng chọn sản phẩm', context: context);
-      return;
-    }
-    if (widget.itemData.supply == null) {
-      Toastr.error('Vui lòng chọn nhà cung cấp', context: context);
-      return;
-    }
+    // if (widget.itemData.product == null) {
+    //   Toastr.error('Vui lòng chọn sản phẩm', context: context);
+    //   return;
+    // }
+    // if (widget.itemData.supply == null) {
+    //   Toastr.error('Vui lòng chọn nhà cung cấp', context: context);
+    //   return;
+    // }
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -258,7 +259,6 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
             widget.itemData.price = product.priceSale ?? product.price;
             widget.itemData.priceController.text = widget.itemData.price
                 .toString();
-
             // Auto-calculate expiredAt based on product.expiryMonth
             if (product.expiryMonth != null && product.expiryMonth! > 0) {
               widget.itemData.expiredAt = addMonths(
@@ -275,6 +275,13 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
           await _loadBestPrice();
         }
       },
+      isRequired: true,
+      validator: (_) {
+        if (widget.itemData.product == null) {
+          return 'Vui lòng chọn sản phẩm';
+        }
+        return null;
+      },
     );
   }
 
@@ -289,18 +296,40 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
           await _loadBestPrice(supplyId: supply.id);
         }
       },
+      isRequired: true,
+      validator: (_) {
+        if (widget.itemData.supply == null) {
+          return 'Vui lòng chọn nhà cung cấp';
+        }
+        return null;
+      },
     );
   }
 
+  late final TextEditingController _quantityController = TextEditingController(
+    text: widget.itemData.quantity.toString(),
+  );
+
   Widget _buildQuantityInput() {
     return QuantityInput(
-      initialQuantity: widget.itemData.quantity,
+      controller: _quantityController,
       minQuantity: 1,
-      onQuantityChanged: (quantity) {
-        setState(() {
-          widget.itemData.quantity = quantity;
-        });
+      validator: (v) {
+        if (v == null || v.isEmpty) return 'Vui lòng nhập số lượng';
+        final value = int.tryParse(v);
+        if (value == null || value < 1) return 'Số lượng phải >= 1';
+        return null;
       },
+      onChanged: (v) {
+        final value = int.tryParse(v);
+        if (value != null) {
+          setState(() {
+            widget.itemData.quantity = value;
+          });
+        }
+      },
+      labelText: 'Số lượng',
+      hintText: 'Nhập số lượng',
     );
   }
 
@@ -344,6 +373,12 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
         suffixIcon: Icon(Icons.calendar_today),
       ),
       controller: _expiredAtController,
+      validator: (_) {
+        if (widget.itemData.expiredAt == null) {
+          return 'Vui lòng chọn ngày hết hạn';
+        }
+        return null;
+      },
     );
   }
 
@@ -455,7 +490,7 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
     return Row(
       children: [
         Expanded(
-          child: OutlinedButton(
+          child: TextButton(
             onPressed: _isProcessing ? null : () => Navigator.pop(context),
             child: const Text('Hủy'),
           ),
@@ -468,34 +503,18 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
               style: FilledButton.styleFrom(
                 backgroundColor: widget.secondaryAction!.backgroundColor,
               ),
-              child: _isProcessing
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : Text(widget.secondaryAction!.label),
+              child: Text(widget.secondaryAction!.label),
             ),
           ),
         ],
         const SizedBox(width: 12),
-        Expanded(
-          child: FilledButton(
-            onPressed: _isProcessing ? null : _handlePrimaryAction,
-            child: _isProcessing
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  )
-                : Text(widget.primaryActionLabel),
+        FilledButton.icon(
+          onPressed: _isProcessing ? null : _handlePrimaryAction,
+          icon: LoadingIcon(
+            icon: Icons.check,
+            loading: _isProcessing || widget.showLoading,
           ),
+          label: Text(widget.primaryActionLabel),
         ),
       ],
     );

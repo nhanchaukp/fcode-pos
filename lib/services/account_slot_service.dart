@@ -1,6 +1,7 @@
 import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/api_service.dart';
+import 'package:fcode_pos/utils/extensions.dart';
 
 class AccountSlotService {
   AccountSlotService() : _api = ApiService();
@@ -38,7 +39,7 @@ class AccountSlotService {
   Future<ApiResponse<AccountSlot>> detail(String id) {
     return _api.get<AccountSlot>(
       '/account-slots/$id',
-      parser: (json) => AccountSlot.fromJson(_ensureMap(json)),
+      parser: (json) => AccountSlot.fromJson(ensureMap(json)),
     );
   }
 }
@@ -46,7 +47,7 @@ class AccountSlotService {
 List<AccountSlot> _parseAccountSlotList(dynamic data) {
   if (data is List) {
     return data
-        .map((item) => AccountSlot.fromJson(_ensureMap(item)))
+        .map((item) => AccountSlot.fromJson(ensureMap(item)))
         .toList(growable: false);
   }
 
@@ -54,7 +55,7 @@ List<AccountSlot> _parseAccountSlotList(dynamic data) {
     final items = data['items'] ?? data['data'];
     if (items is List) {
       return items
-          .map((item) => AccountSlot.fromJson(_ensureMap(item)))
+          .map((item) => AccountSlot.fromJson(ensureMap(item)))
           .toList(growable: false);
     }
   }
@@ -65,7 +66,7 @@ List<AccountSlot> _parseAccountSlotList(dynamic data) {
 List<AccountMaster> _parseAccountMasterList(dynamic data) {
   if (data is List) {
     return data
-        .map((item) => AccountMaster.fromJson(_ensureMap(item)))
+        .map((item) => AccountMaster.fromJson(ensureMap(item)))
         .toList(growable: false);
   }
 
@@ -73,16 +74,10 @@ List<AccountMaster> _parseAccountMasterList(dynamic data) {
     final items = data['items'] ?? data['data'];
     if (items is List) {
       return items
-          .map((item) => AccountMaster.fromJson(_ensureMap(item)))
+          .map((item) => AccountMaster.fromJson(ensureMap(item)))
           .toList(growable: false);
     }
   }
 
   return <AccountMaster>[];
-}
-
-Map<String, dynamic> _ensureMap(dynamic data) {
-  if (data is Map<String, dynamic>) return data;
-  if (data is Map) return Map<String, dynamic>.from(data);
-  return <String, dynamic>{};
 }

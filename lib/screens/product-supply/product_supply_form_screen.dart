@@ -3,7 +3,9 @@ import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/product_supply_service.dart';
 import 'package:fcode_pos/ui/components/dropdown/product_dropdown.dart';
 import 'package:fcode_pos/ui/components/dropdown/supply_dropdown.dart';
+import 'package:fcode_pos/ui/components/loading_icon.dart';
 import 'package:fcode_pos/ui/components/money_form_field.dart';
+import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 
 class ProductSupplyFormScreen extends StatefulWidget {
@@ -56,12 +58,11 @@ class _ProductSupplyFormScreenState extends State<ProductSupplyFormScreen> {
     }
 
     if (_selectedProduct == null) {
-      _showErrorSnackBar('Vui lòng chọn sản phẩm');
+      Toastr.error('Vui lòng chọn sản phẩm', context: context);
       return;
     }
-
     if (_selectedSupply == null) {
-      _showErrorSnackBar('Vui lòng chọn nhà cung cấp');
+      Toastr.error('Vui lòng chọn nhà cung cấp', context: context);
       return;
     }
 
@@ -110,26 +111,18 @@ class _ProductSupplyFormScreenState extends State<ProductSupplyFormScreen> {
       Navigator.of(context).pop(true);
     } on ApiException catch (e) {
       if (!mounted) return;
-      _showErrorSnackBar(e.message);
+      Toastr.error(e.message, context: context);
     } catch (e) {
       if (!mounted) return;
-      _showErrorSnackBar(
+      Toastr.error(
         _isEditMode ? 'Không thể cập nhật giá nhập' : 'Không thể thêm giá nhập',
+        context: context,
       );
     } finally {
       if (mounted) {
         setState(() => _isSaving = false);
       }
     }
-  }
-
-  void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Theme.of(context).colorScheme.error,
-      ),
-    );
   }
 
   void _showSuccessSnackBar(String message) {
@@ -202,6 +195,10 @@ class _ProductSupplyFormScreenState extends State<ProductSupplyFormScreen> {
       onChanged: (product) {
         setState(() => _selectedProduct = product);
       },
+      validator: (product) {
+        if (product == null) return 'Vui lòng chọn sản phẩm';
+        return null;
+      },
     );
   }
 
@@ -213,6 +210,10 @@ class _ProductSupplyFormScreenState extends State<ProductSupplyFormScreen> {
       onChanged: (supply) {
         setState(() => _selectedSupply = supply);
       },
+      validator: (supply) {
+        if (supply == null) return 'Vui lòng chọn nhà cung cấp';
+        return null;
+      },
     );
   }
 
@@ -221,6 +222,12 @@ class _ProductSupplyFormScreenState extends State<ProductSupplyFormScreen> {
       labelText: 'Giá nhập',
       controller: _priceController,
       onChanged: (_) => setState(() {}),
+      validator: (value) {
+        if (value == null || value.isEmpty) return 'Vui lòng nhập giá nhập';
+        final price = int.tryParse(value.replaceAll(RegExp(r'[^\d]'), ''));
+        if (price == null || price <= 0) return 'Giá nhập phải lớn hơn 0';
+        return null;
+      },
     );
   }
 
@@ -261,21 +268,8 @@ class _ProductSupplyFormScreenState extends State<ProductSupplyFormScreen> {
   Widget _buildSubmitButton() {
     return FilledButton.icon(
       onPressed: _isSaving ? null : _handleSubmit,
-      icon: _isSaving
-          ? const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Colors.white,
-              ),
-            )
-          : const Icon(Icons.check),
+      icon: LoadingIcon(icon: Icons.check, loading: _isSaving),
       label: Text(_isEditMode ? 'Cập nhật' : 'Thêm mới'),
-      style: FilledButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
     );
   }
 }

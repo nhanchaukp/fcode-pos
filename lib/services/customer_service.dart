@@ -1,11 +1,21 @@
 import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/api_service.dart';
+import 'package:fcode_pos/models/dto/customer_create_data.dart';
+import 'package:fcode_pos/utils/extensions.dart';
 
 class CustomerService {
   CustomerService() : _api = ApiService();
 
   final ApiService _api;
+
+  Future<ApiResponse<User>> create(CustomerCreateData data) {
+    return _api.post<User>(
+      '/user',
+      data: data.toJson(),
+      parser: (json) => User.fromJson(ensureMap(json)),
+    );
+  }
 
   Future<ApiResponse<PaginatedData<User>>> list({
     String search = '',
@@ -14,14 +24,10 @@ class CustomerService {
   }) {
     return _api.get<PaginatedData<User>>(
       '/user',
-      queryParameters: {
-        'search': search,
-        'page': page,
-        'per_page': perPage,
-      },
+      queryParameters: {'search': search, 'page': page, 'per_page': perPage},
       parser: (json) => PaginatedData<User>.fromJson(
-        _ensureMap(json),
-        (item) => User.fromJson(_ensureMap(item)),
+        ensureMap(json),
+        (item) => User.fromJson(ensureMap(item)),
       ),
     );
   }
@@ -29,13 +35,7 @@ class CustomerService {
   Future<ApiResponse<User>> detail(String id) {
     return _api.get<User>(
       '/user/$id',
-      parser: (json) => User.fromJson(_ensureMap(json)),
+      parser: (json) => User.fromJson(ensureMap(json)),
     );
   }
-}
-
-Map<String, dynamic> _ensureMap(dynamic data) {
-  if (data is Map<String, dynamic>) return data;
-  if (data is Map) return Map<String, dynamic>.from(data);
-  return <String, dynamic>{};
 }

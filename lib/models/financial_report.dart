@@ -14,7 +14,7 @@ class FinancialReport {
   final FinancialSummary financialSummary;
   final OrderStatistics orderStatistics;
   final List<ProductPerformance> productPerformance;
-  final List<dynamic> accountRenewalCosts;
+  final List<AccountRenewalCosts> accountRenewalCosts;
   final String generatedAt;
 
   factory FinancialReport.fromJson(Map<String, dynamic> json) {
@@ -31,7 +31,11 @@ class FinancialReport {
               ?.map((e) => ProductPerformance.fromJson(ensureMap(e)))
               .toList() ??
           [],
-      accountRenewalCosts: json['account_renewal_costs'] as List? ?? [],
+      accountRenewalCosts:
+          (json['account_renewal_costs'] as List?)
+              ?.map((e) => AccountRenewalCosts.fromJson(ensureMap(e)))
+              .toList() ??
+          [],
       generatedAt: json['generated_at'] as String? ?? '',
     );
   }
@@ -140,8 +144,8 @@ class OrderStatistics {
   final int successfulOrders;
   final int completedOrders;
   final int cancelledOrders;
-  final String totalRevenue;
-  final String avgOrderValue;
+  final int totalRevenue;
+  final int avgOrderValue;
 
   factory OrderStatistics.fromJson(Map<String, dynamic> json) {
     return OrderStatistics(
@@ -149,8 +153,8 @@ class OrderStatistics {
       successfulOrders: asInt(json['successful_orders']),
       completedOrders: asInt(json['completed_orders']),
       cancelledOrders: asInt(json['cancelled_orders']),
-      totalRevenue: json['total_revenue']?.toString() ?? '0',
-      avgOrderValue: json['avg_order_value']?.toString() ?? '0',
+      totalRevenue: asInt(json['total_revenue']),
+      avgOrderValue: asInt(json['avg_order_value']),
     );
   }
 
@@ -206,6 +210,88 @@ class ProductPerformance {
       'total_quantity': totalQuantity,
       'total_revenue': totalRevenue,
       'avg_price': avgPrice,
+    };
+  }
+}
+
+class AccountRenewalCosts {
+  const AccountRenewalCosts({
+    required this.serviceType,
+    required this.totalAmount,
+    required this.transactions,
+  });
+
+  final String serviceType;
+  final int totalAmount;
+  final List<Transaction> transactions;
+
+  factory AccountRenewalCosts.fromJson(Map<String, dynamic> json) {
+    return AccountRenewalCosts(
+      serviceType: json['service_type'] as String? ?? '',
+      totalAmount: asInt(json['total_amount']),
+      transactions:
+          (json['transactions'] as List<dynamic>?)
+              ?.map((item) => Transaction.fromJson(item))
+              .toList() ??
+          [],
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'service_type': serviceType,
+      'total_amount': totalAmount,
+      'transactions': transactions.map((item) => item.toMap()).toList(),
+    };
+  }
+}
+
+class Transaction {
+  const Transaction({
+    required this.id,
+    required this.transactionId,
+    required this.type,
+    required this.category,
+    required this.status,
+    required this.amount,
+    required this.description,
+    required this.createdAt,
+  });
+
+  final int id;
+  final String transactionId;
+  final String type;
+  final String category;
+  final String status;
+  final int amount;
+  final String description;
+  final DateTime createdAt;
+
+  factory Transaction.fromJson(Map<String, dynamic> json) {
+    return Transaction(
+      id: asInt(json['id']),
+      transactionId: json['transaction_id'] as String? ?? '',
+      type: json['type'] as String? ?? '',
+      category: json['category'] as String? ?? '',
+      status: json['status'] as String? ?? '',
+      amount: asInt(json['amount']),
+      description: json['description'] as String? ?? '',
+      createdAt:
+          DateTime.tryParse(json['created_at'] as String? ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0),
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'transaction_id': transactionId,
+      'type': type,
+      'category': category,
+      'status': status,
+      'amount': amount,
+      'description': description,
+      'created_at': createdAt.toIso8601String(),
     };
   }
 }

@@ -1,5 +1,53 @@
 import 'package:url_launcher/url_launcher.dart';
 
+int asInt(dynamic value, {int defaultValue = 0}) {
+  if (value == null) return defaultValue;
+
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+
+  if (value is String) {
+    final s = value.trim();
+    if (s.isEmpty) return defaultValue;
+
+    final d = double.tryParse(s);
+    if (d != null) return d.toInt();
+
+    return int.tryParse(s) ?? defaultValue;
+  }
+
+  if (value is bool) return value ? 1 : 0;
+
+  return defaultValue;
+}
+
+int? asIntOrNull(dynamic value) {
+  if (value == null) return null;
+
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+
+  if (value is String) {
+    final s = value.trim();
+    if (s.isEmpty) return null;
+
+    final d = double.tryParse(s);
+    if (d != null) return d.toInt();
+
+    return int.tryParse(s);
+  }
+
+  if (value is bool) return value ? 1 : 0;
+
+  return null;
+}
+
+Map<String, dynamic> ensureMap(dynamic data) {
+  if (data is Map<String, dynamic>) return data;
+  if (data is Map) return Map<String, dynamic>.from(data);
+  return <String, dynamic>{};
+}
+
 Future<void> openUrl(String url) async {
   final uri = Uri.tryParse(url);
   if (uri == null) return;

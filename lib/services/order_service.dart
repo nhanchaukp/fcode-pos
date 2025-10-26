@@ -1,6 +1,7 @@
 import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/api_service.dart';
+import 'package:fcode_pos/utils/extensions.dart';
 import 'package:intl/intl.dart';
 
 class OrderService {
@@ -41,8 +42,8 @@ class OrderService {
         'search': search,
       },
       parser: (json) => PaginatedData<Order>.fromJson(
-        _ensureMap(json),
-        (item) => Order.fromJson(_ensureMap(item)),
+        ensureMap(json),
+        (item) => Order.fromJson(ensureMap(item)),
       ),
     );
   }
@@ -54,7 +55,7 @@ class OrderService {
         'date_from': DateFormat('yyyy-MM-dd').format(fromDate),
         'date_to': DateFormat('yyyy-MM-dd').format(toDate),
       },
-      parser: (json) => OrderStats.fromJson(_ensureMap(json)),
+      parser: (json) => OrderStats.fromJson(ensureMap(json)),
     );
   }
 
@@ -62,7 +63,7 @@ class OrderService {
     return _api.post<Order?>(
       '/order',
       data: order.toMap(),
-      parser: (json) => json == null ? null : Order.fromJson(_ensureMap(json)),
+      parser: (json) => json == null ? null : Order.fromJson(ensureMap(json)),
     );
   }
 
@@ -70,14 +71,14 @@ class OrderService {
     return _api.put<Order?>(
       '/order/$id',
       data: order.toMap(),
-      parser: (json) => json == null ? null : Order.fromJson(_ensureMap(json)),
+      parser: (json) => json == null ? null : Order.fromJson(ensureMap(json)),
     );
   }
 
   Future<ApiResponse<Map<String, dynamic>?>> delete(String id) {
     return _api.delete<Map<String, dynamic>?>(
       '/order/$id',
-      parser: (json) => json == null ? null : _ensureMap(json),
+      parser: (json) => json == null ? null : ensureMap(json),
     );
   }
 
@@ -88,14 +89,14 @@ class OrderService {
     return _api.post<Map<String, dynamic>?>(
       '/order/$id/items',
       data: {'items': items.map((item) => item.toMap()).toList()},
-      parser: (json) => json == null ? null : _ensureMap(json),
+      parser: (json) => json == null ? null : ensureMap(json),
     );
   }
 
   Future<ApiResponse<Order>> detail(String id) {
     return _api.get<Order>(
       '/order/$id',
-      parser: (json) => Order.fromJson(_ensureMap(json)),
+      parser: (json) => Order.fromJson(ensureMap(json)),
     );
   }
 
@@ -105,7 +106,7 @@ class OrderService {
   ) {
     return _api.delete<Map<String, dynamic>?>(
       '/order/$orderId/item/$itemId',
-      parser: (json) => json == null ? null : _ensureMap(json),
+      parser: (json) => json == null ? null : ensureMap(json),
     );
   }
 }
@@ -114,14 +115,8 @@ List<Order> _parseOrderList(dynamic data) {
   if (data is List) {
     return data
         .whereType<Map>()
-        .map((item) => Order.fromJson(_ensureMap(item)))
+        .map((item) => Order.fromJson(ensureMap(item)))
         .toList(growable: false);
   }
   return <Order>[];
-}
-
-Map<String, dynamic> _ensureMap(dynamic data) {
-  if (data is Map<String, dynamic>) return data;
-  if (data is Map) return Map<String, dynamic>.from(data);
-  return <String, dynamic>{};
 }

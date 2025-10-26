@@ -1,7 +1,7 @@
 import 'package:fcode_pos/enums.dart' as enums;
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/order_service.dart';
-import 'package:fcode_pos/ui/components/customer_search_dropdown.dart';
+import 'package:fcode_pos/ui/components/dropdown/customer_dropdown.dart';
 import 'package:fcode_pos/ui/components/money_form_field.dart';
 import 'package:fcode_pos/ui/components/dropdown/order_status_dropdown.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
@@ -148,12 +148,10 @@ class _OrderUpdateBottomSheetState extends State<OrderUpdateBottomSheet> {
   Widget _buildCustomerField() {
     return CustomerSearchDropdown(
       selectedUser: _selectedUser,
-      onUserSelected: (User user) {
+      onChanged: (user) {
         setState(() => _selectedUser = user);
       },
-      onUserCleared: () {
-        setState(() => _selectedUser = null);
-      },
+      isRequired: true,
     );
   }
 

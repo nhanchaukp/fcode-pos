@@ -13,15 +13,12 @@ class AuthService {
     final response = await _api.post<_LoginPayload>(
       '/auth/login',
       data: {'email': email, 'password': password},
-      parser: (json) => _LoginPayload.fromJson(_ensureMap(json)),
+      parser: (json) => _LoginPayload.fromJson(ensureMap(json)),
     );
 
     final payload = response.data;
     if (payload != null) {
-      await SecureStorage.saveTokens(
-        payload.accessToken,
-        payload.refreshToken,
-      );
+      await SecureStorage.saveTokens(payload.accessToken, payload.refreshToken);
       await UserPrefs.saveUser(payload.user);
     }
 
@@ -31,7 +28,7 @@ class AuthService {
   Future<ApiResponse<User>> getUserInfo() async {
     final response = await _api.get<User>(
       '/user/me',
-      parser: (json) => User.fromJson(_ensureMap(json)),
+      parser: (json) => User.fromJson(ensureMap(json)),
     );
 
     final user = response.data;
@@ -50,7 +47,7 @@ class AuthService {
   Future<ApiResponse<PasskeyOptions>> getPasskeyOptions() {
     return _api.get<PasskeyOptions>(
       '/auth/passkeys/options',
-      parser: (json) => PasskeyOptions.fromJson(_ensureMap(json)),
+      parser: (json) => PasskeyOptions.fromJson(ensureMap(json)),
     );
   }
 
@@ -60,15 +57,12 @@ class AuthService {
     final response = await _api.post<_LoginPayload>(
       '/auth/passkeys/authenticate',
       data: {'start_authentication_response': passkeyResponse},
-      parser: (json) => _LoginPayload.fromJson(_ensureMap(json)),
+      parser: (json) => _LoginPayload.fromJson(ensureMap(json)),
     );
 
     final payload = response.data;
     if (payload != null) {
-      await SecureStorage.saveTokens(
-        payload.accessToken,
-        payload.refreshToken,
-      );
+      await SecureStorage.saveTokens(payload.accessToken, payload.refreshToken);
       await UserPrefs.saveUser(payload.user);
     }
 
@@ -76,7 +70,7 @@ class AuthService {
   }
 }
 
-Map<String, dynamic> _ensureMap(dynamic data) {
+Map<String, dynamic> ensureMap(dynamic data) {
   if (data is Map<String, dynamic>) return data;
   if (data is Map) return Map<String, dynamic>.from(data);
   return <String, dynamic>{};
@@ -97,7 +91,7 @@ class _LoginPayload {
     return _LoginPayload(
       accessToken: json['access_token'] as String? ?? '',
       refreshToken: json['refresh_token'] as String? ?? '',
-      user: User.fromJson(_ensureMap(json['user'])),
+      user: User.fromJson(ensureMap(json['user'])),
     );
   }
 }

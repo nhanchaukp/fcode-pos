@@ -109,28 +109,36 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
         appBar: AppBar(
-          title: TextField(
+          toolbarHeight: 64,
+          automaticallyImplyLeading: false,
+          title: SearchBar(
+            autoFocus: true,
             controller: _searchController,
-            autofocus: true,
-            decoration: InputDecoration(
-              hintText: 'Tìm mã đơn, sản phẩm...',
-              border: InputBorder.none,
-              suffixIcon: _searchController.text.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear),
+            hintText: 'Tìm kiếm sản phẩm',
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            trailing: _searchController.text.isEmpty
+                ? null
+                : [
+                    IconButton(
+                      tooltip: 'Xóa',
+                      icon: const Icon(Icons.close),
                       onPressed: () {
                         _searchController.clear();
-                        _lastSearchValue = '';
-                        setState(() {
-                          _searchResults = [];
-                          _error = null;
-                          _isSearching = false;
-                        });
                       },
-                    )
-                  : null,
+                    ),
+                  ],
+            onSubmitted: (_) => _performSearch(_searchController.text.trim()),
+            textInputAction: TextInputAction.search,
+            elevation: const WidgetStatePropertyAll(0),
+            backgroundColor: WidgetStatePropertyAll(
+              Theme.of(context).colorScheme.surfaceContainerHigh,
             ),
-            onSubmitted: _performSearch,
+            padding: const WidgetStatePropertyAll<EdgeInsets>(
+              EdgeInsets.symmetric(horizontal: 8),
+            ),
           ),
         ),
         body: _buildSearchResults(),

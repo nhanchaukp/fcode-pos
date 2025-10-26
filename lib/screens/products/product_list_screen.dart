@@ -4,6 +4,7 @@ import 'package:fcode_pos/api/api_exception.dart';
 import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/product_service.dart';
+import 'package:fcode_pos/screens/products/product_edit_screen.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:flutter/material.dart';
 
@@ -201,7 +202,20 @@ class _ProductListScreenState extends State<ProductListScreen> {
         separatorBuilder: (context, _) => const SizedBox(height: 10),
         itemBuilder: (context, index) {
           final product = products[index];
-          return _ProductCard(product: product);
+          return InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () async {
+              final updated = await Navigator.of(context).push<bool>(
+                MaterialPageRoute(
+                  builder: (_) => ProductEditScreen(product: product),
+                ),
+              );
+              if (updated == true) {
+                _loadProducts(page: _currentPage);
+              }
+            },
+            child: _ProductCard(product: product),
+          );
         },
       ),
     );

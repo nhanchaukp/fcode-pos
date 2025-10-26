@@ -1,5 +1,5 @@
 import 'package:fcode_pos/models.dart';
-import 'package:fcode_pos/screens/customer_detail_screen.dart';
+import 'package:fcode_pos/screens/customer/customer_detail_screen.dart';
 import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/services/account_slot_service.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
