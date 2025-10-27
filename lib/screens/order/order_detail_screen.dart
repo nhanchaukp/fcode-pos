@@ -1,5 +1,5 @@
 import 'package:fcode_pos/ui/components/copyable_icon_text.dart';
-import 'package:fcode_pos/utils/extensions/colors.dart';
+import 'package:fcode_pos/enums.dart' as enums;
 import 'package:fcode_pos/utils/image_clipboard.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:fcode_pos/utils/string_helper.dart';
@@ -7,13 +7,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/order_service.dart';
-import 'package:fcode_pos/ui/components/order_status_badge.dart';
+import 'package:fcode_pos/ui/components/order_status_split_button.dart';
 import 'package:fcode_pos/ui/components/order_update_bottom_sheet.dart';
 import 'package:fcode_pos/ui/components/order_item_update_bottom_sheet.dart';
+import 'package:fcode_pos/screens/customer/customer_detail_screen.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:http/http.dart' as http;
+import 'package:fcode_pos/utils/extensions/colors.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final String orderId;
@@ -31,6 +33,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
   bool _isLoading = false;
   String? _error;
   late TabController _tabController;
+  bool _isUpdatingStatus = false;
 
   @override
   void initState() {
@@ -189,6 +192,72 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
         ),
       ),
     );
+  }
+
+  Future<void> _handleQuickStatusChange(enums.OrderStatus status) async {
+    if (_order == null || _isUpdatingStatus) return;
+    if (_order!.status == status.value) return;
+
+    setState(() => _isUpdatingStatus = true);
+
+    final currentOrder = _order!;
+
+    final updatedOrder = Order(
+      id: currentOrder.id,
+      userId: currentOrder.userId,
+      total: currentOrder.total,
+      status: status.value,
+      type: currentOrder.type,
+      note: currentOrder.note,
+      utmSource: currentOrder.utmSource,
+      items: const [],
+      paymentHistories: const [],
+      refunds: const [],
+    );
+
+    try {
+      await _orderService.update(currentOrder.id.toString(), updatedOrder);
+
+      if (!mounted) return;
+
+      setState(() {
+        _order = Order(
+          id: currentOrder.id,
+          userId: currentOrder.userId,
+          total: currentOrder.total,
+          discount: currentOrder.discount,
+          status: status.value,
+          type: currentOrder.type,
+          refundAmount: currentOrder.refundAmount,
+          note: currentOrder.note,
+          transactionId: currentOrder.transactionId,
+          createdAt: currentOrder.createdAt,
+          updatedAt: DateTime.now(),
+          paymentId: currentOrder.paymentId,
+          utmSource: currentOrder.utmSource,
+          user: currentOrder.user,
+          items: currentOrder.items,
+          itemCount: currentOrder.itemCount,
+          paymentHistories: currentOrder.paymentHistories,
+          refunds: currentOrder.refunds,
+          urlQrCodePayment: currentOrder.urlQrCodePayment,
+        );
+      });
+
+      Toastr.success('Đã cập nhật trạng thái đơn hàng');
+    } catch (e, st) {
+      debugPrintStack(
+        stackTrace: st,
+        label: 'Error updating order status: ${e.toString()}',
+      );
+
+      if (!mounted) return;
+      Toastr.error('Cập nhật trạng thái thất bại. Vui lòng thử lại.');
+    } finally {
+      if (mounted) {
+        setState(() => _isUpdatingStatus = false);
+      }
+    }
   }
 
   Future<void> _copyQrCodeToClipboard() async {
@@ -356,14 +425,27 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                         ),
                         const SizedBox(width: 4),
                         Flexible(
-                          child: Text(
-                            order.user?.name ?? 'N/A',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                          child: InkWell(
+                            onTap: order.user != null
+                                ? () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (_) => CustomerDetailScreen(
+                                          userId: order.user?.id,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                : null,
+                            child: Text(
+                              order.user?.name ?? 'N/A',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -374,7 +456,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                   ],
                 ),
               ),
-              OrderStatusBadge(status: order.status),
+              OrderStatusSplitButton(
+                status: order.status,
+                isUpdating: _isUpdatingStatus,
+                onPrimaryPressed: () {
+                  _showUpdateDialog();
+                },
+                onStatusSelected: _handleQuickStatusChange,
+              ),
             ],
           ),
 
