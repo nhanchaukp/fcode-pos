@@ -13,7 +13,7 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class CustomerDetailScreen extends StatefulWidget {
-  final String? userId;
+  final int? userId;
   final User? user;
 
   const CustomerDetailScreen({super.key, this.userId, this.user})

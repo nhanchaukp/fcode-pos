@@ -32,7 +32,7 @@ class CustomerService {
     );
   }
 
-  Future<ApiResponse<User>> detail(String id) {
+  Future<ApiResponse<User>> detail(int id) {
     return _api.get<User>(
       '/user/$id',
       parser: (json) => User.fromJson(ensureMap(json)),

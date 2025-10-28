@@ -2,6 +2,7 @@ import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/customer/customer_create_screen.dart';
 import 'package:fcode_pos/services/customer_service.dart';
 import 'package:flutter/material.dart';
+import 'package:fcode_pos/ui/components/debounced_search_input.dart';
 
 class CustomerSearchDropdown extends StatefulWidget {
   final User? selectedUser;
@@ -160,25 +161,12 @@ class _CustomerSelectSheetState extends State<_CustomerSelectSheet> {
   void initState() {
     super.initState();
     _searchController = TextEditingController();
-    _searchController.addListener(_onSearch);
   }
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
-  }
-
-  void _onSearch() {
-    final query = _searchController.text.trim();
-    if (query.isEmpty) {
-      setState(() {
-        _results = [];
-        _hasSearched = false;
-      });
-      return;
-    }
-    _searchCustomers(query);
   }
 
   Future<void> _searchCustomers(String query) async {
@@ -234,14 +222,21 @@ class _CustomerSelectSheetState extends State<_CustomerSelectSheet> {
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              TextField(
+              DebouncedSearchInput(
                 controller: _searchController,
-                decoration: const InputDecoration(
-                  hintText: 'Tìm kiếm khách hàng...',
-                  prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
-                ),
                 autofocus: true,
+                hintText: 'Tìm kiếm khách hàng...',
+                onChanged: (query) {
+                  if (!mounted) return;
+                  if (query.trim().isEmpty) {
+                    setState(() {
+                      _results = [];
+                      _hasSearched = false;
+                    });
+                    return;
+                  }
+                  _searchCustomers(query.trim());
+                },
               ),
               const SizedBox(height: 12),
               Flexible(

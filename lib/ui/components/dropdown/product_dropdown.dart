@@ -1,7 +1,7 @@
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/product_service.dart';
-import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:fcode_pos/ui/components/debounced_search_input.dart';
 
 class ProductSearchDropdown extends StatefulWidget {
   final Product? selectedProduct;
@@ -191,17 +191,6 @@ class _ProductSelectSheetState extends State<_ProductSelectSheet> {
     super.initState();
     _searchController = TextEditingController();
     _filtered = widget.products;
-    _searchController.addListener(_onSearch);
-  }
-
-  void _onSearch() {
-    final query = _searchController.text.toLowerCase();
-    setState(() {
-      _filtered = widget.products.where((product) {
-        return product.name.toLowerCase().contains(query) ||
-            (product.sku?.toLowerCase().contains(query) ?? false);
-      }).toList();
-    });
   }
 
   @override
@@ -234,14 +223,20 @@ class _ProductSelectSheetState extends State<_ProductSelectSheet> {
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              TextField(
-                autofocus: true,
+              DebouncedSearchInput(
                 controller: _searchController,
-                decoration: const InputDecoration(
-                  hintText: 'Tìm kiếm sản phẩm...',
-                  prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
-                ),
+                autofocus: true,
+                hintText: 'Tìm kiếm sản phẩm...',
+                onChanged: (query) {
+                  if (!mounted) return;
+                  final q = query.toLowerCase();
+                  setState(() {
+                    _filtered = widget.products.where((product) {
+                      return product.name.toLowerCase().contains(q) ||
+                          (product.sku?.toLowerCase().contains(q) ?? false);
+                    }).toList();
+                  });
+                },
               ),
               const SizedBox(height: 12),
               Flexible(

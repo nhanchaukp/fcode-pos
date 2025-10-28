@@ -85,7 +85,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     final result = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      showDragHandle: true,
+      showDragHandle: false,
+      useSafeArea: true,
       builder: (context) => OrderUpdateBottomSheet(
         order: _order!,
         onSuccess: () {
@@ -452,7 +453,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                     ),
                     const SizedBox(height: 6),
                     // Customer info
-                    _buildCustomerInfo(order.user),
+                    // _buildCustomerInfo(order.user),
                   ],
                 ),
               ),
@@ -466,6 +467,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
               ),
             ],
           ),
+          _buildCustomerInfo(order.user),
 
           const SizedBox(height: 12),
 
@@ -893,7 +895,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     final result = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      showDragHandle: true,
+      showDragHandle: false,
+      useSafeArea: true,
       builder: (context) => OrderItemUpdateBottomSheet(
         orderId: _order!.id,
         orderItem: item,
@@ -913,7 +916,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     final result = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      showDragHandle: true,
+      showDragHandle: false,
+      useSafeArea: true,
       builder: (context) => OrderItemUpdateBottomSheet(
         orderId: orderId,
         orderItem: null,
@@ -1108,7 +1112,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     final amount = int.tryParse(refund['amount']?.toString() ?? '0') ?? 0;
     final reason = refund['reason']?.toString() ?? 'N/A';
     final createdAt = refund['created_at'] != null
-        ? DateTime.parse(refund['created_at'].toString())
+        ? DateTime.parse(refund['created_at'].toString()).toLocal()
         : null;
 
     return Padding(

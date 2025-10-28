@@ -154,9 +154,11 @@ class OrderListComponent extends StatelessWidget {
                           Text(
                             '#${order.id}',
                             style: TextStyle(
-                              fontSize: 16,
+                              fontSize: 14,
                               fontWeight: FontWeight.w700,
-                              color: colorScheme.onSurface,
+                              color: colorScheme.onSurfaceVariant.applyOpacity(
+                                0.7,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -238,7 +240,7 @@ class OrderListComponent extends StatelessWidget {
                             createdAtLabel,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.bodyMedium
+                            style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(color: colorScheme.onSurfaceVariant),
                           ),
                         ],

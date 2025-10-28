@@ -1,6 +1,7 @@
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/supply_service.dart';
 import 'package:flutter/material.dart';
+import 'package:fcode_pos/ui/components/debounced_search_input.dart';
 
 class SupplyDropdown extends StatefulWidget {
   final Supply? selectedSupply;
@@ -175,17 +176,6 @@ class _SupplySelectSheetState extends State<_SupplySelectSheet> {
     super.initState();
     _searchController = TextEditingController();
     _filtered = widget.supplies;
-    _searchController.addListener(_onSearch);
-  }
-
-  void _onSearch() {
-    final query = _searchController.text.toLowerCase();
-    setState(() {
-      _filtered = widget.supplies.where((supply) {
-        return supply.name.toLowerCase().contains(query) ||
-            (supply.content?.toLowerCase().contains(query) ?? false);
-      }).toList();
-    });
   }
 
   @override
@@ -218,14 +208,20 @@ class _SupplySelectSheetState extends State<_SupplySelectSheet> {
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              TextField(
-                autofocus: true,
+              DebouncedSearchInput(
                 controller: _searchController,
-                decoration: const InputDecoration(
-                  hintText: 'Tìm kiếm nhà cung cấp...',
-                  prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
-                ),
+                autofocus: true,
+                hintText: 'Tìm kiếm nhà cung cấp...',
+                onChanged: (query) {
+                  if (!mounted) return;
+                  final q = query.toLowerCase();
+                  setState(() {
+                    _filtered = widget.supplies.where((supply) {
+                      return supply.name.toLowerCase().contains(q) ||
+                          (supply.content?.toLowerCase().contains(q) ?? false);
+                    }).toList();
+                  });
+                },
               ),
               const SizedBox(height: 12),
               Flexible(

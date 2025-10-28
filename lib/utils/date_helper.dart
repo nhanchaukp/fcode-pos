@@ -4,37 +4,37 @@ class DateHelper {
   /// Format ngày giờ đầy đủ: dd/MM/yyyy HH:mm
   static String formatDateTime(DateTime? date) {
     if (date == null) return 'N/A';
-    return DateFormat('dd/MM/yyyy HH:mm').format(date);
+    return DateFormat('dd/MM/yyyy HH:mm').format(date.toLocal());
   }
 
   /// Format ngày giờ ngắn: dd/MM/yy HH:mm
   static String formatDateTimeShort(DateTime? date) {
     if (date == null) return 'N/A';
-    return DateFormat('dd/MM/yy HH:mm').format(date);
+    return DateFormat('dd/MM/yy HH:mm').format(date.toLocal());
   }
 
   /// Format chỉ ngày: dd/MM/yyyy
   static String formatDate(DateTime? date) {
     if (date == null) return 'N/A';
-    return DateFormat('dd/MM/yyyy').format(date);
+    return DateFormat('dd/MM/yyyy').format(date.toLocal());
   }
 
   /// Format chỉ ngày ngắn: dd/MM/yy
   static String formatDateShort(DateTime? date) {
     if (date == null) return 'N/A';
-    return DateFormat('dd/MM/yy').format(date);
+    return DateFormat('dd/MM/yy').format(date.toLocal());
   }
 
   /// Format chỉ giờ: HH:mm
   static String formatTime(DateTime? date) {
     if (date == null) return 'N/A';
-    return DateFormat('HH:mm').format(date);
+    return DateFormat('HH:mm').format(date.toLocal());
   }
 
   /// Format với custom pattern
   static String formatCustom(DateTime? date, String pattern) {
     if (date == null) return 'N/A';
-    return DateFormat(pattern).format(date);
+    return DateFormat(pattern).format(date.toLocal());
   }
 
   /// Parse string ISO8601 thành DateTime
@@ -52,7 +52,7 @@ class DateHelper {
     if (date == null) return 'N/A';
 
     final now = DateTime.now();
-    final difference = now.difference(date);
+    final difference = now.difference(date.toLocal());
 
     if (difference.inDays > 365) {
       final years = (difference.inDays / 365).floor();
@@ -74,13 +74,13 @@ class DateHelper {
   /// Kiểm tra ngày đã hết hạn
   static bool isExpired(DateTime? date) {
     if (date == null) return false;
-    return date.isBefore(DateTime.now());
+    return date.isBefore(DateTime.now().toLocal());
   }
 
   /// Số ngày còn lại đến hạn
   static int daysUntil(DateTime? date) {
     if (date == null) return 0;
-    final difference = date.difference(DateTime.now());
+    final difference = date.difference(DateTime.now().toLocal());
     return difference.inDays;
   }
 }

@@ -333,6 +333,7 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
+      useSafeArea: true,
       builder: (context) => OrderItemEditorModal(
         itemData: newItem,
         title: 'Thêm sản phẩm',
@@ -361,6 +362,7 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
+      useSafeArea: true,
       builder: (context) => OrderItemEditorModal(
         itemData: item,
         title: 'Chỉnh sửa sản phẩm',
