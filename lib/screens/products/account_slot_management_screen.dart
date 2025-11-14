@@ -441,152 +441,112 @@ class _AccountSlotManagementScreenState
   }
 
   Widget _buildAccountMasterCard(AccountMaster accountMaster) {
-    final hasSlots =
-        accountMaster.slots != null && accountMaster.slots!.isNotEmpty;
+    final slots = accountMaster.slots ?? const <AccountSlot>[];
+    final hasSlots = slots.isNotEmpty;
+    final slotCountLabel = '${slots.length}/${accountMaster.maxSlots} slots';
+    final infoItems = <String>[
+      if (accountMaster.serviceType.isNotEmpty)
+        accountMaster.serviceType.toUpperCase(),
+      if (accountMaster.paymentDate != null)
+        'Gia hạn ${DateHelper.formatDateShort(accountMaster.paymentDate!)}',
+    ];
+    final infoText = infoItems.join(' • ');
 
     return Card(
       elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header: Service Type, Username, Active Status
             Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Service Type Badge
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    accountMaster.serviceType,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                // Active Status
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: accountMaster.isActive
-                        ? Colors.green.applyOpacity(0.1)
-                        : Colors.red.applyOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: accountMaster.isActive ? Colors.green : Colors.red,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        accountMaster.isActive
-                            ? Icons.check_circle
-                            : Icons.cancel,
-                        size: 14,
-                        color: accountMaster.isActive
-                            ? Colors.green
-                            : Colors.red,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        accountMaster.isActive ? 'Active' : 'Inactive',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: accountMaster.isActive
-                              ? Colors.green
-                              : Colors.red,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            // Username
-            Row(
-              children: [
-                Icon(
-                  Icons.account_circle,
-                  size: 16,
-                  color: colorScheme.secondary,
-                ),
-                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    accountMaster.username,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    accountMaster.name,
+                    style:
+                        Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ) ??
+                        const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
                 ),
+                const SizedBox(width: 8),
+                _buildStatusChip(accountMaster.isActive),
               ],
             ),
-
-            // Notes (if available)
-            if (accountMaster.notes != null &&
-                accountMaster.notes!.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.note,
-                    size: 16,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      accountMaster.notes!,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                ],
+            if (infoText.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Text(
+                infoText,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
 
-            // Slots section
+            if ((accountMaster.notes ?? '').isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: colorScheme.secondaryContainer.withOpacity(
+                    colorScheme.brightness == Brightness.dark ? 0.35 : 0.5,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.note_alt_outlined,
+                      size: 18,
+                      color: colorScheme.onSecondaryContainer,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        accountMaster.notes!,
+                        style: TextStyle(
+                          fontSize: 13,
+                          height: 1.4,
+                          color: colorScheme.onSecondaryContainer,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
             if (hasSlots) ...[
               const SizedBox(height: 16),
-              const Divider(),
-              const SizedBox(height: 8),
               Row(
                 children: [
-                  Icon(Icons.dns, size: 16, color: colorScheme.primary),
+                  Icon(
+                    Icons.dns_outlined,
+                    size: 18,
+                    color: colorScheme.primary,
+                  ),
                   const SizedBox(width: 8),
                   Text(
-                    'Slots (${accountMaster.slots!.length}/${accountMaster.maxSlots})',
+                    'Danh sách $slotCountLabel',
                     style: TextStyle(
                       fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: colorScheme.primary,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
-              ...accountMaster.slots!.map((slot) => _buildSlotItem(slot)),
+              ...slots.map(_buildSlotItem),
             ] else ...[
               const SizedBox(height: 12),
               Text(
@@ -632,6 +592,7 @@ class _AccountSlotManagementScreenState
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ),
@@ -749,6 +710,37 @@ class _AccountSlotManagementScreenState
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildStatusChip(bool isActive) {
+    final color = isActive ? Colors.green : Colors.red;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isActive ? Icons.check_circle : Icons.cancel,
+            size: 14,
+            color: color,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            isActive ? 'Active' : 'Inactive',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

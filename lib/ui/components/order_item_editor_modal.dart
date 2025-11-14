@@ -1,7 +1,7 @@
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/product_supply_service.dart';
 import 'package:fcode_pos/ui/components/account_form_input.dart';
-import 'package:fcode_pos/ui/components/account_slot_dropdown.dart';
+import 'package:fcode_pos/ui/components/dropdown/account_slot_dropdown.dart';
 import 'package:fcode_pos/ui/components/loading_icon.dart';
 import 'package:fcode_pos/ui/components/money_form_field.dart';
 import 'package:fcode_pos/ui/components/dropdown/product_dropdown.dart';

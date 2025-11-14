@@ -2,6 +2,7 @@ import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:fcode_pos/models/dto/customer_create_data.dart';
 import 'package:fcode_pos/services/customer_service.dart';
+import 'package:hux/hux.dart';
 
 class CustomerCreateScreen extends StatefulWidget {
   const CustomerCreateScreen({super.key});
@@ -82,7 +83,7 @@ class _CustomerCreateScreenState extends State<CustomerCreateScreen> {
                 return null;
               },
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             TextFormField(
               controller: _emailController,
               decoration: const InputDecoration(labelText: 'Email'),
@@ -95,7 +96,7 @@ class _CustomerCreateScreenState extends State<CustomerCreateScreen> {
                 return null;
               },
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             TextFormField(
               controller: _passwordController,
               decoration: const InputDecoration(
@@ -108,7 +109,7 @@ class _CustomerCreateScreenState extends State<CustomerCreateScreen> {
                 return null;
               },
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             TextFormField(
               controller: _facebookController,
               decoration: const InputDecoration(
@@ -119,7 +120,7 @@ class _CustomerCreateScreenState extends State<CustomerCreateScreen> {
                 return null;
               },
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             TextFormField(
               controller: _phoneController,
               decoration: const InputDecoration(
@@ -132,15 +133,10 @@ class _CustomerCreateScreenState extends State<CustomerCreateScreen> {
               },
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
+            HuxButton(
               onPressed: _isLoading ? null : _submit,
-              child: _isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Tạo khách hàng'),
+              isLoading: _isLoading,
+              child: const Text('Tạo khách hàng'),
             ),
           ],
         ),

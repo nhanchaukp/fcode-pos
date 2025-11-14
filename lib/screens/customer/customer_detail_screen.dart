@@ -1,5 +1,6 @@
 import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/models.dart';
+import 'package:fcode_pos/screens/customer/customer_update_screen.dart';
 import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/services/customer_service.dart';
 import 'package:fcode_pos/services/order_service.dart';
@@ -93,6 +94,24 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen>
               icon: const Icon(Icons.refresh),
               onPressed: _loadCustomerDetail,
             ),
+
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () async {
+              if (_user == null) return;
+              final updatedUser = await Navigator.of(context).push<User>(
+                MaterialPageRoute(
+                  builder: (context) => CustomerUpdateScreen(user: _user!),
+                ),
+              );
+              if (updatedUser != null && mounted) {
+                setState(() {
+                  _user = updatedUser;
+                });
+                Toastr.success('Cập nhật thông tin khách hàng thành công');
+              }
+            },
+          ),
         ],
         bottom: _user != null
             ? TabBar(

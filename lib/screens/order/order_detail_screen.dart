@@ -13,6 +13,7 @@ import 'package:fcode_pos/ui/components/order_item_update_bottom_sheet.dart';
 import 'package:fcode_pos/screens/customer/customer_detail_screen.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
+import 'package:hux/hux.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:http/http.dart' as http;
 import 'package:fcode_pos/utils/extensions/colors.dart';
@@ -26,26 +27,23 @@ class OrderDetailScreen extends StatefulWidget {
   State<OrderDetailScreen> createState() => _OrderDetailScreenState();
 }
 
-class _OrderDetailScreenState extends State<OrderDetailScreen>
-    with SingleTickerProviderStateMixin {
+class _OrderDetailScreenState extends State<OrderDetailScreen> {
   late OrderService _orderService;
   Order? _order;
   bool _isLoading = false;
   String? _error;
-  late TabController _tabController;
   bool _isUpdatingStatus = false;
+  int _activeTabIndex = 0;
 
   @override
   void initState() {
     super.initState();
     _orderService = OrderService();
-    _tabController = TabController(length: 3, vsync: this);
     _loadOrderDetail();
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
     super.dispose();
   }
 
@@ -370,43 +368,65 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
 
     return Column(
       children: [
-        // Card thông tin đơn hàng
         _buildOrderInfoCard(order),
-
-        // Tab section
-        Container(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          child: TabBar(
-            controller: _tabController,
-            tabs: [
-              Tab(icon: Icon(Icons.shopping_bag), text: 'Sản phẩm'),
-              Tab(icon: Icon(Icons.payment), text: 'Thanh toán'),
-              Tab(icon: Icon(Icons.money_off), text: 'Hoàn tiền'),
-            ],
-          ),
+        HuxTabs(
+          variant: HuxTabVariant.minimal,
+          tabs: [
+            const HuxTabItem(
+              icon: Icons.shopping_bag,
+              label: 'Sản phẩm',
+              content: SizedBox.shrink(),
+            ),
+            HuxTabItem(
+              icon: Icons.payment,
+              label: 'Thanh toán',
+              badge: order.paymentHistories.isNotEmpty
+                  ? HuxBadge(
+                      label: order.paymentHistories.length.toString(),
+                      size: HuxBadgeSize.small,
+                      variant: HuxBadgeVariant.secondary,
+                    )
+                  : null,
+              content: const SizedBox.shrink(),
+            ),
+            const HuxTabItem(
+              icon: Icons.money_off,
+              label: 'Hoàn tiền',
+              content: SizedBox.shrink(),
+            ),
+          ],
+          onTabChanged: (index) {
+            setState(() => _activeTabIndex = index);
+          },
+          alignment: TabAlignment.start,
         ),
-
-        // Tab view
         Expanded(
-          child: TabBarView(
-            controller: _tabController,
-            children: [
-              _buildProductsTab(order),
-              _buildPaymentHistoryTab(order),
-              _buildRefundHistoryTab(order),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 0),
+            child: _buildActiveTab(order),
           ),
         ),
       ],
     );
   }
 
+  Widget _buildActiveTab(Order order) {
+    switch (_activeTabIndex) {
+      case 0:
+        return _buildProductsTab(order);
+      case 1:
+        return _buildPaymentHistoryTab(order);
+      case 2:
+      default:
+        return _buildRefundHistoryTab(order);
+    }
+  }
+
   Widget _buildOrderInfoCard(Order order) {
     final createdAt = order.createdAt;
 
     return Container(
-      padding: const EdgeInsets.all(16),
-      color: Theme.of(context).scaffoldBackgroundColor,
+      padding: const EdgeInsets.all(8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -651,10 +671,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                 children: [
                   const Text('Không có sản phẩm nào'),
                   const SizedBox(height: 16),
-                  FilledButton.icon(
+                  HuxButton(
                     onPressed: () => _showAddProductBottomSheet(order.id),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Thêm sản phẩm'),
+                    icon: Icons.add,
+                    child: Text('Thêm sản phẩm'),
                   ),
                 ],
               ),
@@ -672,13 +692,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             width: double.infinity,
-            child: FilledButton.icon(
+            child: HuxButton(
               onPressed: () => _showAddProductBottomSheet(order.id),
-              icon: const Icon(Icons.add),
-              label: const Text('Thêm sản phẩm'),
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
+              icon: Icons.add,
+              variant: HuxButtonVariant.secondary,
+              child: Text('Thêm sản phẩm'),
             ),
           ),
           // Products list
@@ -702,189 +720,145 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     final accountSlot = item.accountSlot;
     final hasSlot = accountSlot != null;
 
-    return InkWell(
+    return HuxCard(
       onTap: () => _showItemUpdateBottomSheet(item),
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Product name & price
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              item.product?.name ?? 'N/A',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Text(
-                            'Nhập từ: ${item.supply?.name ?? 'N/A'}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: colorScheme.onSurface,
-                            ),
-                          ),
-                          const Spacer(),
-                          Text(
-                            CurrencyHelper.formatCurrency(item.priceSupply),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: colorScheme.onSurface,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Text(
-                            'Số lượng: ${item.quantity}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: colorScheme.onSurface,
-                            ),
-                          ),
-                          const Spacer(),
-                          Text(
-                            CurrencyHelper.formatCurrency(item.price),
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-
-            // Account slot information (compact)
-            if (hasSlot) ...[
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(6),
-                ),
+      // borderRadius: BorderRadius.circular(8),
+      title: item.product?.name ?? 'N/A',
+      subtitle:
+          '${item.supply?.name ?? 'N/A'} • ${CurrencyHelper.formatCurrency(item.priceSupply)}',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Product name & price
+          Row(
+            children: [
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
                         Text(
-                          accountSlot.accountMaster?.username ?? 'N/A',
+                          'Số lượng: ${item.quantity}',
                           style: TextStyle(
                             fontSize: 12,
-                            color: colorScheme.onSurface.applyOpacity(0.7),
+                            color: colorScheme.onSurface,
                           ),
                         ),
                         const Spacer(),
-                        // Copy button for Netflix
-                        if (accountSlot.accountMaster?.serviceType
-                                .toLowerCase() ==
-                            'netflix')
-                          InkWell(
-                            onTap: () => _copyAccountInfo(accountSlot),
-                            borderRadius: BorderRadius.circular(4),
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              child: Icon(
-                                Icons.copy,
-                                size: 16,
-                                color: colorScheme.onSurface.applyOpacity(0.7),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildCompactSlotInfo(
-                            const Icon(Icons.account_circle),
-                            accountSlot.name,
+                        Text(
+                          CurrencyHelper.formatCurrency(item.price),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.primary,
                           ),
                         ),
-                        Expanded(
-                          child: _buildCompactSlotInfo(
-                            const Icon(Icons.lock),
-                            accountSlot.pin,
-                          ),
-                        ),
-                        if (accountSlot.expiryDate != null)
-                          _buildCompactSlotInfo(
-                            const Icon(Icons.calendar_today),
-                            DateHelper.formatDate(accountSlot.expiryDate),
-                          ),
                       ],
                     ),
                   ],
                 ),
               ),
             ],
-            // Account display if exist, display key|value format
-            if (item.account != null && item.account!.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          StringHelper.formatAccountString(item.account!),
-                          style: TextStyle(fontSize: 11),
+          ),
+
+          // Account slot information (compact)
+          if (hasSlot) ...[
+            const SizedBox(height: 8),
+            HuxCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        accountSlot.accountMaster?.username ?? 'N/A',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colorScheme.onSurface.applyOpacity(0.7),
                         ),
+                      ),
+                      const Spacer(),
+                      // Copy button for Netflix
+                      if (accountSlot.accountMaster?.serviceType
+                              .toLowerCase() ==
+                          'netflix')
                         InkWell(
-                          onTap: () => _copyRawAccountInfo(item.account!),
+                          onTap: () => _copyAccountInfo(accountSlot),
                           borderRadius: BorderRadius.circular(4),
                           child: Container(
                             padding: const EdgeInsets.all(4),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.copy,
-                                  size: 14,
-                                  color: colorScheme.primary,
-                                ),
-                              ],
+                            child: Icon(
+                              Icons.copy,
+                              size: 16,
+                              color: colorScheme.onSurface.applyOpacity(0.7),
                             ),
                           ),
                         ),
-                      ],
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildCompactSlotInfo(
+                          const Icon(Icons.account_circle),
+                          accountSlot.name,
+                        ),
+                      ),
+                      Expanded(
+                        child: _buildCompactSlotInfo(
+                          const Icon(Icons.lock),
+                          accountSlot.pin,
+                        ),
+                      ),
+                      if (accountSlot.expiryDate != null)
+                        _buildCompactSlotInfo(
+                          const Icon(Icons.calendar_today),
+                          DateHelper.formatDate(accountSlot.expiryDate),
+                        ),
+                    ],
+                  ),
+                ],
               ),
-            ],
+            ),
           ],
-        ),
+          // Account display if exist, display key|value format
+          if (item.account != null && item.account!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            HuxCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        StringHelper.formatAccountString(item.account!),
+                        style: TextStyle(fontSize: 11),
+                      ),
+                      InkWell(
+                        onTap: () => _copyRawAccountInfo(item.account!),
+                        borderRadius: BorderRadius.circular(4),
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.copy,
+                                size: 14,
+                                color: colorScheme.primary,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -985,7 +959,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     return RefreshIndicator(
       onRefresh: _loadOrderDetail,
       child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         itemCount: order.paymentHistories.length,
         separatorBuilder: (context, index) => const Divider(height: 1),
         itemBuilder: (context, index) {
@@ -999,10 +972,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
   Widget _buildPaymentHistoryItem(PaymentHistory payment) {
     final statusColor = _getPaymentStatusColor(payment.status);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+    return HuxCard(
+      title: payment.notes ?? 'Thanh toán',
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1096,7 +1068,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     return RefreshIndicator(
       onRefresh: _loadOrderDetail,
       child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         itemCount: order.refunds.length,
         separatorBuilder: (context, index) => const Divider(height: 1),
         itemBuilder: (context, index) {
@@ -1109,14 +1080,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
 
   Widget _buildRefundItem(dynamic refund) {
     // Parse refund data based on its structure
-    final amount = int.tryParse(refund['amount']?.toString() ?? '0') ?? 0;
+    final amount = int.tryParse(refund['amount'].toString()) ?? 0;
     final reason = refund['reason']?.toString() ?? 'N/A';
     final createdAt = refund['created_at'] != null
         ? DateTime.parse(refund['created_at'].toString()).toLocal()
         : null;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+    return HuxCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

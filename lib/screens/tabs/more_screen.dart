@@ -4,6 +4,7 @@ import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:hux/hux.dart';
 
 class MoreScreen extends ConsumerWidget {
   const MoreScreen({super.key});
@@ -31,9 +32,8 @@ class MoreScreen extends ConsumerWidget {
               Text(
                 user!.email,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color:
-                          Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
           ],
         ),
@@ -136,17 +136,48 @@ class MoreScreen extends ConsumerWidget {
               return Center(
                 child: Text(
                   'Phiên bản ứng dụng: $version',
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurfaceVariant,
-                      ),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               );
             },
+          ),
+          HuxTabs(
+            tabs: [
+              HuxTabItem(
+                label: 'Overview',
+                content: Text('Overview content goes here'),
+              ),
+              HuxTabItem(
+                label: 'Settings',
+                content: Text('Settings content goes here'),
+              ),
+              HuxTabItem(
+                label: 'Profile',
+                content: Text('Profile content goes here'),
+              ),
+            ],
+            onTabChanged: (index) => print('Tab changed to $index'),
+          ),
+          HuxTabs(
+            tabs: [
+              HuxTabItem(
+                label: 'Dashboard',
+                icon: Icons.dashboard,
+                content: Text('Dashboard content'),
+              ),
+              HuxTabItem(
+                label: 'Settings',
+                icon: Icons.settings,
+                content: Text('Settings content'),
+              ),
+              HuxTabItem(
+                label: 'Profile',
+                icon: Icons.person,
+                content: Text('Profile content'),
+              ),
+            ],
           ),
         ],
       ),

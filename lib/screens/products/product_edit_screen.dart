@@ -1,10 +1,12 @@
 import 'package:fcode_pos/ui/components/loading_icon.dart';
 import 'package:fcode_pos/ui/components/quantity_input.dart';
+import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/models/dto/product_update_data.dart';
 import 'package:fcode_pos/services/product_service.dart';
 import 'package:fcode_pos/api/api_exception.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ProductEditScreen extends StatefulWidget {
   final Product product;
@@ -105,10 +107,27 @@ class _ProductEditScreenState extends State<ProductEditScreen> {
     }
   }
 
+  Future<void> _shareLink() async {
+    final url = 'https://fcode.vn/${widget.product.slug}';
+    try {
+      await SharePlus.instance.share(ShareParams(text: url, title: url));
+    } catch (e) {
+      Toastr.error('Không thể chia sẻ liên kết sản phẩm.');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Cập nhật sản phẩm')),
+      appBar: AppBar(
+        title: const Text('Cập nhật sản phẩm'),
+        actions: [
+          IconButton(
+            onPressed: _isLoading ? null : _shareLink,
+            icon: const Icon(Icons.share_outlined),
+          ),
+        ],
+      ),
       body: Form(
         key: _formKey,
         child: ListView(

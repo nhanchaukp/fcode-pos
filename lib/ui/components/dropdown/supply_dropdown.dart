@@ -2,6 +2,7 @@ import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/supply_service.dart';
 import 'package:flutter/material.dart';
 import 'package:fcode_pos/ui/components/debounced_search_input.dart';
+import 'package:fcode_pos/screens/supply/supply_form_screen.dart';
 
 class SupplyDropdown extends StatefulWidget {
   final Supply? selectedSupply;
@@ -111,8 +112,11 @@ class _SupplyDropdownState extends State<SupplyDropdown> {
         labelText: '$label${widget.isRequired ? ' *' : ''}',
         prefixIcon: const Icon(Icons.local_shipping_outlined),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        suffixIcon: _selectedSupply != null && widget.enabled
-            ? IconButton(
+        suffixIcon: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (_selectedSupply != null && widget.enabled)
+              IconButton(
                 icon: const Icon(Icons.clear),
                 onPressed: () {
                   setState(() {
@@ -120,8 +124,31 @@ class _SupplyDropdownState extends State<SupplyDropdown> {
                   });
                   widget.onChanged?.call(null);
                 },
-              )
-            : null,
+              ),
+            if (widget.enabled)
+              IconButton(
+                icon: const Icon(Icons.add_business),
+                tooltip: 'Thêm nhà cung cấp',
+                onPressed: () async {
+                  final created = await Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const SupplyFormScreen(),
+                    ),
+                  );
+                  if (created == true) {
+                    // Reload supplies and select the newest one
+                    await _loadSupplies();
+                    if (_supplies.isNotEmpty) {
+                      setState(() {
+                        _selectedSupply = _supplies.last;
+                      });
+                      widget.onChanged?.call(_selectedSupply);
+                    }
+                  }
+                },
+              ),
+          ],
+        ),
       ),
       onTap: widget.enabled
           ? () async {
