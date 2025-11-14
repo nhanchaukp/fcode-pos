@@ -136,6 +136,7 @@ class OrderStatistics {
     required this.successfulOrders,
     required this.completedOrders,
     required this.cancelledOrders,
+    required this.refundedOrders,
     required this.totalRevenue,
     required this.avgOrderValue,
   });
@@ -144,6 +145,7 @@ class OrderStatistics {
   final int successfulOrders;
   final int completedOrders;
   final int cancelledOrders;
+  final int refundedOrders;
   final int totalRevenue;
   final int avgOrderValue;
 
@@ -153,6 +155,7 @@ class OrderStatistics {
       successfulOrders: asInt(json['successful_orders']),
       completedOrders: asInt(json['completed_orders']),
       cancelledOrders: asInt(json['cancelled_orders']),
+      refundedOrders: asInt(json['refunded_orders']),
       totalRevenue: asInt(json['total_revenue']),
       avgOrderValue: asInt(json['avg_order_value']),
     );
@@ -164,6 +167,7 @@ class OrderStatistics {
       'successful_orders': successfulOrders,
       'completed_orders': completedOrders,
       'cancelled_orders': cancelledOrders,
+      'refunded_orders': refundedOrders,
       'total_revenue': totalRevenue,
       'avg_order_value': avgOrderValue,
     };

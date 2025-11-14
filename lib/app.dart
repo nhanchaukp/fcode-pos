@@ -12,7 +12,7 @@ class AppwriteApp extends ConsumerWidget {
   ThemeData _buildLightTheme() {
     final base = ThemeData(
       useMaterial3: true,
-      fontFamily: 'Aeonik',
+      fontFamily: 'GoogleSans',
       colorScheme: ColorScheme.fromSeed(
         seedColor: Colors.teal,
         brightness: Brightness.light,
@@ -38,7 +38,7 @@ class AppwriteApp extends ConsumerWidget {
   ThemeData _buildDarkTheme() {
     final base = ThemeData(
       useMaterial3: true,
-      fontFamily: 'Aeonik',
+      fontFamily: 'GoogleSans',
       colorScheme: ColorScheme.fromSeed(
         seedColor: Colors.teal,
         brightness: Brightness.dark,

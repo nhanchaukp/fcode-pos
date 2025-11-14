@@ -1,5 +1,6 @@
 import 'package:fcode_pos/ui/components/copyable_icon_text.dart';
 import 'package:fcode_pos/enums.dart' as enums;
+import 'package:fcode_pos/utils/functions.dart';
 import 'package:fcode_pos/utils/image_clipboard.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:fcode_pos/utils/string_helper.dart';
@@ -380,7 +381,18 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
             controller: _tabController,
             tabs: [
               Tab(icon: Icon(Icons.shopping_bag), text: 'Sản phẩm'),
-              Tab(icon: Icon(Icons.payment), text: 'Thanh toán'),
+              Tab(
+                icon: IconButton(
+                  icon: Badge.count(
+                    count: _order?.paymentHistories.length ?? 0,
+                    child: Icon(Icons.payment),
+                  ),
+                  onPressed: () {
+                    _tabController.animateTo(1);
+                  },
+                ),
+                text: 'Thanh toán',
+              ),
               Tab(icon: Icon(Icons.money_off), text: 'Hoàn tiền'),
             ],
           ),
@@ -1109,7 +1121,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
 
   Widget _buildRefundItem(dynamic refund) {
     // Parse refund data based on its structure
-    final amount = int.tryParse(refund['amount']?.toString() ?? '0') ?? 0;
+    final amount = asInt(refund['amount']?.toString() ?? '0');
     final reason = refund['reason']?.toString() ?? 'N/A';
     final createdAt = refund['created_at'] != null
         ? DateTime.parse(refund['created_at'].toString()).toLocal()
