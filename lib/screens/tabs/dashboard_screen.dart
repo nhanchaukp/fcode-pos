@@ -7,7 +7,8 @@ import 'package:fcode_pos/services/finacial_service.dart';
 import 'package:fcode_pos/ui/dashboard/dashboard_components.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:hux/hux.dart';
+import 'package:intl/intl.dart' as intl;
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -285,10 +286,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const SizedBox(height: 16),
                     Text('Lỗi: $_error'),
                     const SizedBox(height: 16),
-                    ElevatedButton.icon(
+                    HuxButton(
                       onPressed: _loadStats,
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Thử lại'),
+                      icon: Icons.refresh,
+                      child: const Text('Thử lại'),
                     ),
                   ],
                 ),
@@ -305,42 +306,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Date Range Display
-                      Card(
+                      HuxCard(
                         margin: const EdgeInsets.only(bottom: 12),
-                        child: InkWell(
-                          onTap: _selectDateRange,
-                          borderRadius: BorderRadius.circular(12),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.calendar_today,
-                                  size: 18,
-                                  color: Theme.of(context).colorScheme.primary,
+                        onTap: _selectDateRange,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.calendar_today,
+                                size: 18,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  'Từ ${_formatDate(_fromDate)} đến ${_formatDate(_toDate)}',
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(fontWeight: FontWeight.w500),
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    'Từ ${_formatDate(_fromDate)} đến ${_formatDate(_toDate)}',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.copyWith(fontWeight: FontWeight.w500),
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.chevron_right,
-                                  size: 20,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                              ],
-                            ),
+                              ),
+                              Icon(
+                                Icons.chevron_right,
+                                size: 20,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -577,73 +573,73 @@ class _FinancialReportContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Financial Summary Card
-        Card(
-          elevation: 0,
-          color: theme.colorScheme.primaryContainer,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Tổng quan tài chính',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onPrimaryContainer,
-                  ),
+        HuxCard(
+          backgroundColor: theme.colorScheme.primaryContainer,
+          borderColor: Colors.transparent,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Tổng quan tài chính',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onPrimaryContainer,
                 ),
-                const SizedBox(height: 16),
-                _FinancialRow(
-                  label: 'Doanh thu',
-                  value: CurrencyHelper.formatCurrency(
-                    report.financialSummary.revenue.toInt(),
-                  ),
-                  icon: Icons.trending_up,
-                  color: Colors.green,
+              ),
+              const SizedBox(height: 16),
+              _FinancialRow(
+                label: 'Doanh thu',
+                value: CurrencyHelper.formatCurrency(
+                  report.financialSummary.revenue.toInt(),
                 ),
-                const SizedBox(height: 8),
-                _FinancialRow(
-                  label: 'Chi phí',
-                  value: CurrencyHelper.formatCurrency(
-                    report.financialSummary.costs.toInt(),
-                  ),
-                  icon: Icons.trending_down,
-                  color: Colors.orange,
+                icon: Icons.trending_up,
+                color: Colors.green,
+              ),
+              const SizedBox(height: 8),
+              _FinancialRow(
+                label: 'Chi phí',
+                value: CurrencyHelper.formatCurrency(
+                  report.financialSummary.costs.toInt(),
                 ),
-                const SizedBox(height: 8),
-                _FinancialRow(
-                  label: 'Lợi nhuận gộp',
-                  value: CurrencyHelper.formatCurrency(
-                    report.financialSummary.grossProfit.toInt(),
-                  ),
-                  icon: Icons.account_balance_wallet,
-                  color: Colors.blue,
+                icon: Icons.trending_down,
+                color: Colors.orange,
+              ),
+              const SizedBox(height: 8),
+              _FinancialRow(
+                label: 'Lợi nhuận gộp',
+                value: CurrencyHelper.formatCurrency(
+                  report.financialSummary.grossProfit.toInt(),
                 ),
-                const SizedBox(height: 8),
-                _FinancialRow(
-                  label: 'Lợi nhuận ròng',
-                  value: CurrencyHelper.formatCurrency(
-                    report.financialSummary.netProfit.toInt(),
-                  ),
-                  icon: Icons.savings,
-                  color: Colors.teal,
+                icon: Icons.account_balance_wallet,
+                color: Colors.blue,
+              ),
+              const SizedBox(height: 8),
+              _FinancialRow(
+                label: 'Lợi nhuận ròng',
+                value: CurrencyHelper.formatCurrency(
+                  report.financialSummary.netProfit.toInt(),
                 ),
-                const SizedBox(height: 8),
-                _FinancialRow(
-                  label: 'Tỷ suất lợi nhuận',
-                  value:
-                      '${report.financialSummary.profitMargin.toStringAsFixed(2)}%',
-                  icon: Icons.percent,
-                  color: Colors.purple,
-                ),
-              ],
-            ),
+                icon: Icons.savings,
+                color: Colors.teal,
+              ),
+              const SizedBox(height: 8),
+              _FinancialRow(
+                label: 'Tỷ suất lợi nhuận',
+                value:
+                    '${report.financialSummary.profitMargin.toStringAsFixed(2)}%',
+                icon: Icons.percent,
+                color: Colors.purple,
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 12),
 
         // Order Statistics Card
-        _OrderStatisticsCard(stats: report.orderStatistics),
+        _OrderStatisticsCard(
+          stats: report.orderStatistics,
+          refundAmount: report.financialSummary.refunds.toInt(),
+        ),
         const SizedBox(height: 12),
 
         // Account renewal costs
@@ -678,29 +674,10 @@ class _FinancialReportContent extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           ...report.productPerformance.map(
-            (product) => Card(
-              elevation: 0,
+            (product) => HuxCard(
+              title: product.name,
               margin: const EdgeInsets.only(bottom: 8),
               child: ListTile(
-                contentPadding: const EdgeInsets.all(12),
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.inventory_2,
-                    color: Colors.blue,
-                    size: 20,
-                  ),
-                ),
-                title: Text(
-                  product.name,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -792,9 +769,10 @@ class _StatConfig {
 }
 
 class _OrderStatisticsCard extends StatelessWidget {
-  const _OrderStatisticsCard({required this.stats});
+  const _OrderStatisticsCard({required this.stats, required this.refundAmount});
 
   final OrderStatistics stats;
+  final int refundAmount;
 
   @override
   Widget build(BuildContext context) {
@@ -807,120 +785,74 @@ class _OrderStatisticsCard extends StatelessWidget {
     final completionRate = rate(stats.completedOrders);
     final cancelledRate = rate(stats.cancelledOrders);
 
-    return Card(
-      elevation: 0,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Thống kê đơn hàng',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+    final refundLabel = CurrencyHelper.formatCurrency(refundAmount);
+
+    return HuxCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Thống kê trong kỳ',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
                     ),
-                    Text(
-                      '$totalOrders đơn trong kỳ',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
                   ),
-                  decoration: BoxDecoration(
-                    color: Colors.teal.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.verified, size: 16, color: Colors.teal),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${successRate.toStringAsFixed(1)}% thành công',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: Colors.teal.shade800,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Hoàn thành ${completionRate.toStringAsFixed(1)}% • Đã hủy ${cancelledRate.toStringAsFixed(1)}%',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant.withValues(
-                  alpha: 0.8,
-                ),
+                ],
               ),
-            ),
-            const SizedBox(height: 16),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final double tileWidth = constraints.maxWidth >= 480
-                    ? (constraints.maxWidth - 12) / 2
-                    : constraints.maxWidth;
-                return Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: [
-                    _OrderStatTile(
-                      width: tileWidth,
-                      icon: Icons.shopping_bag_outlined,
-                      label: 'Tổng đơn',
-                      value: '${stats.totalOrders}',
-                      color: Colors.indigo,
-                    ),
-                    _OrderStatTile(
-                      width: tileWidth,
-                      icon: Icons.task_alt_outlined,
-                      label: 'Hoàn thành',
-                      value: '${stats.completedOrders}',
-                      color: Colors.green,
-                      subtitle:
-                          '${completionRate.toStringAsFixed(1)}% tổng đơn',
-                    ),
-                    _OrderStatTile(
-                      width: tileWidth,
-                      icon: Icons.verified_outlined,
-                      label: 'Thành công',
-                      value: '${stats.successfulOrders}',
-                      color: Colors.teal,
-                      subtitle: '${successRate.toStringAsFixed(1)}% tổng đơn',
-                    ),
-                    _OrderStatTile(
-                      width: tileWidth,
-                      icon: Icons.cancel_outlined,
-                      label: 'Đã hủy',
-                      value: '${stats.cancelledOrders}',
-                      color: Colors.red,
-                      subtitle: '${cancelledRate.toStringAsFixed(1)}% tổng đơn',
-                    ),
-                  ],
-                );
-              },
-            ),
-            const SizedBox(height: 16),
-            _OrderRevenueHighlight(
-              totalValue: CurrencyHelper.formatCurrency(stats.totalRevenue),
-              avgValue: CurrencyHelper.formatCurrency(stats.avgOrderValue),
-            ),
-          ],
-        ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final double tileWidth = constraints.maxWidth >= 480
+                  ? (constraints.maxWidth - 12) / 2
+                  : constraints.maxWidth;
+              return Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  _OrderStatTile(
+                    width: tileWidth,
+                    icon: Icons.shopping_bag_outlined,
+                    label: 'Tổng đơn',
+                    value: '${stats.totalOrders}',
+                    color: Colors.indigo,
+                  ),
+                  _OrderStatTile(
+                    width: tileWidth,
+                    icon: Icons.task_alt_outlined,
+                    label: 'Hoàn thành',
+                    value: '${stats.completedOrders}',
+                    color: Colors.green,
+                    subtitle: '${completionRate.toStringAsFixed(1)}% tổng đơn',
+                  ),
+                  _OrderStatTile(
+                    width: tileWidth,
+                    icon: Icons.refresh_outlined,
+                    label: 'Hoàn tiền',
+                    value: refundLabel,
+                    color: Colors.orange,
+                    subtitle: 'Đã hoàn cho khách',
+                  ),
+                  _OrderStatTile(
+                    width: tileWidth,
+                    icon: Icons.cancel_outlined,
+                    label: 'Đã hủy',
+                    value: '${stats.cancelledOrders}',
+                    color: Colors.red,
+                    subtitle: '${cancelledRate.toStringAsFixed(1)}% tổng đơn',
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
       ),
     );
   }
@@ -948,13 +880,10 @@ class _OrderStatTile extends StatelessWidget {
     final theme = Theme.of(context);
     return SizedBox(
       width: width,
-      child: Container(
+      child: HuxCard(
+        borderColor: color.withValues(alpha: 0.2),
+        backgroundColor: color.withValues(alpha: 0.05),
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withValues(alpha: 0.2)),
-          color: color.withValues(alpha: 0.06),
-        ),
         child: Row(
           children: [
             Container(
@@ -962,7 +891,7 @@ class _OrderStatTile extends StatelessWidget {
               height: 40,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
-                color: color.withValues(alpha: 0.2),
+                color: color.withValues(alpha: 0.15),
               ),
               child: Icon(icon, color: color, size: 22),
             ),
@@ -1004,79 +933,6 @@ class _OrderStatTile extends StatelessWidget {
   }
 }
 
-class _OrderRevenueHighlight extends StatelessWidget {
-  const _OrderRevenueHighlight({
-    required this.totalValue,
-    required this.avgValue,
-  });
-
-  final String totalValue;
-  final String avgValue;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: theme.colorScheme.primary.withValues(alpha: 0.08),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Tổng doanh thu',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onPrimaryContainer,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  totalValue,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            width: 1,
-            height: 32,
-            color: theme.colorScheme.primary.withValues(alpha: 0.2),
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Giá trị trung bình',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onPrimaryContainer,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  avgValue,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onPrimaryContainer,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _AccountRenewalCostTile extends StatelessWidget {
   const _AccountRenewalCostTile({required this.cost});
 
@@ -1084,93 +940,57 @@ class _AccountRenewalCostTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final total = CurrencyHelper.formatCurrency(cost.totalAmount);
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.only(bottom: 8),
+    return HuxCard(
       child: ExpansionTile(
-        tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        childrenPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        collapsedShape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        collapsedShape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        // childrenPadding: const EdgeInsets.symmetric(
+        //   horizontal: 12,
+        //   vertical: 8,
+        // ),
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.secondary.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.lock_clock_outlined,
-                color: theme.colorScheme.secondary,
-              ),
+              padding: const EdgeInsets.all(0),
+              child: Icon(Icons.lock_clock_outlined),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    cost.serviceType,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Text(
-                    '${cost.transactions.length} giao dịch',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
+                  Text(cost.serviceType),
+                  Text('${cost.transactions.length} giao dịch'),
                 ],
               ),
             ),
-            Text(
-              total,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: theme.colorScheme.secondary,
-              ),
-            ),
+            Text(total),
           ],
         ),
         children: cost.transactions.isEmpty
             ? [const Text('Không có giao dịch')]
             : cost.transactions
-                .map(
-                  (tx) => ListTile(
-                    contentPadding: const EdgeInsets.symmetric(vertical: 4),
-                    leading: CircleAvatar(
-                      backgroundColor: theme.colorScheme.primary.withValues(
-                        alpha: 0.15,
+                  .map(
+                    (tx) => ListTile(
+                      contentPadding: const EdgeInsets.symmetric(vertical: 4),
+                      leading: CircleAvatar(
+                        child: const Icon(Icons.receipt_long, size: 18),
                       ),
-                      child: const Icon(Icons.receipt_long, size: 18),
-                    ),
-                    title: Text(
-                      tx.description.isNotEmpty
-                          ? tx.description
-                          : tx.transactionId,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
+                      title: Text(
+                        tx.description.isNotEmpty
+                            ? tx.description
+                            : tx.transactionId,
                       ),
-                    ),
-                    subtitle: Text(
-                      '${DateFormat('dd/MM/yyyy').format(tx.createdAt)} • ${tx.status}',
-                      style: theme.textTheme.bodySmall,
-                    ),
-                    trailing: Text(
-                      CurrencyHelper.formatCurrency(tx.amount),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.primary,
+                      subtitle: Text(
+                        '${intl.DateFormat('dd/MM/yyyy').format(tx.createdAt)} • ${tx.status}',
                       ),
+                      trailing: Text(CurrencyHelper.formatCurrency(tx.amount)),
                     ),
-                  ),
-                )
-                .toList(),
+                  )
+                  .toList(),
       ),
     );
   }
@@ -1181,12 +1001,9 @@ class _SectionLoadingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Card(
-      elevation: 0,
-      child: Padding(
-        padding: EdgeInsets.all(24),
-        child: Center(child: CircularProgressIndicator()),
-      ),
+    return const HuxCard(
+      padding: EdgeInsets.all(24),
+      child: Center(child: CircularProgressIndicator()),
     );
   }
 }
@@ -1199,28 +1016,26 @@ class _SectionErrorCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, color: Colors.red, size: 32),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Thử lại'),
-            ),
-          ],
-        ),
+    return HuxCard(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.error_outline, color: Colors.red, size: 32),
+          const SizedBox(height: 8),
+          Text(
+            message,
+            style: Theme.of(context).textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
+          HuxButton(
+            onPressed: onRetry,
+            variant: HuxButtonVariant.secondary,
+            icon: Icons.refresh,
+            child: const Text('Thử lại'),
+          ),
+        ],
       ),
     );
   }
@@ -1233,22 +1048,19 @@ class _SectionEmptyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.insert_chart_outlined,
-              color: Theme.of(context).colorScheme.outline,
-              size: 32,
-            ),
-            const SizedBox(height: 8),
-            Text(message, style: Theme.of(context).textTheme.bodyMedium),
-          ],
-        ),
+    return HuxCard(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.insert_chart_outlined,
+            color: Theme.of(context).colorScheme.outline,
+            size: 32,
+          ),
+          const SizedBox(height: 8),
+          Text(message, style: Theme.of(context).textTheme.bodyMedium),
+        ],
       ),
     );
   }
@@ -1272,61 +1084,58 @@ class _MonthlyRevenueChart extends StatelessWidget {
     );
     final topPoint = data.reduce((a, b) => a.revenue >= b.revenue ? a : b);
 
-    return Card(
-      elevation: 0,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(
-                  'Doanh thu 12 tháng ${data.isNotEmpty ? '${data.first.year}' : ''}',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+    return HuxCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                'Doanh thu 12 tháng ${data.isNotEmpty ? '${data.first.year}' : ''}',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
                 ),
-                const Spacer(),
-                Text(
-                  CurrencyHelper.formatCurrency(totalRevenue.round()),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Cao nhất: Tháng ${topPoint.month} (${CurrencyHelper.formatCompactCurrency(topPoint.revenue)})',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
               ),
+              const Spacer(),
+              Text(
+                CurrencyHelper.formatCurrency(totalRevenue.round()),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Cao nhất: Tháng ${topPoint.month} (${CurrencyHelper.formatCompactCurrency(topPoint.revenue)})',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
             ),
-            const SizedBox(height: 16),
-            SizedBox(
-              height: 200,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: data
-                    .map(
-                      (point) => Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: _MonthlyRevenueBar(
-                            point: point,
-                            heightFactor: maxRevenue == 0
-                                ? 0
-                                : point.revenue / maxRevenue,
-                          ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 200,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: data
+                  .map(
+                    (point) => Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: _MonthlyRevenueBar(
+                          point: point,
+                          heightFactor: maxRevenue == 0
+                              ? 0
+                              : point.revenue / maxRevenue,
                         ),
                       ),
-                    )
-                    .toList(),
-              ),
+                    ),
+                  )
+                  .toList(),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

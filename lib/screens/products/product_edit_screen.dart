@@ -231,7 +231,7 @@ class _ProductEditScreenState extends State<ProductEditScreen> {
             ),
             const SizedBox(height: 12),
             const SizedBox(height: 24),
-            ElevatedButton.icon(
+            FilledButton.icon(
               onPressed: _isLoading ? null : _submit,
               icon: LoadingIcon(
                 icon: Icons.check_circle_outline_outlined,

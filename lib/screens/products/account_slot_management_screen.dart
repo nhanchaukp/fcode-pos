@@ -5,6 +5,7 @@ import 'package:fcode_pos/services/account_slot_service.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/extensions/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:hux/hux.dart';
 
 class AccountSlotManagementScreen extends StatefulWidget {
   const AccountSlotManagementScreen({super.key});
@@ -452,11 +453,11 @@ class _AccountSlotManagementScreenState
     ];
     final infoText = infoItems.join(' • ');
 
-    return Card(
+    return HuxCard(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      // shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -570,14 +571,14 @@ class _AccountSlotManagementScreenState
         ? slot.shopOrderItem?.order?.user?.name
         : null;
 
-    return Container(
+    return HuxCard(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: colorScheme.outlineVariant),
-      ),
+      // padding: const EdgeInsets.all(12),
+      // decoration: BoxDecoration(
+      //   color: colorScheme.surfaceContainerLow,
+      //   borderRadius: BorderRadius.circular(8),
+      //   border: Border.all(color: colorScheme.outlineVariant),
+      // ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

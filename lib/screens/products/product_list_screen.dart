@@ -7,6 +7,7 @@ import 'package:fcode_pos/services/product_service.dart';
 import 'package:fcode_pos/screens/products/product_edit_screen.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:hux/hux.dart';
 
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});
@@ -202,8 +203,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
         separatorBuilder: (context, _) => const SizedBox(height: 10),
         itemBuilder: (context, index) {
           final product = products[index];
-          return InkWell(
-            borderRadius: BorderRadius.circular(16),
+          return HuxCard(
+            title: product.name,
             onTap: () async {
               final updated = await Navigator.of(context).push<bool>(
                 MaterialPageRoute(
@@ -273,57 +274,25 @@ class _ProductCard extends StatelessWidget {
         : '—';
     final instockLabel = product.instock.toString();
 
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    product.name,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                Tooltip(
-                  message: product.isActive ? 'Đang hoạt động' : 'Đã tạm dừng',
-                  child: Icon(
-                    product.isActive
-                        ? Icons.check_circle_outline
-                        : Icons.cancel_outlined,
-                    color: product.isActive
-                        ? colorScheme.primary
-                        : colorScheme.onSurfaceVariant,
-                    size: 20,
-                  ),
-                ),
-              ],
+            _IconValue(
+              icon: Icons.price_change_outlined,
+              value: bestPriceLabel,
+              color: colorScheme.primary,
             ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                _IconValue(
-                  icon: Icons.price_change_outlined,
-                  value: bestPriceLabel,
-                  color: colorScheme.primary,
-                ),
-                const SizedBox(width: 20),
-                _IconValue(
-                  icon: Icons.inventory_2_outlined,
-                  value: instockLabel,
-                  color: colorScheme.tertiary,
-                ),
-              ],
+            const SizedBox(width: 20),
+            _IconValue(
+              icon: Icons.inventory_2_outlined,
+              value: instockLabel,
+              color: colorScheme.tertiary,
             ),
           ],
         ),
-      ),
+      ],
     );
   }
 }

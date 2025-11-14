@@ -143,42 +143,6 @@ class MoreScreen extends ConsumerWidget {
               );
             },
           ),
-          HuxTabs(
-            tabs: [
-              HuxTabItem(
-                label: 'Overview',
-                content: Text('Overview content goes here'),
-              ),
-              HuxTabItem(
-                label: 'Settings',
-                content: Text('Settings content goes here'),
-              ),
-              HuxTabItem(
-                label: 'Profile',
-                content: Text('Profile content goes here'),
-              ),
-            ],
-            onTabChanged: (index) => print('Tab changed to $index'),
-          ),
-          HuxTabs(
-            tabs: [
-              HuxTabItem(
-                label: 'Dashboard',
-                icon: Icons.dashboard,
-                content: Text('Dashboard content'),
-              ),
-              HuxTabItem(
-                label: 'Settings',
-                icon: Icons.settings,
-                content: Text('Settings content'),
-              ),
-              HuxTabItem(
-                label: 'Profile',
-                icon: Icons.person,
-                content: Text('Profile content'),
-              ),
-            ],
-          ),
         ],
       ),
     );
