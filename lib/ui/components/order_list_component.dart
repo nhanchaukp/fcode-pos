@@ -135,10 +135,21 @@ class OrderListComponent extends StatelessWidget {
       builder: (context) => Card(
         clipBehavior: Clip.antiAlias,
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        // shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        color: colorScheme.surface,
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: colorScheme.outlineVariant.applyOpacity(0.5),
+            width: 1,
+          ),
+        ),
         child: InkWell(
           onTap: () => _onOrderTap(context, order),
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(16),
+          splashColor: colorScheme.primary.applyOpacity(0.08),
+          highlightColor: Colors.transparent,
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -159,6 +170,7 @@ class OrderListComponent extends StatelessWidget {
                               color: colorScheme.onSurfaceVariant.applyOpacity(
                                 0.7,
                               ),
+                              letterSpacing: 0.2,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -167,10 +179,12 @@ class OrderListComponent extends StatelessWidget {
                                 ? customerName!
                                 : 'Khách hàng',
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 15,
                               fontWeight: FontWeight.w600,
                               color: colorScheme.onSurfaceVariant,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                           if (customerEmail?.isNotEmpty == true)
                             Padding(
@@ -198,7 +212,13 @@ class OrderListComponent extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
+                Divider(
+                  height: 1,
+                  thickness: 0.7,
+                  color: colorScheme.outlineVariant.applyOpacity(0.6),
+                ),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(
@@ -206,7 +226,7 @@ class OrderListComponent extends StatelessWidget {
                         children: [
                           Icon(
                             Icons.shopping_cart_outlined,
-                            size: 14,
+                            size: 16,
                             color: colorScheme.tertiary,
                           ),
                           const SizedBox(width: 6),
@@ -232,7 +252,7 @@ class OrderListComponent extends StatelessWidget {
                         children: [
                           Icon(
                             Icons.schedule_outlined,
-                            size: 14,
+                            size: 16,
                             color: colorScheme.secondary,
                           ),
                           const SizedBox(width: 6),
@@ -254,7 +274,7 @@ class OrderListComponent extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.sticky_note_2_outlined,
-                        size: 14,
+                        size: 16,
                         color: colorScheme.onSurfaceVariant,
                       ),
                       const SizedBox(width: 8),
@@ -274,7 +294,7 @@ class OrderListComponent extends StatelessWidget {
                     ],
                   ),
                 ],
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 Align(
                   alignment: Alignment.centerRight,
                   child: Text(
@@ -319,6 +339,10 @@ class OrderListComponent extends StatelessWidget {
                 : null,
             icon: const Icon(Icons.chevron_left),
             label: const Text('Trước'),
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              visualDensity: VisualDensity.compact,
+            ),
           ),
           const SizedBox(width: 8),
           FilledButton.tonalIcon(
@@ -327,6 +351,10 @@ class OrderListComponent extends StatelessWidget {
                 : null,
             icon: const Icon(Icons.chevron_right),
             label: const Text('Sau'),
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              visualDensity: VisualDensity.compact,
+            ),
           ),
         ],
       ),

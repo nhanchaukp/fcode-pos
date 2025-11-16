@@ -41,6 +41,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     super.initState();
     _orderService = OrderService();
     _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(() {
+      if (mounted) setState(() {});
+    });
     _loadOrderDetail();
   }
 
@@ -333,6 +336,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
       ),
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: _buildBody(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: (_order != null && _tabController.index == 0)
+          ? FloatingActionButton.extended(
+              onPressed: () => _showAddProductBottomSheet(_order!.id),
+              icon: const Icon(Icons.add),
+              label: const Text('Thêm sản phẩm'),
+            )
+          : null,
     );
   }
 
@@ -663,11 +674,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                 children: [
                   const Text('Không có sản phẩm nào'),
                   const SizedBox(height: 16),
-                  FilledButton.icon(
-                    onPressed: () => _showAddProductBottomSheet(order.id),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Thêm sản phẩm'),
-                  ),
                 ],
               ),
             ),
@@ -680,19 +686,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
       onRefresh: _loadOrderDetail,
       child: Column(
         children: [
-          // Add product button at the top
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: () => _showAddProductBottomSheet(order.id),
-              icon: const Icon(Icons.add),
-              label: const Text('Thêm sản phẩm'),
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-            ),
-          ),
           // Products list
           Expanded(
             child: ListView.separated(
