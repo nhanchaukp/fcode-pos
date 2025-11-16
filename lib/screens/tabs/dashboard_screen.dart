@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/global_search_screen.dart';
+import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/services/order_service.dart';
 import 'package:fcode_pos/services/finacial_service.dart';
 import 'package:fcode_pos/ui/dashboard/dashboard_components.dart';
@@ -544,7 +545,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                             )
                           else if (_financialReport != null)
-                            _FinancialReportContent(report: _financialReport!)
+                            _FinancialReportContent(
+                              report: _financialReport!,
+                              stats: _stats,
+                            )
                           else
                             const Center(
                               child: Padding(
@@ -565,9 +569,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 }
 
 class _FinancialReportContent extends StatelessWidget {
-  const _FinancialReportContent({required this.report});
+  const _FinancialReportContent({required this.report, this.stats});
 
   final FinancialReport report;
+  final OrderStats? stats;
 
   @override
   Widget build(BuildContext context) {
@@ -677,6 +682,181 @@ class _FinancialReportContent extends StatelessWidget {
             (cost) => _AccountRenewalCostTile(cost: cost),
           ),
           const SizedBox(height: 12),
+        ],
+
+        // Expiring Orders Section
+        if (stats?.ordersExpiringSoon != null &&
+            stats!.ordersExpiringSoon!.count > 0) ...[
+          Text(
+            'Đơn hàng sắp hết hạn',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${stats!.ordersExpiringSoon!.count} đơn • ${stats!.ordersExpiringSoon!.itemsCount} sản phẩm • Tổng giá trị ${CurrencyHelper.formatCurrency(stats!.ordersExpiringSoon!.totalValue)}',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...stats!.ordersExpiringSoon!.orders.map(
+            (order) => Card(
+              elevation: 0,
+              margin: const EdgeInsets.only(bottom: 12),
+              child: InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          OrderDetailScreen(orderId: order.orderId.toString()),
+                    ),
+                  );
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Order header
+                      Row(
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(
+                              Icons.access_time,
+                              color: Colors.orange,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '#${order.orderId} - ${order.userName}',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  order.userEmail,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                                Text(
+                                  '${order.itemsCount} sản phẩm',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            Icons.chevron_right,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      const Divider(height: 1),
+                      const SizedBox(height: 12),
+                      // Products list
+                      ...order.items.map(
+                        (item) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: item.daysRemaining == 0
+                                      ? Colors.red.withValues(alpha: 0.15)
+                                      : Colors.orange.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Icon(
+                                  item.daysRemaining == 0
+                                      ? Icons.warning
+                                      : Icons.schedule,
+                                  size: 16,
+                                  color: item.daysRemaining == 0
+                                      ? Colors.red
+                                      : Colors.orange,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      item.productName,
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                    ),
+                                    Text(
+                                      item.expiredAt != null
+                                          ? 'Hết hạn: ${DateFormat('dd/MM/yyyy HH:mm').format(item.expiredAt!)}'
+                                          : 'Không xác định',
+                                      style: theme.textTheme.labelSmall
+                                          ?.copyWith(
+                                            color: theme
+                                                .colorScheme
+                                                .onSurfaceVariant,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: item.daysRemaining == 0
+                                      ? Colors.red.withValues(alpha: 0.15)
+                                      : Colors.orange.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: Text(
+                                  item.daysRemaining == 0
+                                      ? 'Hôm nay'
+                                      : '${item.daysRemaining} ngày',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: item.daysRemaining == 0
+                                        ? Colors.red.shade800
+                                        : Colors.orange.shade800,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
         ],
 
         // Product Performance

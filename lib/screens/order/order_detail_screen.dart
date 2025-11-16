@@ -391,20 +391,15 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
           child: TabBar(
             controller: _tabController,
             tabs: [
-              Tab(icon: Icon(Icons.shopping_bag), text: 'Sản phẩm'),
+              Tab(icon: Icon(Icons.shopping_bag, size: 20), text: 'Sản phẩm'),
               Tab(
-                icon: IconButton(
-                  icon: Badge.count(
-                    count: _order?.paymentHistories.length ?? 0,
-                    child: Icon(Icons.payment),
-                  ),
-                  onPressed: () {
-                    _tabController.animateTo(1);
-                  },
+                icon: Badge.count(
+                  count: _order?.paymentHistories.length ?? 0,
+                  child: Icon(Icons.payment, size: 20),
                 ),
                 text: 'Thanh toán',
               ),
-              Tab(icon: Icon(Icons.money_off), text: 'Hoàn tiền'),
+              Tab(icon: Icon(Icons.money_off, size: 20), text: 'Hoàn tiền'),
             ],
           ),
         ),
@@ -429,7 +424,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
 
     return Container(
       padding: const EdgeInsets.all(16),
-      color: Theme.of(context).scaffoldBackgroundColor,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: colorScheme.outlineVariant.applyOpacity(0.5),
+          width: 1,
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -490,8 +492,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
               ),
             ],
           ),
+          const SizedBox(height: 6),
           _buildCustomerInfo(order.user),
-
+          const SizedBox(height: 12),
+          Divider(
+            height: 1,
+            thickness: 0.7,
+            color: colorScheme.outlineVariant.applyOpacity(0.6),
+          ),
           const SizedBox(height: 12),
 
           // Financial Summary (compact)
@@ -524,7 +532,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                     'Thành tiền',
                     style: TextStyle(
                       fontSize: 11,
-                      color: colorScheme.onSurface,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
                   Text(
@@ -545,25 +553,46 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
           // Footer: Time & Source (compact)
           Row(
             children: [
-              Icon(Icons.access_time, size: 12, color: colorScheme.onSurface),
+              Icon(
+                Icons.access_time,
+                size: 14,
+                color: colorScheme.onSurface.applyOpacity(0.7),
+              ),
               const SizedBox(width: 4),
               Text(
                 DateHelper.formatDateTimeShort(createdAt),
-                style: TextStyle(fontSize: 11, color: colorScheme.onSurface),
+                style: TextStyle(
+                  fontSize: 11,
+                  color: colorScheme.onSurface.applyOpacity(0.9),
+                ),
               ),
               const SizedBox(width: 12),
-              Icon(Icons.edit_calendar, size: 12, color: colorScheme.onSurface),
+              Icon(
+                Icons.edit_calendar,
+                size: 14,
+                color: colorScheme.onSurface.applyOpacity(0.7),
+              ),
               const SizedBox(width: 4),
               Text(
                 DateHelper.formatDateTimeShort(order.updatedAt),
-                style: TextStyle(fontSize: 11, color: colorScheme.onSurface),
+                style: TextStyle(
+                  fontSize: 11,
+                  color: colorScheme.onSurface.applyOpacity(0.9),
+                ),
               ),
               const SizedBox(width: 12),
-              Icon(Icons.link, size: 12, color: colorScheme.onSurface),
+              Icon(
+                Icons.link,
+                size: 14,
+                color: colorScheme.onSurface.applyOpacity(0.7),
+              ),
               const SizedBox(width: 4),
               Text(
                 order.utmSource ?? 'Direct',
-                style: TextStyle(fontSize: 11, color: colorScheme.onSurface),
+                style: TextStyle(
+                  fontSize: 11,
+                  color: colorScheme.onSurface.applyOpacity(0.9),
+                ),
               ),
             ],
           ),
@@ -573,11 +602,15 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
               children: [
                 Icon(Icons.note, size: 12, color: colorScheme.onSurfaceVariant),
                 const SizedBox(width: 4),
-                Text(
-                  order.note!,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: colorScheme.onSurfaceVariant,
+                Expanded(
+                  child: Text(
+                    order.note!,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
               ],
@@ -613,9 +646,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
               Text(
                 user.email,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 13,
                   height: 1.4,
-                  color: colorScheme.secondary,
+                  color: colorScheme.secondary.applyOpacity(0.95),
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
