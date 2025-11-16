@@ -135,7 +135,7 @@ class OrderListComponent extends StatelessWidget {
       builder: (context) => Card(
         clipBehavior: Clip.antiAlias,
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        // shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         child: InkWell(
           onTap: () => _onOrderTap(context, order),
           borderRadius: BorderRadius.circular(18),

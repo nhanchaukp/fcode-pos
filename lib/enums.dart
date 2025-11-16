@@ -15,3 +15,5 @@ part 'enums/image_format.dart';
 part 'enums/execution_trigger.dart';
 part 'enums/execution_status.dart';
 part 'enums/order_status.dart';
+part 'enums/financial_transaction_type.dart';
+part 'enums/financial_transaction_category.dart';

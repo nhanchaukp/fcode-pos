@@ -7,13 +7,16 @@ int asInt(dynamic value, {int defaultValue = 0}) {
   if (value is num) return value.toInt();
 
   if (value is String) {
-    final s = value.trim();
+    var s = value.trim();
     if (s.isEmpty) return defaultValue;
 
-    final d = double.tryParse(s);
+    // Remove common thousands separators and whitespace so values like
+    final sanitized = s.replaceAll(RegExp(r'[,\s\u00A0]'), '');
+
+    final d = double.tryParse(sanitized);
     if (d != null) return d.toInt();
 
-    return int.tryParse(s) ?? defaultValue;
+    return int.tryParse(sanitized) ?? defaultValue;
   }
 
   if (value is bool) return value ? 1 : 0;
@@ -28,16 +31,54 @@ int? asIntOrNull(dynamic value) {
   if (value is num) return value.toInt();
 
   if (value is String) {
-    final s = value.trim();
+    var s = value.trim();
     if (s.isEmpty) return null;
 
-    final d = double.tryParse(s);
+    // Sanitize common thousands separators so strings like
+    // "526,572.43" are parsed as numbers.
+    final sanitized = s.replaceAll(RegExp(r'[,\s\u00A0]'), '');
+
+    final d = double.tryParse(sanitized);
     if (d != null) return d.toInt();
 
-    return int.tryParse(s);
+    return int.tryParse(sanitized);
   }
 
   if (value is bool) return value ? 1 : 0;
+
+  return null;
+}
+
+double asDouble(dynamic value, {double defaultValue = 0.0}) {
+  if (value == null) return defaultValue;
+  if (value is double) return value;
+  if (value is num) return value.toDouble();
+
+  if (value is String) {
+    final s = value.trim();
+    if (s.isEmpty) return defaultValue;
+    final sanitized = s.replaceAll(RegExp(r'[,\s\u00A0]'), '');
+    return double.tryParse(sanitized) ?? defaultValue;
+  }
+
+  if (value is bool) return value ? 1.0 : 0.0;
+
+  return defaultValue;
+}
+
+double? asDoubleOrNull(dynamic value) {
+  if (value == null) return null;
+  if (value is double) return value;
+  if (value is num) return value.toDouble();
+
+  if (value is String) {
+    final s = value.trim();
+    if (s.isEmpty) return null;
+    final sanitized = s.replaceAll(RegExp(r'[,\s\u00A0]'), '');
+    return double.tryParse(sanitized);
+  }
+
+  if (value is bool) return value ? 1.0 : 0.0;
 
   return null;
 }

@@ -573,6 +573,8 @@ class _FinancialReportContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    debugPrint(report.financialSummary.refunds.toString());
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -800,7 +802,6 @@ class _OrderStatisticsCard extends StatelessWidget {
     double rate(int value) =>
         totalOrders == 0 ? 0 : (value / totalOrders * 100);
 
-    final successRate = rate(stats.successfulOrders);
     final completionRate = rate(stats.completedOrders);
     final cancelledRate = rate(stats.cancelledOrders);
     final refundedRate = rate(stats.refundedOrders);
@@ -994,6 +995,7 @@ class _AccountRenewalCostTile extends StatelessWidget {
       elevation: 0,
       margin: const EdgeInsets.only(bottom: 8),
       child: ExpansionTile(
+        key: PageStorageKey('account-renewal-${cost.serviceType}'),
         tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         childrenPadding: const EdgeInsets.symmetric(
           horizontal: 12,

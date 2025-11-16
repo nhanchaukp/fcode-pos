@@ -1,6 +1,7 @@
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/customer/customer_detail_screen.dart';
 import 'package:fcode_pos/screens/order/order_detail_screen.dart';
+import 'package:fcode_pos/screens/account-master/account_master_expense_create_screen.dart';
 import 'package:fcode_pos/services/account_slot_service.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/extensions/colors.dart';
@@ -89,6 +90,19 @@ class _AccountSlotManagementScreenState
         _error = e.toString();
         _isLoading = false;
       });
+    }
+  }
+
+  void _showCreateExpenseSheet(AccountMaster accountMaster) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            AccountMasterExpenseCreateScreen(accountMaster: accountMaster),
+      ),
+    );
+    if (result == true) {
+      _loadAccountMasters();
     }
   }
 
@@ -514,6 +528,26 @@ class _AccountSlotManagementScreenState
                       ),
                     ],
                   ),
+                ),
+                const Spacer(),
+                PopupMenuButton<String>(
+                  onSelected: (value) {
+                    if (value == 'create_expense') {
+                      _showCreateExpenseSheet(accountMaster);
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'create_expense',
+                      child: Row(
+                        children: [
+                          Icon(Icons.add_card, size: 16),
+                          SizedBox(width: 8),
+                          Text('Tạo chi phí'),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
