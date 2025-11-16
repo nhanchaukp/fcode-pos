@@ -32,7 +32,6 @@ dependencies:
   # passkeys: ^2.1.0
   pretty_dio_logger: ^1.4.0
   image_gallery_saver: ^2.0.3
-  zentoast: ^0.1.2
 
 
 dev_dependencies:
