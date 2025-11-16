@@ -6,8 +6,7 @@ import 'package:fcode_pos/services/order_service.dart';
 import 'package:fcode_pos/ui/dashboard/dashboard_components.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:flutter/material.dart';
-import 'package:hux/hux.dart';
-import 'package:intl/intl.dart' as intl;
+import 'package:intl/intl.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -161,10 +160,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const SizedBox(height: 16),
                     Text('Lỗi: $_error'),
                     const SizedBox(height: 16),
-                    HuxButton(
+                    ElevatedButton.icon(
                       onPressed: _loadStats,
-                      icon: Icons.refresh,
-                      child: const Text('Thử lại'),
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Thử lại'),
                     ),
                   ],
                 ),
@@ -181,37 +180,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Date Range Display
-                      HuxCard(
+                      Card(
                         margin: const EdgeInsets.only(bottom: 12),
-                        onTap: _selectDateRange,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.calendar_today,
-                                size: 18,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  'Từ ${_formatDate(_fromDate)} đến ${_formatDate(_toDate)}',
-                                  style: Theme.of(context).textTheme.bodyMedium
-                                      ?.copyWith(fontWeight: FontWeight.w500),
+                        child: InkWell(
+                          onTap: _selectDateRange,
+                          borderRadius: BorderRadius.circular(12),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.calendar_today,
+                                  size: 18,
+                                  color: Theme.of(context).colorScheme.primary,
                                 ),
-                              ),
-                              Icon(
-                                Icons.chevron_right,
-                                size: 20,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
-                            ],
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    'Từ ${_formatDate(_fromDate)} đến ${_formatDate(_toDate)}',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(fontWeight: FontWeight.w500),
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.chevron_right,
+                                  size: 20,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),

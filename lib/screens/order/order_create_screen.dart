@@ -6,7 +6,6 @@ import 'package:fcode_pos/ui/components/order_item_editor_modal.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
-import 'package:hux/hux.dart';
 
 class OrderCreateScreen extends StatefulWidget {
   const OrderCreateScreen({super.key});
@@ -127,7 +126,7 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
-        padding: const EdgeInsets.all(0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -161,7 +160,7 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
-        padding: const EdgeInsets.all(0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -179,10 +178,10 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
                   ),
                 ),
                 const Spacer(),
-                HuxButton(
+                FilledButton.icon(
                   onPressed: _handleAddItem,
-                  icon: Icons.add,
-                  child: Text('Thêm'),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Thêm'),
                 ),
               ],
             ),
@@ -445,10 +444,21 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
           ),
           const SizedBox(width: 16),
           Expanded(
-            child: HuxButton(
+            child: FilledButton(
               onPressed: _isLoading ? null : _handleCreate,
-              isLoading: _isLoading,
-              child: Text('Tạo đơn'),
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Text('Tạo đơn hàng'),
             ),
           ),
         ],

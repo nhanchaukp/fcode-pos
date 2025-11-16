@@ -17,14 +17,6 @@ class CustomerService {
     );
   }
 
-  Future<ApiResponse<User>> update(int id, CustomerCreateData data) {
-    return _api.put<User>(
-      '/user/$id',
-      data: data.toJson(),
-      parser: (json) => User.fromJson(ensureMap(json)),
-    );
-  }
-
   Future<ApiResponse<PaginatedData<User>>> list({
     String search = '',
     int page = 1,

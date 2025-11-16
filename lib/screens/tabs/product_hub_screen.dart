@@ -1,11 +1,10 @@
 import 'package:fcode_pos/screens/account-master/account_slot_management_screen.dart';
 import 'package:fcode_pos/screens/products/categories_screen.dart';
-import 'package:fcode_pos/screens/customer/customer_list_screen.dart';
+import 'package:fcode_pos/screens/products/customer_list_screen.dart';
 import 'package:fcode_pos/screens/product-supply/product_cost_screen.dart';
 import 'package:fcode_pos/screens/products/product_list_screen.dart';
 import 'package:fcode_pos/screens/supply/suppliers_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:hux/hux.dart';
 
 class ProductHubScreen extends StatelessWidget {
   const ProductHubScreen({super.key});
@@ -58,14 +57,14 @@ class ProductHubScreen extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           itemBuilder: (context, index) {
             final item = _managementItems[index];
-            return HuxCard(
+            return Card(
               elevation: 0,
               margin: EdgeInsets.zero,
               child: ListTile(
-                // contentPadding: const EdgeInsets.symmetric(
-                //   horizontal: 20,
-                //   vertical: 12,
-                // ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
                 leading: CircleAvatar(
                   radius: 24,
                   backgroundColor: Theme.of(

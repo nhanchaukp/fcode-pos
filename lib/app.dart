@@ -5,7 +5,6 @@ import 'package:fcode_pos/utils/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hux/hux.dart';
 
 class AppwriteApp extends ConsumerWidget {
   const AppwriteApp({super.key});
@@ -95,12 +94,8 @@ class AppwriteApp extends ConsumerWidget {
         title: 'FCODE Pos',
         scaffoldMessengerKey: rootScaffoldMessengerKey,
         debugShowCheckedModeBanner: false,
-        // Configure light theme
-        theme: HuxTheme.lightTheme,
-
-        // Configure dark theme
-        darkTheme: HuxTheme.darkTheme,
-
+        theme: _buildLightTheme(),
+        darkTheme: _buildDarkTheme(),
         themeMode: themeMode,
         locale: const Locale('vi'),
         supportedLocales: const [Locale('vi'), Locale('en')],

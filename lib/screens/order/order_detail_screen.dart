@@ -14,7 +14,6 @@ import 'package:fcode_pos/ui/components/order_item_update_bottom_sheet.dart';
 import 'package:fcode_pos/screens/customer/customer_detail_screen.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
-import 'package:hux/hux.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:http/http.dart' as http;
 import 'package:fcode_pos/utils/extensions/colors.dart';
@@ -28,13 +27,14 @@ class OrderDetailScreen extends StatefulWidget {
   State<OrderDetailScreen> createState() => _OrderDetailScreenState();
 }
 
-class _OrderDetailScreenState extends State<OrderDetailScreen> {
+class _OrderDetailScreenState extends State<OrderDetailScreen>
+    with SingleTickerProviderStateMixin {
   late OrderService _orderService;
   Order? _order;
   bool _isLoading = false;
   String? _error;
+  late TabController _tabController;
   bool _isUpdatingStatus = false;
-  int _activeTabIndex = 0;
 
   @override
   void initState() {
@@ -49,6 +49,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   @override
   void dispose() {
+    _tabController.dispose();
     super.dispose();
   }
 
@@ -381,6 +382,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
     return Column(
       children: [
+        // Card thông tin đơn hàng
         _buildOrderInfoCard(order),
 
         // Tab section
@@ -415,18 +417,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         ),
       ],
     );
-  }
-
-  Widget _buildActiveTab(Order order) {
-    switch (_activeTabIndex) {
-      case 0:
-        return _buildProductsTab(order);
-      case 1:
-        return _buildPaymentHistoryTab(order);
-      case 2:
-      default:
-        return _buildRefundHistoryTab(order);
-    }
   }
 
   Widget _buildOrderInfoCard(Order order) {
@@ -750,37 +740,179 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     final accountSlot = item.accountSlot;
     final hasSlot = accountSlot != null;
 
-    return HuxCard(
+    return InkWell(
       onTap: () => _showItemUpdateBottomSheet(item),
-      // borderRadius: BorderRadius.circular(8),
-      title: item.product?.name ?? 'N/A',
-      subtitle:
-          '${item.supply?.name ?? 'N/A'} • ${CurrencyHelper.formatCurrency(item.priceSupply)}',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Product name & price
-          Row(
-            children: [
-              Expanded(
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Product name & price
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              item.product?.name ?? 'N/A',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Text(
+                            'Nhập từ: ${item.supply?.name ?? 'N/A'}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            CurrencyHelper.formatCurrency(item.priceSupply),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Text(
+                            'Số lượng: ${item.quantity}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            CurrencyHelper.formatCurrency(item.price),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            // Account slot information (compact)
+            if (hasSlot) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(6),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
                         Text(
-                          'Số lượng: ${item.quantity}',
+                          accountSlot.accountMaster?.username ?? 'N/A',
                           style: TextStyle(
                             fontSize: 12,
-                            color: colorScheme.onSurface,
+                            color: colorScheme.onSurface.applyOpacity(0.7),
                           ),
                         ),
                         const Spacer(),
+                        // Copy button for Netflix
+                        if (accountSlot.accountMaster?.serviceType
+                                .toLowerCase() ==
+                            'netflix')
+                          InkWell(
+                            onTap: () => _copyAccountInfo(accountSlot),
+                            borderRadius: BorderRadius.circular(4),
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              child: Icon(
+                                Icons.copy,
+                                size: 16,
+                                color: colorScheme.onSurface.applyOpacity(0.7),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildCompactSlotInfo(
+                            const Icon(Icons.account_circle),
+                            accountSlot.name,
+                          ),
+                        ),
+                        Expanded(
+                          child: _buildCompactSlotInfo(
+                            const Icon(Icons.lock),
+                            accountSlot.pin,
+                          ),
+                        ),
+                        if (accountSlot.expiryDate != null)
+                          _buildCompactSlotInfo(
+                            const Icon(Icons.calendar_today),
+                            DateHelper.formatDate(accountSlot.expiryDate),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            // Account display if exist, display key|value format
+            if (item.account != null && item.account!.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
                         Text(
-                          CurrencyHelper.formatCurrency(item.price),
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.primary,
+                          StringHelper.formatAccountString(item.account!),
+                          style: TextStyle(fontSize: 11),
+                        ),
+                        InkWell(
+                          onTap: () => _copyRawAccountInfo(item.account!),
+                          borderRadius: BorderRadius.circular(4),
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.copy,
+                                  size: 14,
+                                  color: colorScheme.primary,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
@@ -789,106 +921,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 ),
               ),
             ],
-          ),
-
-          // Account slot information (compact)
-          if (hasSlot) ...[
-            const SizedBox(height: 8),
-            HuxCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        accountSlot.accountMaster?.username ?? 'N/A',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: colorScheme.onSurface.applyOpacity(0.7),
-                        ),
-                      ),
-                      const Spacer(),
-                      // Copy button for Netflix
-                      if (accountSlot.accountMaster?.serviceType
-                              .toLowerCase() ==
-                          'netflix')
-                        InkWell(
-                          onTap: () => _copyAccountInfo(accountSlot),
-                          borderRadius: BorderRadius.circular(4),
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            child: Icon(
-                              Icons.copy,
-                              size: 16,
-                              color: colorScheme.onSurface.applyOpacity(0.7),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildCompactSlotInfo(
-                          const Icon(Icons.account_circle),
-                          accountSlot.name,
-                        ),
-                      ),
-                      Expanded(
-                        child: _buildCompactSlotInfo(
-                          const Icon(Icons.lock),
-                          accountSlot.pin,
-                        ),
-                      ),
-                      if (accountSlot.expiryDate != null)
-                        _buildCompactSlotInfo(
-                          const Icon(Icons.calendar_today),
-                          DateHelper.formatDate(accountSlot.expiryDate),
-                        ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
           ],
-          // Account display if exist, display key|value format
-          if (item.account != null && item.account!.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            HuxCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        StringHelper.formatAccountString(item.account!),
-                        style: TextStyle(fontSize: 11),
-                      ),
-                      InkWell(
-                        onTap: () => _copyRawAccountInfo(item.account!),
-                        borderRadius: BorderRadius.circular(4),
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.copy,
-                                size: 14,
-                                color: colorScheme.primary,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }
@@ -989,6 +1023,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     return RefreshIndicator(
       onRefresh: _loadOrderDetail,
       child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         itemCount: order.paymentHistories.length,
         separatorBuilder: (context, index) => const Divider(height: 1),
         itemBuilder: (context, index) {
@@ -1002,9 +1037,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Widget _buildPaymentHistoryItem(PaymentHistory payment) {
     final statusColor = _getPaymentStatusColor(payment.status);
 
-    return HuxCard(
-      title: payment.notes ?? 'Thanh toán',
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1098,6 +1134,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     return RefreshIndicator(
       onRefresh: _loadOrderDetail,
       child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         itemCount: order.refunds.length,
         separatorBuilder: (context, index) => const Divider(height: 1),
         itemBuilder: (context, index) {
@@ -1116,7 +1153,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         ? DateTime.parse(refund['created_at'].toString()).toLocal()
         : null;
 
-    return HuxCard(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

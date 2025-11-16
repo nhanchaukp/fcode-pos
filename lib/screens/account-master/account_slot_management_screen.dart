@@ -6,7 +6,6 @@ import 'package:fcode_pos/services/account_slot_service.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/extensions/colors.dart';
 import 'package:flutter/material.dart';
-import 'package:hux/hux.dart';
 
 class AccountSlotManagementScreen extends StatefulWidget {
   const AccountSlotManagementScreen({super.key});
@@ -456,30 +455,19 @@ class _AccountSlotManagementScreenState
   }
 
   Widget _buildAccountMasterCard(AccountMaster accountMaster) {
-    final slots = accountMaster.slots ?? const <AccountSlot>[];
-    final hasSlots = slots.isNotEmpty;
-    final slotCountLabel = '${slots.length}/${accountMaster.maxSlots} slots';
-    final infoItems = <String>[
-      if (accountMaster.serviceType.isNotEmpty)
-        accountMaster.serviceType.toUpperCase(),
-      if (accountMaster.paymentDate != null)
-        'Gia hạn ${DateHelper.formatDateShort(accountMaster.paymentDate!)}',
-    ];
-    final infoText = infoItems.join(' • ');
+    final hasSlots =
+        accountMaster.slots != null && accountMaster.slots!.isNotEmpty;
 
-    return HuxCard(
+    return Card(
       elevation: 2,
-      // shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: const EdgeInsets.all(0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Header: Service Type, Username, Active Status
             Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-<<<<<<< HEAD:lib/screens/products/account_slot_management_screen.dart
-=======
                 // Service Type Badge
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -574,91 +562,65 @@ class _AccountSlotManagementScreenState
                   color: colorScheme.secondary,
                 ),
                 const SizedBox(width: 8),
->>>>>>> 7f66c540:lib/screens/account-master/account_slot_management_screen.dart
                 Expanded(
                   child: Text(
-                    accountMaster.name,
-                    style:
-                        Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ) ??
-                        const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
+                    accountMaster.username,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-                const SizedBox(width: 8),
-                _buildStatusChip(accountMaster.isActive),
               ],
             ),
-            if (infoText.isNotEmpty) ...[
-              const SizedBox(height: 6),
-              Text(
-                infoText,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
 
-            if ((accountMaster.notes ?? '').isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: colorScheme.secondaryContainer.withOpacity(
-                    colorScheme.brightness == Brightness.dark ? 0.35 : 0.5,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.note_alt_outlined,
-                      size: 18,
-                      color: colorScheme.onSecondaryContainer,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        accountMaster.notes!,
-                        style: TextStyle(
-                          fontSize: 13,
-                          height: 1.4,
-                          color: colorScheme.onSecondaryContainer,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-
-            if (hasSlots) ...[
-              const SizedBox(height: 16),
+            // Notes (if available)
+            if (accountMaster.notes != null &&
+                accountMaster.notes!.isNotEmpty) ...[
+              const SizedBox(height: 8),
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Icon(
-                    Icons.dns_outlined,
-                    size: 18,
-                    color: colorScheme.primary,
+                    Icons.note,
+                    size: 16,
+                    color: colorScheme.onSurfaceVariant,
                   ),
                   const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      accountMaster.notes!,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+
+            // Slots section
+            if (hasSlots) ...[
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.dns, size: 16, color: colorScheme.primary),
+                  const SizedBox(width: 8),
                   Text(
-                    'Danh sách $slotCountLabel',
+                    'Slots (${accountMaster.slots!.length}/${accountMaster.maxSlots})',
                     style: TextStyle(
                       fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.bold,
                       color: colorScheme.primary,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
-              ...slots.map(_buildSlotItem),
+              ...accountMaster.slots!.map((slot) => _buildSlotItem(slot)),
             ] else ...[
               const SizedBox(height: 12),
               Text(
@@ -682,14 +644,14 @@ class _AccountSlotManagementScreenState
         ? slot.shopOrderItem?.order?.user?.name
         : null;
 
-    return HuxCard(
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      // padding: const EdgeInsets.all(12),
-      // decoration: BoxDecoration(
-      //   color: colorScheme.surfaceContainerLow,
-      //   borderRadius: BorderRadius.circular(8),
-      //   border: Border.all(color: colorScheme.outlineVariant),
-      // ),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -704,7 +666,6 @@ class _AccountSlotManagementScreenState
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ),
@@ -822,37 +783,6 @@ class _AccountSlotManagementScreenState
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildStatusChip(bool isActive) {
-    final color = isActive ? Colors.green : Colors.red;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            isActive ? Icons.check_circle : Icons.cancel,
-            size: 14,
-            color: color,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            isActive ? 'Active' : 'Inactive',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: color,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

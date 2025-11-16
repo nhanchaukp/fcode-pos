@@ -4,7 +4,6 @@ import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:hux/hux.dart';
 
 class MoreScreen extends ConsumerWidget {
   const MoreScreen({super.key});
@@ -32,8 +31,9 @@ class MoreScreen extends ConsumerWidget {
               Text(
                 user!.email,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+                      color:
+                          Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
               ),
           ],
         ),
@@ -136,9 +136,14 @@ class MoreScreen extends ConsumerWidget {
               return Center(
                 child: Text(
                   'Phiên bản ứng dụng: $version',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurfaceVariant,
+                      ),
                 ),
               );
             },

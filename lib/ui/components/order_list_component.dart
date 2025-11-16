@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/ui/components/order_status_badge.dart';
-import 'package:hux/hux.dart';
 
 class OrderListComponent extends StatelessWidget {
   /// Danh sách đơn hàng
@@ -133,7 +132,8 @@ class OrderListComponent extends StatelessWidget {
         : 'Chưa có sản phẩm';
 
     return Builder(
-      builder: (context) => HuxCard(
+      builder: (context) => Card(
+        clipBehavior: Clip.antiAlias,
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         color: colorScheme.surface,
         elevation: 0,
