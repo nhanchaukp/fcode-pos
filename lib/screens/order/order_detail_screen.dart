@@ -855,12 +855,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                             accountSlot.name,
                           ),
                         ),
-                        Expanded(
-                          child: _buildCompactSlotInfo(
-                            const Icon(Icons.lock),
-                            accountSlot.pin,
+                        if (accountSlot.accountMaster?.serviceType
+                                .toLowerCase() ==
+                            'netflix')
+                          Expanded(
+                            child: _buildCompactSlotInfo(
+                              const Icon(Icons.lock),
+                              accountSlot.pin,
+                            ),
                           ),
-                        ),
+
                         if (accountSlot.expiryDate != null)
                           _buildCompactSlotInfo(
                             const Icon(Icons.calendar_today),
@@ -889,7 +893,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                       children: [
                         Text(
                           StringHelper.formatAccountString(item.account!),
-                          style: TextStyle(fontSize: 11),
+                          style: TextStyle(fontSize: 12),
                         ),
                         InkWell(
                           onTap: () => _copyRawAccountInfo(item.account!),
@@ -977,7 +981,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
           Text(
             value,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 12,
               color: colorScheme.onSurface.applyOpacity(0.7),
             ),
           ),
