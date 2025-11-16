@@ -1,9 +1,10 @@
 import 'package:fcode_pos/screens/account-master/account_slot_management_screen.dart';
-import 'package:fcode_pos/screens/products/categories_screen.dart';
 import 'package:fcode_pos/screens/products/customer_list_screen.dart';
 import 'package:fcode_pos/screens/product-supply/product_cost_screen.dart';
 import 'package:fcode_pos/screens/products/product_list_screen.dart';
+import 'package:fcode_pos/screens/refund/refund_request_screen.dart';
 import 'package:fcode_pos/screens/supply/suppliers_screen.dart';
+import 'package:fcode_pos/screens/mail/mail_log_screen.dart';
 import 'package:flutter/material.dart';
 
 class ProductHubScreen extends StatelessWidget {
@@ -28,12 +29,12 @@ class ProductHubScreen extends StatelessWidget {
       icon: Icons.local_shipping_outlined,
       builder: (context) => const SuppliersScreen(),
     ),
-    // _ProductHubItem(
-    //   title: 'Danh mục',
-    //   description: 'Tổ chức sản phẩm theo nhóm để báo cáo chính xác.',
-    //   icon: Icons.category_outlined,
-    //   builder: (context) => const CategoriesScreen(),
-    // ),
+    _ProductHubItem(
+      title: 'Yêu cầu hoàn tiền',
+      description: 'Tổ chức sản phẩm theo nhóm để báo cáo chính xác.',
+      icon: Icons.replay_outlined,
+      builder: (context) => const RefundRequestScreen(),
+    ),
     _ProductHubItem(
       title: 'Giá nhập sản phẩm',
       description: 'Theo dõi lịch sử giá nhập và đề xuất giá bán.',
@@ -45,6 +46,12 @@ class ProductHubScreen extends StatelessWidget {
       description: 'Quản lý hồ sơ khách hàng và lịch sử mua hàng.',
       icon: Icons.people_alt_outlined,
       builder: (context) => const CustomerListScreen(),
+    ),
+    _ProductHubItem(
+      title: 'Nhật ký email',
+      description: 'Xem và quản lý lịch sử gửi email.',
+      icon: Icons.email_outlined,
+      builder: (context) => const MailLogScreen(),
     ),
   ];
 

@@ -120,7 +120,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         actions: [
           IconButton(
             tooltip: 'Báo cáo tài chính',
-            icon: const Icon(Icons.account_balance_wallet),
+            icon: const Icon(Icons.bar_chart_outlined),
             onPressed: () {
               Navigator.push(
                 context,

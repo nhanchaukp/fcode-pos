@@ -35,27 +35,31 @@ class OrderStatusDropdown extends StatelessWidget {
       ),
       items: enums.OrderStatus.values
           .where(
-              (status) => includeAllOption || status != enums.OrderStatus.all)
-          .map((status) => DropdownMenuItem(
-                value: status,
-                child: Row(
-                  children: [
-                    Container(
-                      width: 12,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        color: status.color,
-                        shape: BoxShape.circle,
-                      ),
+            (status) => includeAllOption || status != enums.OrderStatus.all,
+          )
+          .map(
+            (status) => DropdownMenuItem(
+              value: status,
+              child: Row(
+                children: [
+                  Container(
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: status.color,
+                      shape: BoxShape.circle,
                     ),
-                    const SizedBox(width: 8),
-                    Text(status.label),
-                  ],
-                ),
-              ))
+                  ),
+                  const SizedBox(width: 8),
+                  Text(status.label),
+                ],
+              ),
+            ),
+          )
           .toList(),
       onChanged: onChanged,
-      validator: validator ??
+      validator:
+          validator ??
           (required
               ? (value) {
                   if (value == null) {

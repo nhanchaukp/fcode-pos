@@ -424,14 +424,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
 
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: colorScheme.outlineVariant.applyOpacity(0.5),
-          width: 1,
-        ),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -722,7 +714,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
           // Products list
           Expanded(
             child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+              // padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
               itemCount: order.items.length,
               separatorBuilder: (context, index) => const Divider(height: 1),
               itemBuilder: (context, index) {
@@ -742,7 +734,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
 
     return InkWell(
       onTap: () => _showItemUpdateBottomSheet(item),
-      borderRadius: BorderRadius.circular(8),
+      // borderRadius: BorderRadius.circular(8),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
         child: Column(

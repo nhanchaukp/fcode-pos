@@ -1,10 +1,11 @@
+import 'package:fcode_pos/enums.dart' as enums;
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/customer/customer_detail_screen.dart';
 import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/screens/account-master/account_master_expense_create_screen.dart';
+import 'package:fcode_pos/screens/account-master/account_master_upsert_screen.dart';
 import 'package:fcode_pos/services/account_slot_service.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
-import 'package:fcode_pos/utils/extensions/colors.dart';
 import 'package:flutter/material.dart';
 
 class AccountSlotManagementScreen extends StatefulWidget {
@@ -23,20 +24,12 @@ class _AccountSlotManagementScreenState
   String? _error;
 
   // Filters
-  String? _selectedServiceType;
+  enums.AccountMasterServiceType? _selectedServiceType;
   bool? _selectedIsActive;
   String _searchQuery = '';
   int? _selectedDaysRemaining; // null means "Tất cả"
 
   final TextEditingController _searchController = TextEditingController();
-
-  // Service types - you can customize this list
-  final List<String> _serviceTypes = [
-    'Netflix',
-    'Spotify',
-    'YouTube',
-    'ChatGpt',
-  ];
 
   @override
   void initState() {
@@ -69,7 +62,7 @@ class _AccountSlotManagementScreenState
 
     try {
       final response = await _accountSlotService.listMaster(
-        serviceType: _selectedServiceType,
+        serviceType: _selectedServiceType?.value,
         isActive: _selectedIsActive,
         search: _searchQuery.isEmpty ? null : _searchQuery,
         daysRemaining: _selectedDaysRemaining,
@@ -99,6 +92,19 @@ class _AccountSlotManagementScreenState
       MaterialPageRoute(
         builder: (context) =>
             AccountMasterExpenseCreateScreen(accountMaster: accountMaster),
+      ),
+    );
+    if (result == true) {
+      _loadAccountMasters();
+    }
+  }
+
+  void _showEditAccountScreen(AccountMaster accountMaster) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            AccountMasterUpsertScreen(accountMaster: accountMaster),
       ),
     );
     if (result == true) {
@@ -139,8 +145,8 @@ class _AccountSlotManagementScreenState
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  DropdownButtonFormField<String>(
-                    initialValue: _selectedServiceType,
+                  DropdownButtonFormField<enums.AccountMasterServiceType>(
+                    value: _selectedServiceType,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                       hintText: 'Tất cả',
@@ -151,9 +157,11 @@ class _AccountSlotManagementScreenState
                         value: null,
                         child: Text('Tất cả'),
                       ),
-                      ..._serviceTypes.map(
-                        (type) =>
-                            DropdownMenuItem(value: type, child: Text(type)),
+                      ...enums.AccountMasterServiceType.values.map(
+                        (type) => DropdownMenuItem(
+                          value: type,
+                          child: Text(type.label),
+                        ),
                       ),
                     ],
                     onChanged: (value) {
@@ -344,7 +352,7 @@ class _AccountSlotManagementScreenState
                   children: [
                     if (_selectedServiceType != null)
                       Chip(
-                        label: Text('Loại: $_selectedServiceType'),
+                        label: Text('Loại: ${_selectedServiceType!.label}'),
                         onDeleted: () {
                           setState(() {
                             _selectedServiceType = null;
@@ -383,6 +391,21 @@ class _AccountSlotManagementScreenState
             // Content
             Expanded(child: _buildBody()),
           ],
+        ),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () async {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AccountMasterUpsertScreen(),
+              ),
+            );
+            if (result == true) {
+              _loadAccountMasters();
+            }
+          },
+          icon: const Icon(Icons.add),
+          label: const Text('Tạo tài khoản'),
         ),
       ),
     );
@@ -465,75 +488,26 @@ class _AccountSlotManagementScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header: Service Type, Username, Active Status
+            // Line 1: Username (left) and PopupMenuButton (right)
             Row(
               children: [
-                // Service Type Badge
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+                Expanded(
                   child: Text(
-                    accountMaster.serviceType,
-                    style: TextStyle(
-                      fontSize: 12,
+                    accountMaster.username,
+                    style: const TextStyle(
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: colorScheme.onPrimaryContainer,
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
-                // Active Status
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: accountMaster.isActive
-                        ? Colors.green.applyOpacity(0.1)
-                        : Colors.red.applyOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: accountMaster.isActive ? Colors.green : Colors.red,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        accountMaster.isActive
-                            ? Icons.check_circle
-                            : Icons.cancel,
-                        size: 14,
-                        color: accountMaster.isActive
-                            ? Colors.green
-                            : Colors.red,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        accountMaster.isActive ? 'Active' : 'Inactive',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: accountMaster.isActive
-                              ? Colors.green
-                              : Colors.red,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Spacer(),
                 PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert),
                   onSelected: (value) {
                     if (value == 'create_expense') {
                       _showCreateExpenseSheet(accountMaster);
+                    }
+                    if (value == 'edit_account') {
+                      _showEditAccountScreen(accountMaster);
                     }
                   },
                   itemBuilder: (context) => [
@@ -547,28 +521,64 @@ class _AccountSlotManagementScreenState
                         ],
                       ),
                     ),
+                    const PopupMenuItem(
+                      value: 'edit_account',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit, size: 16),
+                          SizedBox(width: 8),
+                          Text('Chỉnh sửa tài khoản'),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-
-            // Username
+            // const SizedBox(height: 8),
+            // Line 2: Service Type | Active Status | Payment Date
             Row(
               children: [
-                Icon(
-                  Icons.account_circle,
-                  size: 16,
-                  color: colorScheme.secondary,
+                // Service Type
+                Text(
+                  accountMaster.serviceType,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: colorScheme.primary,
+                  ),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
                   child: Text(
-                    accountMaster.username,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    '|',
+                    style: TextStyle(color: colorScheme.outlineVariant),
+                  ),
+                ),
+                // Active Status with color
+                Text(
+                  accountMaster.isActive ? 'Active' : 'Inactive',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: accountMaster.isActive ? Colors.green : Colors.red,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(
+                    '|',
+                    style: TextStyle(color: colorScheme.outlineVariant),
+                  ),
+                ),
+                // Payment Date
+                Text(
+                  accountMaster.paymentDate != null
+                      ? DateHelper.formatDateShort(accountMaster.paymentDate!)
+                      : 'N/A',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -602,7 +612,7 @@ class _AccountSlotManagementScreenState
 
             // Slots section
             if (hasSlots) ...[
-              const SizedBox(height: 16),
+              // const SizedBox(height: 16),
               const Divider(),
               const SizedBox(height: 8),
               Row(
