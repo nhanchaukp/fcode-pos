@@ -8,6 +8,7 @@ class FinancialReport {
     required this.productPerformance,
     required this.accountRenewalCosts,
     required this.generatedAt,
+    this.refundAnalysis,
   });
 
   final Period period;
@@ -16,6 +17,7 @@ class FinancialReport {
   final List<ProductPerformance> productPerformance;
   final List<AccountRenewalCosts> accountRenewalCosts;
   final String generatedAt;
+  final RefundAnalysis? refundAnalysis;
 
   factory FinancialReport.fromJson(Map<String, dynamic> json) {
     return FinancialReport(
@@ -36,6 +38,9 @@ class FinancialReport {
               ?.map((e) => AccountRenewalCosts.fromJson(ensureMap(e)))
               .toList() ??
           [],
+      refundAnalysis: json['refund_analysis'] != null
+          ? RefundAnalysis.fromJson(ensureMap(json['refund_analysis']))
+          : null,
       generatedAt: json['generated_at'] as String? ?? '',
     );
   }
@@ -46,8 +51,73 @@ class FinancialReport {
       'financial_summary': financialSummary.toMap(),
       'order_statistics': orderStatistics.toMap(),
       'product_performance': productPerformance.map((e) => e.toMap()).toList(),
-      'account_renewal_costs': accountRenewalCosts,
+      'account_renewal_costs': accountRenewalCosts
+          .map((e) => e.toMap())
+          .toList(),
+      'refund_analysis': refundAnalysis?.toMap(),
       'generated_at': generatedAt,
+    };
+  }
+}
+
+class RefundAnalysis {
+  const RefundAnalysis({required this.byReason, required this.byStatus});
+
+  final List<RefundGroup> byReason;
+  final List<RefundGroup> byStatus;
+
+  factory RefundAnalysis.fromJson(Map<String, dynamic> json) {
+    return RefundAnalysis(
+      byReason:
+          (json['by_reason'] as List?)
+              ?.map((e) => RefundGroup.fromJson(ensureMap(e)))
+              .toList() ??
+          [],
+      byStatus:
+          (json['by_status'] as List?)
+              ?.map((e) => RefundGroup.fromJson(ensureMap(e)))
+              .toList() ??
+          [],
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'by_reason': byReason.map((e) => e.toMap()).toList(),
+      'by_status': byStatus.map((e) => e.toMap()).toList(),
+    };
+  }
+}
+
+class RefundGroup {
+  const RefundGroup({
+    required this.label,
+    required this.count,
+    required this.totalAmount,
+    required this.avgAmount,
+  });
+
+  final String label; // reason or status
+  final int count;
+  final double totalAmount;
+  final double avgAmount;
+
+  factory RefundGroup.fromJson(Map<String, dynamic> json) {
+    final label = json['reason'] as String? ?? json['status'] as String? ?? '';
+    return RefundGroup(
+      label: label,
+      count: asInt(json['count']),
+      totalAmount: asDouble(json['total_amount']),
+      avgAmount: asDouble(json['avg_amount']),
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'label': label,
+      'count': count,
+      'total_amount': totalAmount,
+      'avg_amount': avgAmount,
     };
   }
 }
@@ -136,6 +206,7 @@ class OrderStatistics {
     required this.successfulOrders,
     required this.completedOrders,
     required this.cancelledOrders,
+    required this.refundedOrders,
     required this.totalRevenue,
     required this.avgOrderValue,
   });
@@ -144,6 +215,7 @@ class OrderStatistics {
   final int successfulOrders;
   final int completedOrders;
   final int cancelledOrders;
+  final int refundedOrders;
   final int totalRevenue;
   final int avgOrderValue;
 
@@ -153,6 +225,7 @@ class OrderStatistics {
       successfulOrders: asInt(json['successful_orders']),
       completedOrders: asInt(json['completed_orders']),
       cancelledOrders: asInt(json['cancelled_orders']),
+      refundedOrders: asInt(json['refunded_orders']),
       totalRevenue: asInt(json['total_revenue']),
       avgOrderValue: asInt(json['avg_order_value']),
     );
@@ -164,6 +237,7 @@ class OrderStatistics {
       'successful_orders': successfulOrders,
       'completed_orders': completedOrders,
       'cancelled_orders': cancelledOrders,
+      'refunded_orders': refundedOrders,
       'total_revenue': totalRevenue,
       'avg_order_value': avgOrderValue,
     };

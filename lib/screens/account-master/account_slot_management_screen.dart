@@ -1,6 +1,7 @@
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/customer/customer_detail_screen.dart';
 import 'package:fcode_pos/screens/order/order_detail_screen.dart';
+import 'package:fcode_pos/screens/account-master/account_master_expense_create_screen.dart';
 import 'package:fcode_pos/services/account_slot_service.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/extensions/colors.dart';
@@ -90,6 +91,19 @@ class _AccountSlotManagementScreenState
         _error = e.toString();
         _isLoading = false;
       });
+    }
+  }
+
+  void _showCreateExpenseSheet(AccountMaster accountMaster) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            AccountMasterExpenseCreateScreen(accountMaster: accountMaster),
+      ),
+    );
+    if (result == true) {
+      _loadAccountMasters();
     }
   }
 
@@ -464,6 +478,103 @@ class _AccountSlotManagementScreenState
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+<<<<<<< HEAD:lib/screens/products/account_slot_management_screen.dart
+=======
+                // Service Type Badge
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    accountMaster.serviceType,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Active Status
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: accountMaster.isActive
+                        ? Colors.green.applyOpacity(0.1)
+                        : Colors.red.applyOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: accountMaster.isActive ? Colors.green : Colors.red,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        accountMaster.isActive
+                            ? Icons.check_circle
+                            : Icons.cancel,
+                        size: 14,
+                        color: accountMaster.isActive
+                            ? Colors.green
+                            : Colors.red,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        accountMaster.isActive ? 'Active' : 'Inactive',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: accountMaster.isActive
+                              ? Colors.green
+                              : Colors.red,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                PopupMenuButton<String>(
+                  onSelected: (value) {
+                    if (value == 'create_expense') {
+                      _showCreateExpenseSheet(accountMaster);
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'create_expense',
+                      child: Row(
+                        children: [
+                          Icon(Icons.add_card, size: 16),
+                          SizedBox(width: 8),
+                          Text('Tạo chi phí'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Username
+            Row(
+              children: [
+                Icon(
+                  Icons.account_circle,
+                  size: 16,
+                  color: colorScheme.secondary,
+                ),
+                const SizedBox(width: 8),
+>>>>>>> 7f66c540:lib/screens/account-master/account_slot_management_screen.dart
                 Expanded(
                   child: Text(
                     accountMaster.name,

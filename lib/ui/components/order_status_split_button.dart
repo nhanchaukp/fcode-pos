@@ -61,21 +61,21 @@ class _OrderStatusSplitButtonState extends State<OrderStatusSplitButton> {
                   widget.onStatusSelected(status);
                   _menuController.close();
                 },
-          leadingIcon: Icon(Icons.circle, size: 10, color: status.color),
+          leadingIcon: Icon(Icons.circle, size: 8, color: status.color),
           trailingIcon: isCurrent
-              ? Icon(Icons.check, size: 16, color: status.color)
+              ? Icon(Icons.check, size: 14, color: status.color)
               : null,
           child: Text(status.label),
         );
       }).toList(),
       builder: (context, controller, child) {
         return Container(
-          height: 32,
+          height: 28,
           decoration: ShapeDecoration(
             color: statusColor.applyOpacity(0.06),
             shape: RoundedRectangleBorder(
               side: BorderSide(color: statusColor.applyOpacity(0.25)),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(8),
             ),
           ),
           clipBehavior: Clip.antiAlias,
@@ -134,13 +134,16 @@ class _SplitButtonSegment extends StatelessWidget {
         onPressed: onPressed,
         style: TextButton.styleFrom(
           foregroundColor: color,
-          padding: const EdgeInsets.symmetric(horizontal: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          minimumSize: const Size(0, 28),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          visualDensity: VisualDensity.compact,
           shape: const RoundedRectangleBorder(),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.circle, size: 8, color: color),
+            Icon(Icons.circle, size: 7, color: color),
             const SizedBox(width: 4),
             Flexible(
               child: Text(label, overflow: TextOverflow.ellipsis, maxLines: 1),
@@ -190,14 +193,16 @@ class _SplitButtonIconSegment extends StatelessWidget {
         : Icon(
             isOpen ? Icons.arrow_drop_up : Icons.arrow_drop_down,
             color: color,
+            size: 18,
           );
 
     return SizedBox(
       height: double.infinity,
       child: IconButton(
         onPressed: onPressed,
-        padding: const EdgeInsets.symmetric(horizontal: 6),
-        splashRadius: 18,
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        splashRadius: 16,
+        constraints: const BoxConstraints(minWidth: 32, minHeight: 28),
         icon: icon,
       ),
     );

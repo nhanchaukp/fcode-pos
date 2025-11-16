@@ -27,7 +27,7 @@ class AccountMaster {
   final DateTime? paymentDate;
 
   /// Monthly cost.
-  final String? monthlyCost;
+  final int? monthlyCost;
 
   /// Cost notes.
   final String? costNotes;
@@ -80,7 +80,7 @@ class AccountMaster {
       paymentDate: map['payment_date'] != null
           ? DateTime.parse(map['payment_date'].toString())
           : null,
-      monthlyCost: map['monthly_cost']?.toString(),
+      monthlyCost: asInt(map['monthly_cost']),
       costNotes: map['cost_notes']?.toString(),
       isActive: map['is_active'] == true || map['is_active'] == 1,
       createdAt: map['created_at'] != null

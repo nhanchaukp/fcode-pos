@@ -135,157 +135,179 @@ class OrderListComponent extends StatelessWidget {
     return Builder(
       builder: (context) => HuxCard(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        borderRadius: 18,
-        padding: EdgeInsets.zero,
-        onTap: () => _onOrderTap(context, order),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '#${order.id}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: colorScheme.onSurfaceVariant.applyOpacity(
-                              0.7,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          customerName?.isNotEmpty == true
-                              ? customerName!
-                              : 'Khách hàng',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        if (customerEmail?.isNotEmpty == true)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 2),
-                            child: Text(
-                              customerEmail!,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: colorScheme.onSurfaceVariant
-                                    .applyOpacity(0.7),
+        color: colorScheme.surface,
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: colorScheme.outlineVariant.applyOpacity(0.5),
+            width: 1,
+          ),
+        ),
+        child: InkWell(
+          onTap: () => _onOrderTap(context, order),
+          borderRadius: BorderRadius.circular(16),
+          splashColor: colorScheme.primary.applyOpacity(0.08),
+          highlightColor: Colors.transparent,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '#${order.id}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: colorScheme.onSurfaceVariant.applyOpacity(
+                                0.7,
                               ),
-                              overflow: TextOverflow.ellipsis,
+                              letterSpacing: 0.2,
                             ),
                           ),
-                      ],
-                    ),
-                  ),
-                  OrderStatusBadge(
-                    status: order.status,
-                    fontSize: 12,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.shopping_cart_outlined,
-                          size: 14,
-                          color: colorScheme.tertiary,
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            productCountLabel,
+                          const SizedBox(height: 4),
+                          Text(
+                            customerName?.isNotEmpty == true
+                                ? customerName!
+                                : 'Khách hàng',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: colorScheme.onSurface,
+                          ),
+                          if (customerEmail?.isNotEmpty == true)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 2),
+                              child: Text(
+                                customerEmail!,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: colorScheme.onSurfaceVariant
+                                      .applyOpacity(0.7),
                                 ),
-                          ),
-                        ),
-                      ],
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.schedule_outlined,
-                          size: 14,
-                          color: colorScheme.secondary,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          createdAtLabel,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: colorScheme.onSurfaceVariant),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              if (order.note != null && order.note!.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.sticky_note_2_outlined,
-                      size: 14,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        order.note!,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: colorScheme.onSurfaceVariant.applyOpacity(
-                            0.9,
-                          ),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                    OrderStatusBadge(
+                      status: order.status,
+                      fontSize: 12,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
                       ),
                     ),
                   ],
                 ),
-              ],
-              const SizedBox(height: 16),
-              Align(
-                alignment: Alignment.centerRight,
-                child: Text(
-                  totalFormatted,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: colorScheme.primary,
-                        fontSize: 18,
-                      ),
+                const SizedBox(height: 12),
+                Divider(
+                  height: 1,
+                  thickness: 0.7,
+                  color: colorScheme.outlineVariant.applyOpacity(0.6),
                 ),
-              ),
-            ],
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.shopping_cart_outlined,
+                            size: 16,
+                            color: colorScheme.tertiary,
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              productCountLabel,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: colorScheme.onSurface,
+                                  ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.schedule_outlined,
+                            size: 16,
+                            color: colorScheme.secondary,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            createdAtLabel,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: colorScheme.onSurfaceVariant),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                if (order.note != null && order.note!.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.sticky_note_2_outlined,
+                        size: 16,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          order.note!,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: colorScheme.onSurfaceVariant.applyOpacity(
+                              0.9,
+                            ),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    totalFormatted,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: colorScheme.primary,
+                      fontSize: 18,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -317,6 +339,10 @@ class OrderListComponent extends StatelessWidget {
                 : null,
             icon: const Icon(Icons.chevron_left),
             label: const Text('Trước'),
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              visualDensity: VisualDensity.compact,
+            ),
           ),
           const SizedBox(width: 8),
           FilledButton.tonalIcon(
@@ -325,6 +351,10 @@ class OrderListComponent extends StatelessWidget {
                 : null,
             icon: const Icon(Icons.chevron_right),
             label: const Text('Sau'),
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              visualDensity: VisualDensity.compact,
+            ),
           ),
         ],
       ),
