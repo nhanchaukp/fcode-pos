@@ -74,6 +74,7 @@ class _CustomerCreateScreenState extends State<CustomerCreateScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             TextFormField(
+              textCapitalization: TextCapitalization.words,
               controller: _nameController,
               decoration: const InputDecoration(labelText: 'Tên khách hàng'),
               validator: (v) {
