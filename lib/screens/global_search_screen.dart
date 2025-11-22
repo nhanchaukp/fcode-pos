@@ -6,6 +6,7 @@ import 'package:fcode_pos/services/order_service.dart';
 import 'package:fcode_pos/ui/components/order_status_badge.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
+import 'package:fcode_pos/utils/extensions.dart';
 import 'package:flutter/material.dart';
 
 class GlobalSearchScreen extends StatefulWidget {
@@ -281,7 +282,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                 decoration: BoxDecoration(
                   color: Theme.of(
                     context,
-                  ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                  ).colorScheme.surfaceContainerHighest.applyOpacity(0.3),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(
@@ -349,6 +350,11 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  if (order.createdAt != null)
+                    Text(
+                      DateHelper.formatDate(order.createdAt!),
+                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                    ),
                   Text(
                     CurrencyHelper.formatCurrency(order.total),
                     style: TextStyle(
@@ -357,11 +363,6 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                       color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
-                  if (order.createdAt != null)
-                    Text(
-                      DateHelper.formatDate(order.createdAt!),
-                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                    ),
                 ],
               ),
             ],

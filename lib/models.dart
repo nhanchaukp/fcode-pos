@@ -18,5 +18,6 @@ part 'models/product_supply.dart';
 part 'models/passkeys.dart';
 part 'models/login_response.dart';
 part 'models/financial_report.dart';
+part 'models/financial_transaction.dart';
 part 'models/refund.dart';
 part 'models/mail_log.dart';

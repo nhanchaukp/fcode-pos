@@ -32,4 +32,28 @@ class FinacialService {
           [],
     );
   }
+
+  Future<ApiResponse<PaginatedData<FinancialTransaction>>>
+      getFinancialTransaction({
+    DateTime? dateFrom,
+    DateTime? dateTo,
+    String? type,
+    int page = 1,
+    int perPage = 15,
+  }) {
+    return _api.get<PaginatedData<FinancialTransaction>>(
+      '/financial-transaction',
+      queryParameters: {
+        if (dateFrom != null) 'date_from': dateFrom.toIso8601String(),
+        if (dateTo != null) 'date_to': dateTo.toIso8601String(),
+        if (type != null && type.isNotEmpty) 'type': type,
+        'page': page,
+        'per_page': perPage,
+      },
+      parser: (json) => PaginatedData<FinancialTransaction>.fromJson(
+        ensureMap(json),
+        (item) => FinancialTransaction.fromJson(ensureMap(item)),
+      ),
+    );
+  }
 }

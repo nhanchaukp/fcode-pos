@@ -118,28 +118,20 @@ class OrderListComponent extends StatelessWidget {
   }
 
   Widget _buildOrderTile(Order order, ColorScheme colorScheme) {
-    final rawCustomerName = order.user?.name;
-    final customerName = rawCustomerName?.trim();
-    final rawCustomerEmail = order.user?.email;
-    final customerEmail = rawCustomerEmail?.trim();
-    final createdAtLabel = order.createdAt != null
-        ? DateHelper.formatDateTime(order.createdAt!)
-        : '—';
-    final totalFormatted = CurrencyHelper.formatCurrency(order.total);
-    final itemCount = order.itemCount;
-    final productCountLabel = itemCount > 0
-        ? '$itemCount sản phẩm'
-        : 'Chưa có sản phẩm';
+    final productNames = order.items
+        .map((item) => item.product?.name ?? 'Sản phẩm #${item.productId}')
+        .take(3)
+        .toList();
+
+    final hasMoreProducts = order.items.length > 3;
 
     return Builder(
       builder: (context) => Card(
-        clipBehavior: Clip.antiAlias,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        color: colorScheme.surface,
         elevation: 0,
-        shadowColor: Colors.transparent,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        clipBehavior: Clip.antiAlias,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           side: BorderSide(
             color: colorScheme.outlineVariant.applyOpacity(0.5),
             width: 1,
@@ -147,164 +139,132 @@ class OrderListComponent extends StatelessWidget {
         ),
         child: InkWell(
           onTap: () => _onOrderTap(context, order),
-          borderRadius: BorderRadius.circular(16),
-          splashColor: colorScheme.primary.applyOpacity(0.08),
-          highlightColor: Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Header: Mã đơn và trạng thái
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '#${order.id}',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: colorScheme.onSurfaceVariant.applyOpacity(
-                                0.7,
-                              ),
-                              letterSpacing: 0.2,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            customerName?.isNotEmpty == true
-                                ? customerName!
-                                : 'Khách hàng',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          if (customerEmail?.isNotEmpty == true)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 2),
-                              child: Text(
-                                customerEmail!,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: colorScheme.onSurfaceVariant
-                                      .applyOpacity(0.7),
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                        ],
+                    Text(
+                      'Đơn hàng #${order.id}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
                       ),
                     ),
-                    OrderStatusBadge(
-                      status: order.status,
-                      fontSize: 12,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                    ),
+                    OrderStatusBadge(status: order.status),
                   ],
                 ),
+
                 const SizedBox(height: 12),
-                Divider(
-                  height: 1,
-                  thickness: 0.7,
-                  color: colorScheme.outlineVariant.applyOpacity(0.6),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.shopping_cart_outlined,
-                            size: 16,
-                            color: colorScheme.tertiary,
-                          ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              productCountLabel,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: colorScheme.onSurface,
-                                  ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.schedule_outlined,
-                            size: 16,
-                            color: colorScheme.secondary,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            createdAtLabel,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: colorScheme.onSurfaceVariant),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                if (order.note != null && order.note!.isNotEmpty) ...[
-                  const SizedBox(height: 12),
+
+                // Thông tin khách hàng (nếu có)
+                if (order.user != null) ...[
                   Row(
                     children: [
-                      Icon(
-                        Icons.sticky_note_2_outlined,
-                        size: 16,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          order.note!,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: colorScheme.onSurfaceVariant.applyOpacity(
-                              0.9,
-                            ),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                      const Icon(Icons.person_outline, size: 16),
+                      const SizedBox(width: 4),
+                      Text(
+                        order.user!.name,
+                        style: const TextStyle(fontSize: 14),
                       ),
                     ],
                   ),
+                  const SizedBox(height: 8),
                 ],
-                const SizedBox(height: 12),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    totalFormatted,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: colorScheme.primary,
-                      fontSize: 18,
-                    ),
+
+                // Danh sách sản phẩm
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest.applyOpacity(0.3),
+                    borderRadius: BorderRadius.circular(8),
                   ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.shopping_bag_outlined, size: 16),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Sản phẩm (${order.items.length})',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      ...productNames.map(
+                        (name) => Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 4,
+                                height: 4,
+                                margin: const EdgeInsets.only(right: 8),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                              Expanded(
+                                child: Text(
+                                  name,
+                                  style: const TextStyle(fontSize: 14),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (hasMoreProducts)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            '+ ${order.items.length - 3} sản phẩm khác',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontStyle: FontStyle.italic,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // Footer: Tổng tiền và ngày tạo
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    if (order.createdAt != null)
+                      Text(
+                        DateHelper.formatDateTime(order.createdAt!),
+                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      ),
+                    Text(
+                      CurrencyHelper.formatCurrency(order.total),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
