@@ -13,6 +13,7 @@ import 'package:flutter/widgets.dart';
 extension SafeState on State {
   /// Calls [setState] only if the [State] is still mounted.
   void safeSetState(VoidCallback fn) {
+    // ignore: invalid_use_of_protected_member
     if (mounted) setState(fn);
   }
 }

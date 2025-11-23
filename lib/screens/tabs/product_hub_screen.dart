@@ -111,7 +111,7 @@ class ProductHubScreen extends StatelessWidget {
                         width: 56,
                         height: 56,
                         decoration: BoxDecoration(
-                          color: itemColor.withOpacity(0.15),
+                          color: itemColor.applyOpacity(0.15),
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: Icon(item.icon, size: 28, color: itemColor),
@@ -123,7 +123,7 @@ class ProductHubScreen extends StatelessWidget {
                           children: [
                             Text(
                               item.title,
-                              style: Theme.of(context).textTheme.titleMedium
+                              style: Theme.of(context).textTheme.titleSmall
                                   ?.copyWith(fontWeight: FontWeight.w600),
                             ),
                             const SizedBox(height: 4),

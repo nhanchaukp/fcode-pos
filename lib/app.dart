@@ -1,4 +1,5 @@
 import 'package:fcode_pos/appwrite.dart';
+import 'package:fcode_pos/config/environment.dart';
 import 'package:fcode_pos/providers/theme_provider.dart';
 import 'package:fcode_pos/screens/splash_screen.dart';
 import 'package:fcode_pos/utils/extensions.dart';
@@ -6,13 +7,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class AppwriteApp extends ConsumerWidget {
-  const AppwriteApp({super.key});
+class FcodePosApp extends ConsumerWidget {
+  const FcodePosApp({super.key});
 
   ThemeData _buildLightTheme() {
     final base = ThemeData(
       useMaterial3: true,
-      fontFamily: 'GoogleSans',
+      fontFamily: 'MomoTrustSans',
       colorScheme: ColorScheme.fromSeed(
         seedColor: Colors.teal,
         brightness: Brightness.light,
@@ -38,7 +39,7 @@ class AppwriteApp extends ConsumerWidget {
   ThemeData _buildDarkTheme() {
     final base = ThemeData(
       useMaterial3: true,
-      fontFamily: 'GoogleSans',
+      fontFamily: 'MomoTrustSans',
       colorScheme: ColorScheme.fromSeed(
         seedColor: Colors.teal,
         brightness: Brightness.dark,
@@ -91,7 +92,7 @@ class AppwriteApp extends ConsumerWidget {
       },
       behavior: HitTestBehavior.translucent,
       child: MaterialApp(
-        title: 'FCODE Pos',
+        title: Environment.appName,
         scaffoldMessengerKey: rootScaffoldMessengerKey,
         debugShowCheckedModeBanner: false,
         theme: _buildLightTheme(),

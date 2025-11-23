@@ -5,5 +5,5 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() async {
   await AppInitializer.initialize();
-  runApp(const ProviderScope(child: AppwriteApp()));
+  runApp(const ProviderScope(child: FcodePosApp()));
 }

@@ -1,7 +1,6 @@
 import 'package:fcode_pos/api/api_exception.dart';
 import 'package:fcode_pos/data/models/status.dart';
 import 'package:fcode_pos/screens/tabs/main_shell.dart';
-import 'package:fcode_pos/ui/components/loading_icon.dart';
 import 'package:fcode_pos/utils/safe_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fcode_pos/providers/auth_provider.dart';
@@ -21,7 +20,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   Status _status = Status.idle;
-  Status _passkeyLoading = Status.idle;
   bool _obscurePassword = true;
 
   @override
@@ -29,7 +27,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _status = Status.idle;
-    _passkeyLoading = Status.idle;
     super.dispose();
   }
 

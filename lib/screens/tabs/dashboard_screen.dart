@@ -130,18 +130,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               );
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const GlobalSearchScreen(),
-                ),
-              );
-            },
-            tooltip: 'Tìm kiếm',
-          ),
         ],
       ),
       body: SafeArea(

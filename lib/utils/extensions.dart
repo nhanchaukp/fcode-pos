@@ -1,5 +1,5 @@
 /// Extensions library
-library extensions;
+library;
 
 export 'extensions/build_context.dart';
 export 'extensions/colors.dart';
