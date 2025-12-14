@@ -1,7 +1,12 @@
+import 'dart:async';
+
+import 'package:app_links/app_links.dart';
 import 'package:fcode_pos/appwrite.dart';
 import 'package:fcode_pos/config/environment.dart';
 import 'package:fcode_pos/providers/theme_provider.dart';
+import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/screens/splash_screen.dart';
+import 'package:fcode_pos/services/deep_link_service.dart';
 import 'package:fcode_pos/utils/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -94,6 +99,7 @@ class FcodePosApp extends ConsumerWidget {
       child: MaterialApp(
         title: Environment.appName,
         scaffoldMessengerKey: rootScaffoldMessengerKey,
+        navigatorKey: navigatorKey,
         debugShowCheckedModeBanner: false,
         theme: _buildLightTheme(),
         darkTheme: _buildDarkTheme(),
@@ -105,8 +111,71 @@ class FcodePosApp extends ConsumerWidget {
           GlobalCupertinoLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
         ],
-        home: const SplashScreen(),
+        onGenerateRoute: _onGenerateRoute,
+        home: const _DeepLinkWrapper(child: SplashScreen()),
       ),
     );
+  }
+
+  Route<dynamic>? _onGenerateRoute(RouteSettings settings) {
+    switch (settings.name) {
+      case '/order-detail':
+        final orderId = settings.arguments as String?;
+        if (orderId != null) {
+          return MaterialPageRoute(
+            builder: (_) => OrderDetailScreen(orderId: orderId),
+            settings: settings,
+          );
+        }
+        return null;
+      default:
+        return null;
+    }
+  }
+}
+
+/// Wrapper widget to handle deep links when app is launched
+class _DeepLinkWrapper extends ConsumerStatefulWidget {
+  final Widget child;
+
+  const _DeepLinkWrapper({required this.child});
+
+  @override
+  ConsumerState<_DeepLinkWrapper> createState() => _DeepLinkWrapperState();
+}
+
+class _DeepLinkWrapperState extends ConsumerState<_DeepLinkWrapper> {
+  late AppLinks _appLinks;
+  late StreamSubscription _deepLinkSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _appLinks = AppLinks();
+    _initDeepLinkListener();
+  }
+
+  void _initDeepLinkListener() {
+    // Handle deep link when app is launched
+    _appLinks.uriLinkStream.listen(
+      (uri) {
+        debugPrint('🔗 Deep link received: $uri');
+        DeepLinkService.handleDeepLink(uri.toString());
+      },
+      onError: (err) {
+        debugPrint('❌ Deep link error: $err');
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _deepLinkSubscription.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
   }
 }

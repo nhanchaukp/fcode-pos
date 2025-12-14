@@ -146,7 +146,7 @@ class _AccountSlotManagementScreenState
                   ),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<enums.AccountMasterServiceType>(
-                    value: _selectedServiceType,
+                    initialValue: _selectedServiceType,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                       hintText: 'Tất cả',
@@ -498,6 +498,8 @@ class _AccountSlotManagementScreenState
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 PopupMenuButton<String>(
@@ -677,6 +679,8 @@ class _AccountSlotManagementScreenState
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               Text(
@@ -698,11 +702,15 @@ class _AccountSlotManagementScreenState
 
           // Date information
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              if (slot.pin.isNotEmpty) ...[
+                Expanded(child: _buildSlotInfo(Icons.vpn_key, 'PIN', slot.pin)),
+              ],
               Expanded(
                 child: _buildSlotInfo(
                   Icons.calendar_today,
-                  'Bắt đầu',
+                  'Từ',
                   slot.startDate != null
                       ? DateHelper.formatDateShort(slot.startDate!)
                       : 'N/A',
@@ -711,7 +719,7 @@ class _AccountSlotManagementScreenState
               Expanded(
                 child: _buildSlotInfo(
                   Icons.event_busy,
-                  'Hết hạn',
+                  'Đến',
                   slot.expiryDate != null
                       ? DateHelper.formatDateShort(slot.expiryDate!)
                       : 'N/A',
@@ -735,7 +743,7 @@ class _AccountSlotManagementScreenState
                         ),
                       ),
                     ),
-                    child: _buildSlotInfo(Icons.person, 'Khách', customerName),
+                    child: _buildSlotInfo(Icons.person, '', customerName),
                   ),
                 ),
                 if (hasOrder)
@@ -780,10 +788,12 @@ class _AccountSlotManagementScreenState
       children: [
         Icon(icon, size: 12, color: colorScheme.onSurfaceVariant),
         const SizedBox(width: 4),
-        Text(
-          '$label: ',
-          style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
-        ),
+        if (label.isNotEmpty) ...[
+          Text(
+            '$label: ',
+            style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
+          ),
+        ],
         Expanded(
           child: Text(
             value,

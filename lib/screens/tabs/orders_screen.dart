@@ -137,7 +137,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             tooltip: 'Tìm kiếm',
           ),
           IconButton(
-            icon: const Icon(Icons.filter_list),
+            icon: Badge(
+              isLabelVisible:
+                  (_selectedStatus != null &&
+                      _selectedStatus != OrderStatus.all) ||
+                  _selectedUser != null,
+              child: const Icon(Icons.filter_list),
+            ),
             onPressed: () => _showFilterBottomSheet(context),
             tooltip: 'Bộ lọc',
           ),
@@ -146,21 +152,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _refreshAll,
-          child: Column(
-            children: [
-              // Orders List
-              Expanded(
-                child: OrderListComponent(
-                  orders: _orders,
-                  isLoading: _isLoadingOrders,
-                  error: _ordersError,
-                  currentPage: _currentPage,
-                  totalPages: _totalPages,
-                  onPageChanged: (page) => _loadOrders(page: page),
-                  onRetry: () => _loadOrders(),
-                ),
-              ),
-            ],
+          child: OrderListComponent(
+            orders: _orders,
+            isLoading: _isLoadingOrders,
+            error: _ordersError,
+            currentPage: _currentPage,
+            totalPages: _totalPages,
+            onPageChanged: (page) => _loadOrders(page: page),
+            onRetry: () => _loadOrders(),
           ),
         ),
       ),
@@ -246,18 +245,36 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           Row(
             children: [
               Expanded(
-                child: _buildDateField(
-                  'Từ ngày',
-                  _fromDate,
-                  (date) => setState(() => _fromDate = date),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildDateField(
-                  'Đến ngày',
-                  _toDate,
-                  (date) => setState(() => _toDate = date),
+                child: InkWell(
+                  onTap: () async {
+                    final picked = await showDateRangePicker(
+                      context: context,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime.now(),
+                      initialDateRange: _fromDate != null && _toDate != null
+                          ? DateTimeRange(start: _fromDate!, end: _toDate!)
+                          : null,
+                    );
+                    if (picked != null) {
+                      setState(() {
+                        _fromDate = picked.start;
+                        _toDate = picked.end;
+                      });
+                    }
+                  },
+                  child: InputDecorator(
+                    decoration: const InputDecoration(
+                      labelText: 'Khoảng ngày',
+                      border: OutlineInputBorder(),
+                      suffixIcon: Icon(Icons.calendar_today),
+                    ),
+                    child: Text(
+                      _fromDate != null && _toDate != null
+                          ? '${DateFormat('dd/MM/yyyy').format(_fromDate!)} - ${DateFormat('dd/MM/yyyy').format(_toDate!)}'
+                          : 'Chọn khoảng ngày',
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -303,36 +320,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       onPressed: () {
         _setQuickDateRange(type);
       },
-    );
-  }
-
-  Widget _buildDateField(
-    String label,
-    DateTime? date,
-    Function(DateTime?) onDateChanged,
-  ) {
-    return TextFormField(
-      onTap: () async {
-        final picked = await showDatePicker(
-          context: context,
-          initialDate: date ?? DateTime.now(),
-          firstDate: DateTime(2020),
-          lastDate: DateTime.now(),
-        );
-        if (picked != null) {
-          onDateChanged(picked);
-          setState(() {});
-        }
-      },
-      readOnly: true,
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(),
-        suffixIcon: const Icon(Icons.calendar_today),
-      ),
-      controller: TextEditingController(
-        text: date != null ? DateFormat('dd/MM/yyyy').format(date) : '',
-      ),
     );
   }
 

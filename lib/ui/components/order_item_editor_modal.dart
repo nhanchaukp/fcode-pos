@@ -461,14 +461,9 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
               const SizedBox(height: 16),
               AccountSlotDropdown(
                 selectedSlot: widget.itemData.accountSlot,
-                onSlotSelected: (slot) {
+                onChanged: (slot) {
                   setState(() {
                     widget.itemData.accountSlot = slot;
-                  });
-                },
-                onSlotCleared: () {
-                  setState(() {
-                    widget.itemData.accountSlot = null;
                   });
                 },
               ),

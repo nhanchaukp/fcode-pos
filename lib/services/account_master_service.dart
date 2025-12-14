@@ -8,6 +8,20 @@ class AccountMasterService {
 
   final ApiService _api;
 
+  Future<ApiResponse<List<AccountMaster>>> list({
+    bool? isActive,
+    String? serviceType,
+  }) {
+    return _api.get<List<AccountMaster>>(
+      '/account-master',
+      queryParameters: {
+        if (isActive != null) 'is_active': isActive,
+        if (serviceType != null) 'service_type': serviceType,
+      },
+      parser: (json) => _parseAccountMasterList(json),
+    );
+  }
+
   Future<ApiResponse<AccountMaster>> create(AccountMaster accountMaster) {
     return _api.post<AccountMaster>(
       '/account-master',
@@ -34,4 +48,35 @@ class AccountMasterService {
       parser: (json) => AccountMaster.fromJson(json as Map<String, dynamic>),
     );
   }
+
+  Future<ApiResponse<AccountSlot>> addSlot(
+    int accountMasterId, {
+    required String name,
+    String? pin,
+  }) {
+    return _api.post<AccountSlot>(
+      '/account-master/$accountMasterId/add-slot',
+      data: {'name': name, if (pin != null && pin.isNotEmpty) 'pin': pin},
+      parser: (json) => AccountSlot.fromJson(json as Map<String, dynamic>),
+    );
+  }
+}
+
+List<AccountMaster> _parseAccountMasterList(dynamic data) {
+  if (data is List) {
+    return data
+        .map((item) => AccountMaster.fromJson(item as Map<String, dynamic>))
+        .toList(growable: false);
+  }
+
+  if (data is Map) {
+    final items = data['items'] ?? data['data'];
+    if (items is List) {
+      return items
+          .map((item) => AccountMaster.fromJson(item as Map<String, dynamic>))
+          .toList(growable: false);
+    }
+  }
+
+  return <AccountMaster>[];
 }

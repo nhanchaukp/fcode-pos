@@ -86,21 +86,18 @@ class OrderListComponent extends StatelessWidget {
       );
     }
 
-    return Column(
-      children: [
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            physics: const AlwaysScrollableScrollPhysics(),
-            itemCount: orders.length,
-            itemBuilder: (context, index) {
-              final order = orders[index];
-              return _buildOrderTile(order, colorScheme);
-            },
-          ),
-        ),
-        _buildPaginationControls(context, colorScheme),
-      ],
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      physics: const AlwaysScrollableScrollPhysics(),
+      itemCount: orders.length + (totalPages > 1 ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index < orders.length) {
+          final order = orders[index];
+          return _buildOrderTile(order, colorScheme);
+        } else {
+          return _buildPaginationControls(context, colorScheme);
+        }
+      },
     );
   }
 
@@ -288,7 +285,7 @@ class OrderListComponent extends StatelessWidget {
     );
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       child: Row(
         children: [
           Text('Trang $currentPage/$totalPages', style: textStyle),
@@ -316,6 +313,7 @@ class OrderListComponent extends StatelessWidget {
               visualDensity: VisualDensity.compact,
             ),
           ),
+          const SizedBox(width: 64), // né floating button
         ],
       ),
     );

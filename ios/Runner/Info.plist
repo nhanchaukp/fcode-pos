@@ -53,5 +53,18 @@
 		<string>Ứng dụng cần quyền truy cập để lưu mã QR vào thư viện ảnh</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Ứng dụng cần quyền truy cập thư viện ảnh để lưu mã QR</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.nhanchaukp.fcode.pos</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>fcode</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
