@@ -1,4 +1,4 @@
-import 'package:fcode_pos/screens/tabs/dashboard_screen.dart';
+import 'package:fcode_pos/screens/tabs/report_screen.dart';
 import 'package:fcode_pos/screens/tabs/orders_screen.dart';
 import 'package:fcode_pos/screens/tabs/more_screen.dart';
 import 'package:fcode_pos/screens/tabs/product_hub_screen.dart';

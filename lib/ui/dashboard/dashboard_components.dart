@@ -261,3 +261,90 @@ class _SparklinePainter extends CustomPainter {
     return oldDelegate.data != data || oldDelegate.strokeColor != strokeColor;
   }
 }
+
+/// A statistic card with gradient background and watermark icon
+class GradientStatCard extends StatelessWidget {
+  const GradientStatCard({
+    super.key,
+    required this.title,
+    required this.value,
+    required this.percentage,
+    required this.icon,
+    required this.gradient,
+    this.percentageColor,
+  });
+
+  final String title;
+  final String value;
+  final String percentage;
+  final IconData icon;
+  final Gradient gradient;
+  final Color? percentageColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: gradient,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Stack(
+          children: [
+            // Watermark icon in bottom right
+            Positioned(
+              right: -20,
+              bottom: -20,
+              child: Icon(
+                icon,
+                size: 120,
+                color: Colors.white.withOpacity(0.2),
+              ),
+            ),
+            // Content
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: Colors.white.withOpacity(0.9),
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    value,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      height: 1.2,
+                    ),
+                  ),
+                  if (percentage.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      percentage,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: percentageColor ?? Colors.white.withOpacity(0.9),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

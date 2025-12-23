@@ -1,6 +1,5 @@
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/financial_report_screen.dart';
-import 'package:fcode_pos/screens/global_search_screen.dart';
 import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/services/order_service.dart';
 import 'package:fcode_pos/ui/dashboard/dashboard_components.dart';
@@ -54,39 +53,49 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  List<_StatConfig> _getStatConfigs() {
+  List<_OrderStatConfig> _getOrderStatConfigs() {
     if (_stats == null) return [];
 
-    final profitMargin = _stats!.revenue > 0
-        ? ((_stats!.totalMoney - _stats!.revenue) / _stats!.revenue * 100)
-              .toStringAsFixed(1)
-        : '0.0';
-
     return [
-      _StatConfig(
-        icon: Icons.attach_money_outlined,
-        title: 'Doanh thu',
-        value: CurrencyHelper.formatCurrency(_stats!.totalMoney),
-        subtitle: 'Tổng doanh thu trong khoảng thời gian',
-        color: Colors.amber,
-        trendLabel: null,
+      _OrderStatConfig(
+        icon: Icons.check_circle_outlined,
+        title: 'Đã thanh toán',
+        value: '${_stats!.paymentSuccessOrderCount}',
+        gradient: const LinearGradient(
+          colors: [Color(0xFF11998e), Color(0xFF38ef7d)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
       ),
-      _StatConfig(
-        icon: Icons.payments_outlined,
-        title: 'Lợi nhuận',
-        value: CurrencyHelper.formatCurrency(_stats!.revenue),
-        subtitle: 'Biên lợi nhuận $profitMargin%',
-        color: Colors.teal,
-        trendLabel: null,
+      _OrderStatConfig(
+        icon: Icons.done_all_outlined,
+        title: 'Hoàn thành',
+        value: '${_stats!.completeOrderCount}',
+        gradient: const LinearGradient(
+          colors: [Color(0xFF0cebeb), Color(0xFF20e3b2)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
       ),
-      _StatConfig(
+      _OrderStatConfig(
+        icon: Icons.fiber_new_outlined,
+        title: 'Đơn mới',
+        value: '${_stats!.newOrderCount}',
+        gradient: const LinearGradient(
+          colors: [Color(0xFF4facfe), Color(0xFF00f2fe)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      _OrderStatConfig(
         icon: Icons.shopping_bag_outlined,
-        title: 'Đơn hàng',
+        title: 'Tổng đơn hàng',
         value: '${_stats!.totalOrdersCount}',
-        subtitle:
-            '${_stats!.completeOrderCount} hoàn thành, ${_stats!.newOrderCount} mới',
-        color: Colors.indigo,
-        trendLabel: null,
+        gradient: const LinearGradient(
+          colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
       ),
     ];
   }
@@ -207,41 +216,80 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         ),
                       ),
+                      // Revenue & Profit Group Card
+                      if (_stats != null)
+                        Column(
+                          children: [
+                            SizedBox(
+                              width: double.infinity,
+                              child: GradientStatCard(
+                                title: 'Doanh thu',
+                                value: CurrencyHelper.formatCurrency(
+                                  _stats!.totalMoney,
+                                ),
+                                percentage: '',
+                                icon: Icons.attach_money_outlined,
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFFf093fb),
+                                    Color(0xFFf5576c),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              child: GradientStatCard(
+                                title: 'Lợi nhuận',
+                                value: CurrencyHelper.formatCurrency(
+                                  _stats!.revenue,
+                                ),
+                                percentage: '',
+                                icon: Icons.payments_outlined,
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFF11998e),
+                                    Color(0xFF38ef7d),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+                        ),
+                      // Order Stats 2x2 Grid
                       LayoutBuilder(
                         builder: (context, constraints) {
-                          final maxWidth = constraints.maxWidth;
-                          final crossAxisCount = maxWidth > 900
-                              ? 3
-                              : maxWidth > 600
-                              ? 2
-                              : 1;
-
                           final spacing = 12.0;
-                          final itemWidth = crossAxisCount == 1
-                              ? maxWidth
-                              : (maxWidth - spacing * (crossAxisCount - 1)) /
-                                    crossAxisCount;
 
-                          final statConfigs = _getStatConfigs();
+                          final orderStatConfigs = _getOrderStatConfigs();
 
-                          return Wrap(
-                            spacing: spacing,
-                            runSpacing: spacing,
-                            children: statConfigs
-                                .map(
-                                  (config) => SizedBox(
-                                    width: itemWidth,
-                                    child: DashboardStatCard(
-                                      icon: config.icon,
-                                      title: config.title,
-                                      value: config.value,
-                                      subtitle: config.subtitle,
-                                      color: config.color,
-                                      trendLabel: config.trendLabel,
-                                    ),
-                                  ),
-                                )
-                                .toList(),
+                          return GridView.builder(
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: spacing,
+                                  mainAxisSpacing: spacing,
+                                  childAspectRatio: 1.8,
+                                ),
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: orderStatConfigs.length,
+                            itemBuilder: (context, index) {
+                              final config = orderStatConfigs[index];
+                              return GradientStatCard(
+                                title: config.title,
+                                value: config.value,
+                                percentage: '',
+                                icon: config.icon,
+                                gradient: config.gradient,
+                              );
+                            },
                           );
                         },
                       ),
@@ -489,20 +537,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-class _StatConfig {
-  const _StatConfig({
+class _OrderStatConfig {
+  const _OrderStatConfig({
     required this.icon,
     required this.title,
     required this.value,
-    required this.subtitle,
-    required this.color,
-    this.trendLabel,
+    required this.gradient,
   });
 
   final IconData icon;
   final String title;
   final String value;
-  final String subtitle;
-  final Color color;
-  final String? trendLabel;
+  final Gradient gradient;
 }

@@ -25,15 +25,16 @@ class DeepLinkService {
       }
 
       // Match pattern: https://fcode.vn/ahihi/shop-orders/{orderId}/edit
-      if (uri.scheme == 'https' &&
-          uri.host == 'fcode.vn' &&
-          pathSegments.length >= 4 &&
-          pathSegments[0] == 'ahihi' &&
-          pathSegments[1] == 'shop-orders' &&
-          pathSegments[3] == 'edit') {
-        final orderId = pathSegments[2];
-        _navigateToOrderDetail(orderId);
-        return;
+      if (uri.scheme == 'https' && uri.host == 'fcode.vn') {
+        // Check if this is a shop-orders URL
+        final shopOrdersIndex = pathSegments.indexOf('shop-orders');
+        if (shopOrdersIndex >= 0 && shopOrdersIndex + 2 < pathSegments.length) {
+          final orderId = pathSegments[shopOrdersIndex + 1];
+          if (orderId.isNotEmpty) {
+            _navigateToOrderDetail(orderId);
+            return;
+          }
+        }
       }
 
       debugPrint('⚠️ Unknown deep link pattern: $deepLink');

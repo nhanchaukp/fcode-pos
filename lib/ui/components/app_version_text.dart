@@ -21,7 +21,7 @@ class _AppVersionTextState extends State<AppVersionText> {
     try {
       final info = await PackageInfo.fromPlatform();
       setState(() {
-        _version = 'v${info.version} (${info.buildNumber})';
+        _version = 'v${info.version}+${info.buildNumber}';
       });
     } catch (_) {
       setState(() {
