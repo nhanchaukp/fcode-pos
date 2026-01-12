@@ -34,7 +34,7 @@ class FinacialService {
   }
 
   Future<ApiResponse<PaginatedData<FinancialTransaction>>>
-      getFinancialTransaction({
+  getFinancialTransaction({
     DateTime? dateFrom,
     DateTime? dateTo,
     String? type,
@@ -54,6 +54,15 @@ class FinacialService {
         ensureMap(json),
         (item) => FinancialTransaction.fromJson(ensureMap(item)),
       ),
+    );
+  }
+
+  Future<ApiResponse<Map<String, dynamic>?>> deleteFinancialTransaction(
+    int id,
+  ) {
+    return _api.delete<Map<String, dynamic>?>(
+      '/financial-transaction/$id',
+      parser: (json) => json as Map<String, dynamic>?,
     );
   }
 }

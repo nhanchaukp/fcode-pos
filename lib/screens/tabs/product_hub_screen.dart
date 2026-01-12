@@ -1,5 +1,5 @@
 import 'package:fcode_pos/screens/account-master/account_slot_management_screen.dart';
-import 'package:fcode_pos/screens/products/customer_list_screen.dart';
+import 'package:fcode_pos/screens/customer/customer_list_screen.dart';
 import 'package:fcode_pos/screens/product-supply/product_cost_screen.dart';
 import 'package:fcode_pos/screens/products/product_list_screen.dart';
 import 'package:fcode_pos/screens/refund/refund_request_screen.dart';

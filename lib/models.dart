@@ -21,3 +21,4 @@ part 'models/financial_report.dart';
 part 'models/financial_transaction.dart';
 part 'models/refund.dart';
 part 'models/mail_log.dart';
+part 'models/customer_stats.dart';

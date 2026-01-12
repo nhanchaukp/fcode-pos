@@ -3,6 +3,7 @@ import 'package:fcode_pos/services/finacial_service.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/extensions.dart';
+import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 
 class FinancialTransactionScreen extends StatefulWidget {
@@ -261,8 +262,76 @@ class _FinancialTransactionScreenState
       itemCount: _transactions.length,
       itemBuilder: (context, index) {
         final transaction = _transactions[index];
-        return _buildTransactionCard(transaction);
+        return _buildDismissibleTransactionCard(transaction, index);
       },
+    );
+  }
+
+  Future<void> _deleteTransaction(FinancialTransaction transaction) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Xác nhận xóa'),
+        content: Text(
+          'Bạn có chắc chắn muốn xóa giao dịch "${transaction.transactionId}"?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Hủy'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Xóa'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    try {
+      final response = await _service.deleteFinancialTransaction(
+        transaction.id,
+      );
+
+      if (!mounted) return;
+
+      if (response.success) {
+        Toastr.success('Đã xóa giao dịch ${transaction.transactionId}');
+        _loadTransactions();
+      } else {
+        Toastr.error(response.message ?? 'Xóa giao dịch thất bại');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      Toastr.error('Lỗi: $e');
+    }
+  }
+
+  Widget _buildDismissibleTransactionCard(
+    FinancialTransaction transaction,
+    int index,
+  ) {
+    return Dismissible(
+      key: Key('transaction_${transaction.id}'),
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (direction) async {
+        await _deleteTransaction(transaction);
+        return false; // We handle the removal in _deleteTransaction
+      },
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: Colors.red,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Icon(Icons.delete_outline, color: Colors.white, size: 28),
+      ),
+      child: _buildTransactionCard(transaction),
     );
   }
 

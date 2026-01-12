@@ -4,6 +4,7 @@ import 'package:fcode_pos/api/api_exception.dart';
 import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/customer/customer_detail_screen.dart';
+import 'package:fcode_pos/screens/customer/customer_stats_screen.dart';
 import 'package:fcode_pos/services/customer_service.dart';
 import 'package:fcode_pos/ui/components/copyable_icon_text.dart';
 import 'package:fcode_pos/ui/components/icon_text.dart';
@@ -115,6 +116,13 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
     );
   }
 
+  Future<void> _navigateToStats() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const CustomerStatsScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final customers = _page?.items ?? const <User>[];
@@ -133,18 +141,23 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
               icon: const Icon(Icons.arrow_back),
               onPressed: () => Navigator.of(context).pop(),
             ),
-            trailing: _searchController.text.isEmpty
-                ? null
-                : [
-                    IconButton(
-                      tooltip: 'Xóa',
-                      icon: const Icon(Icons.close),
-                      onPressed: () {
-                        _searchController.clear();
-                        _loadCustomers(page: 1);
-                      },
-                    ),
-                  ],
+            trailing: [
+              if (_searchController.text.isEmpty)
+                IconButton(
+                  tooltip: 'Thống kê',
+                  icon: const Icon(Icons.assessment),
+                  onPressed: _navigateToStats,
+                )
+              else
+                IconButton(
+                  tooltip: 'Xóa',
+                  icon: const Icon(Icons.close),
+                  onPressed: () {
+                    _searchController.clear();
+                    _loadCustomers(page: 1);
+                  },
+                ),
+            ],
             onSubmitted: (_) => _loadCustomers(page: 1),
             textInputAction: TextInputAction.search,
             elevation: const WidgetStatePropertyAll(0),

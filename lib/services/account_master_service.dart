@@ -34,7 +34,7 @@ class AccountMasterService {
     return _api.post<void>(
       '/account-master/expense',
       data: data.toJson(),
-      parser: (_) => null,
+      parser: (_) {},
     );
   }
 

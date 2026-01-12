@@ -38,4 +38,11 @@ class CustomerService {
       parser: (json) => User.fromJson(ensureMap(json)),
     );
   }
+
+  Future<ApiResponse<CustomerStats>> stats() {
+    return _api.get<CustomerStats>(
+      '/user/stats',
+      parser: (json) => CustomerStats.fromJson(ensureMap(json)),
+    );
+  }
 }
