@@ -6,6 +6,7 @@ import 'package:fcode_pos/screens/refund/refund_request_screen.dart';
 import 'package:fcode_pos/screens/supply/suppliers_screen.dart';
 import 'package:fcode_pos/screens/mail/mail_log_screen.dart';
 import 'package:fcode_pos/screens/financial/financial_transaction_screen.dart';
+import 'package:fcode_pos/screens/rating/rating_list_screen.dart';
 import 'package:fcode_pos/utils/extensions.dart';
 import 'package:flutter/material.dart';
 
@@ -68,6 +69,13 @@ class ProductHubScreen extends StatelessWidget {
       icon: Icons.account_balance_wallet_outlined,
       color: Colors.green,
       builder: (context) => const FinancialTransactionScreen(),
+    ),
+    _ProductHubItem(
+      title: 'Đánh giá',
+      description: 'Quản lý đánh giá và nhận xét từ khách hàng.',
+      icon: Icons.star_outline,
+      color: Colors.amber,
+      builder: (context) => const RatingListScreen(),
     ),
   ];
 

@@ -119,9 +119,9 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
             ? null
             : _notesController.text.trim(),
         paymentDate: _paymentDate,
-        monthlyCost: _monthlyCostController.text.trim().isEmpty
+        monthlyCost: _monthlyCostController.moneyValue == 0
             ? null
-            : int.parse(_monthlyCostController.text.trim()),
+            : _monthlyCostController.moneyValue,
         costNotes: _costNotesController.text.trim().isEmpty
             ? null
             : _costNotesController.text.trim(),
@@ -339,12 +339,10 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
               // Monthly Cost
               MoneyFormField(
                 controller: _monthlyCostController,
-                decoration: const InputDecoration(
-                  labelText: 'Chi phí hàng tháng',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.attach_money),
-                  suffixText: 'VNĐ',
-                ),
+                labelText: 'Chi phí hàng tháng',
+                hintText: '0',
+                prefixIcon: const Icon(Icons.attach_money),
+                suffixText: 'VNĐ',
               ),
               const SizedBox(height: 16),
 
