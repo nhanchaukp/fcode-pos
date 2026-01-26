@@ -86,7 +86,8 @@ class Toastr {
       action: action,
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      margin: const EdgeInsets.all(16),
+      margin: EdgeInsets.only(bottom: 24, left: 16, right: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
     );
 
     (context != null

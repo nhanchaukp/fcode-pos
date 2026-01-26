@@ -2,6 +2,7 @@ import 'package:fcode_pos/enums.dart' as enums;
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/customer/customer_detail_screen.dart';
 import 'package:fcode_pos/screens/order/order_detail_screen.dart';
+import 'package:fcode_pos/screens/account-master/account_master_detail_screen.dart';
 import 'package:fcode_pos/screens/account-master/account_master_expense_create_screen.dart';
 import 'package:fcode_pos/screens/account-master/account_master_upsert_screen.dart';
 import 'package:fcode_pos/services/account_slot_service.dart';
@@ -324,6 +325,21 @@ class _AccountSlotManagementScreenState
                 onPressed: _showFilterDialog,
                 tooltip: 'Bộ lọc',
               ),
+              IconButton(
+                icon: const Icon(Icons.add),
+                onPressed: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AccountMasterUpsertScreen(),
+                    ),
+                  );
+                  if (result == true) {
+                    _loadAccountMasters();
+                  }
+                },
+                tooltip: 'Tạo tài khoản',
+              ),
             ],
             onSubmitted: (_) => _loadAccountMasters(),
             textInputAction: TextInputAction.search,
@@ -391,21 +407,6 @@ class _AccountSlotManagementScreenState
             // Content
             Expanded(child: _buildBody()),
           ],
-        ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () async {
-            final result = await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const AccountMasterUpsertScreen(),
-              ),
-            );
-            if (result == true) {
-              _loadAccountMasters();
-            }
-          },
-          icon: const Icon(Icons.add),
-          label: const Text('Tạo tài khoản'),
         ),
       ),
     );
@@ -481,170 +482,181 @@ class _AccountSlotManagementScreenState
     final hasSlots =
         accountMaster.slots != null && accountMaster.slots!.isNotEmpty;
 
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Line 1: Username (left) and PopupMenuButton (right)
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    accountMaster.username,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert),
-                  onSelected: (value) {
-                    if (value == 'create_expense') {
-                      _showCreateExpenseSheet(accountMaster);
-                    }
-                    if (value == 'edit_account') {
-                      _showEditAccountScreen(accountMaster);
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'create_expense',
-                      child: Row(
-                        children: [
-                          Icon(Icons.add_card, size: 16),
-                          SizedBox(width: 8),
-                          Text('Tạo chi phí'),
-                        ],
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                AccountMasterDetailScreen(accountMaster: accountMaster),
+          ),
+        );
+      },
+      child: Card(
+        elevation: 2,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Line 1: Username (left) and PopupMenuButton (right)
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      accountMaster.username,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const PopupMenuItem(
-                      value: 'edit_account',
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit, size: 16),
-                          SizedBox(width: 8),
-                          Text('Chỉnh sửa tài khoản'),
-                        ],
+                  ),
+                  PopupMenuButton<String>(
+                    icon: const Icon(Icons.more_vert),
+                    onSelected: (value) {
+                      if (value == 'create_expense') {
+                        _showCreateExpenseSheet(accountMaster);
+                      }
+                      if (value == 'edit_account') {
+                        _showEditAccountScreen(accountMaster);
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'create_expense',
+                        child: Row(
+                          children: [
+                            Icon(Icons.add_card, size: 16),
+                            SizedBox(width: 8),
+                            Text('Tạo chi phí'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'edit_account',
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit, size: 16),
+                            SizedBox(width: 8),
+                            Text('Chỉnh sửa tài khoản'),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              // const SizedBox(height: 8),
+              // Line 2: Service Type | Active Status | Payment Date
+              Row(
+                children: [
+                  // Service Type
+                  Text(
+                    accountMaster.serviceType,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Text(
+                      '|',
+                      style: TextStyle(color: colorScheme.outlineVariant),
+                    ),
+                  ),
+                  // Active Status with color
+                  Text(
+                    accountMaster.isActive ? 'Active' : 'Inactive',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: accountMaster.isActive ? Colors.green : Colors.red,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Text(
+                      '|',
+                      style: TextStyle(color: colorScheme.outlineVariant),
+                    ),
+                  ),
+                  // Payment Date
+                  Text(
+                    accountMaster.paymentDate != null
+                        ? DateHelper.formatDateShort(accountMaster.paymentDate!)
+                        : 'N/A',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+
+              // Notes (if available)
+              if (accountMaster.notes != null &&
+                  accountMaster.notes!.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.note,
+                      size: 16,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        accountMaster.notes!,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ],
-            ),
-            // const SizedBox(height: 8),
-            // Line 2: Service Type | Active Status | Payment Date
-            Row(
-              children: [
-                // Service Type
+
+              // Slots section
+              if (hasSlots) ...[
+                // const SizedBox(height: 16),
+                const Divider(),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(Icons.dns, size: 16, color: colorScheme.primary),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Slots (${accountMaster.slots!.length}/${accountMaster.maxSlots})',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                ...accountMaster.slots!.map((slot) => _buildSlotItem(slot)),
+              ] else ...[
+                const SizedBox(height: 12),
                 Text(
-                  accountMaster.serviceType,
+                  'Không có slot nào',
                   style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: colorScheme.primary,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Text(
-                    '|',
-                    style: TextStyle(color: colorScheme.outlineVariant),
-                  ),
-                ),
-                // Active Status with color
-                Text(
-                  accountMaster.isActive ? 'Active' : 'Inactive',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: accountMaster.isActive ? Colors.green : Colors.red,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Text(
-                    '|',
-                    style: TextStyle(color: colorScheme.outlineVariant),
-                  ),
-                ),
-                // Payment Date
-                Text(
-                  accountMaster.paymentDate != null
-                      ? DateHelper.formatDateShort(accountMaster.paymentDate!)
-                      : 'N/A',
-                  style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 13,
                     color: colorScheme.onSurfaceVariant,
+                    fontStyle: FontStyle.italic,
                   ),
                 ),
               ],
-            ),
-
-            // Notes (if available)
-            if (accountMaster.notes != null &&
-                accountMaster.notes!.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.note,
-                    size: 16,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      accountMaster.notes!,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
             ],
-
-            // Slots section
-            if (hasSlots) ...[
-              // const SizedBox(height: 16),
-              const Divider(),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(Icons.dns, size: 16, color: colorScheme.primary),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Slots (${accountMaster.slots!.length}/${accountMaster.maxSlots})',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              ...accountMaster.slots!.map((slot) => _buildSlotItem(slot)),
-            ] else ...[
-              const SizedBox(height: 12),
-              Text(
-                'Không có slot nào',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: colorScheme.onSurfaceVariant,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ],
-          ],
+          ),
         ),
       ),
     );

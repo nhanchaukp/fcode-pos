@@ -2,6 +2,7 @@ import 'package:fcode_pos/services/api_service.dart';
 import 'package:fcode_pos/services/api/api_response.dart';
 import 'package:fcode_pos/models/dto/account_expense_create_data.dart';
 import 'package:fcode_pos/models.dart';
+import 'package:fcode_pos/utils/functions.dart';
 
 class AccountMasterService {
   AccountMasterService() : _api = ApiService();
@@ -35,6 +36,16 @@ class AccountMasterService {
       '/account-master/expense',
       data: data.toJson(),
       parser: (_) {},
+    );
+  }
+
+  Future<ApiResponse<PaginatedData<FinancialTransaction>>> getExpense(int id) {
+    return _api.get<PaginatedData<FinancialTransaction>>(
+      '/account-master/$id/expense',
+      parser: (json) => PaginatedData<FinancialTransaction>.fromJson(
+        ensureMap(json),
+        (item) => FinancialTransaction.fromJson(ensureMap(item)),
+      ),
     );
   }
 
