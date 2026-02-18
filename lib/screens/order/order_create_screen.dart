@@ -98,7 +98,17 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
-        appBar: AppBar(title: const Text('Tạo đơn hàng'), elevation: 0),
+        appBar: AppBar(
+          title: const Text('Tạo đơn hàng'),
+          elevation: 0,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.check),
+              onPressed: _isLoading ? null : _handleCreate,
+              tooltip: 'Tạo đơn',
+            ),
+          ],
+        ),
         body: Form(
           key: _formKey,
           child: CustomScrollView(

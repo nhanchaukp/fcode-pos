@@ -1207,16 +1207,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
   }
 
   Future<void> _copyAccountInfo(AccountSlot accountSlot) async {
-    final username = accountSlot.accountMaster?.username ?? 'N/A';
-    final slot = accountSlot.name;
-    final pin = accountSlot.pin;
-    final password = accountSlot.accountMaster?.password ?? 'N/A';
-
-    final copyText =
-        '''- Tài khoản: $username
-- Mật khẩu: $password
-- Slot: $slot
-- Pin: $pin''';
+    final copyText = StringHelper.formatSlotCopyText(accountSlot);
 
     await Clipboard.setData(ClipboardData(text: copyText));
 

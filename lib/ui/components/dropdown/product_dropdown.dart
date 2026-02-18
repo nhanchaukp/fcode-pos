@@ -1,5 +1,6 @@
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/product_service.dart';
+import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:fcode_pos/ui/components/debounced_search_input.dart';
 
@@ -248,9 +249,16 @@ class _ProductSelectSheetState extends State<_ProductSelectSheet> {
                           final product = _filtered[index];
                           return ListTile(
                             title: Text(product.name),
-                            subtitle: product.sku != null
-                                ? Text('SKU: ${product.sku}')
-                                : null,
+                            subtitle: Text(
+                              [
+                                if (product.sku != null &&
+                                    product.sku!.isNotEmpty)
+                                  'SKU: ${product.sku}',
+                                CurrencyHelper.formatCurrency(
+                                  product.bestPrice ?? 0,
+                                ),
+                              ].join(' · '),
+                            ),
                             trailing: widget.selected?.id == product.id
                                 ? const Icon(Icons.check, color: Colors.green)
                                 : null,

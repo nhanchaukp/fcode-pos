@@ -7,7 +7,11 @@ import 'package:fcode_pos/screens/account-master/account_master_expense_create_s
 import 'package:fcode_pos/screens/account-master/account_master_upsert_screen.dart';
 import 'package:fcode_pos/services/account_slot_service.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
+import 'package:fcode_pos/utils/string_helper.dart';
+import 'package:fcode_pos/utils/snackbar_helper.dart';
+import 'package:fcode_pos/ui/components/loading_icon.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class AccountSlotManagementScreen extends StatefulWidget {
   const AccountSlotManagementScreen({super.key});
@@ -643,7 +647,9 @@ class _AccountSlotManagementScreenState
                   ],
                 ),
                 const SizedBox(height: 12),
-                ...accountMaster.slots!.map((slot) => _buildSlotItem(slot)),
+                ...accountMaster.slots!.map(
+                  (slot) => _buildSlotItem(slot, accountMaster),
+                ),
               ] else ...[
                 const SizedBox(height: 12),
                 Text(
@@ -662,135 +668,270 @@ class _AccountSlotManagementScreenState
     );
   }
 
-  Widget _buildSlotItem(AccountSlot slot) {
+  void _showSlotItemMenu(
+    BuildContext context,
+    AccountSlot slot,
+    AccountMaster accountMaster,
+  ) {
+    final hasOrder = slot.shopOrderItem?.order != null;
+
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (hasOrder)
+              ListTile(
+                leading: const Icon(Icons.link_off),
+                title: const Text('Gỡ liên kết đơn hàng'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _unlinkOrderFromSlot(slot);
+                },
+              ),
+            ListTile(
+              leading: const Icon(Icons.copy),
+              title: const Text('Sao chép thông tin'),
+              onTap: () {
+                Navigator.pop(context);
+                _copySlotInfo(slot);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.edit),
+              title: const Text('Chỉnh sửa'),
+              onTap: () {
+                Navigator.pop(context);
+                _showEditSlotSheet(slot);
+              },
+            ),
+            if (hasOrder)
+              ListTile(
+                leading: const Icon(Icons.receipt_long),
+                title: const Text('Xem đơn hàng'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => OrderDetailScreen(
+                        orderId: slot.shopOrderItem!.orderId.toString(),
+                      ),
+                    ),
+                  );
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _unlinkOrderFromSlot(AccountSlot slot) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Gỡ liên kết đơn hàng'),
+        content: const Text(
+          'Bạn có chắc muốn gỡ liên kết đơn hàng khỏi slot này?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Hủy'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Gỡ liên kết'),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true || !mounted) return;
+
+    try {
+      final response = await _accountSlotService.unlinkOrder(
+        slot.id.toString(),
+      );
+      if (!mounted) return;
+      if (response.success) {
+        Toastr.success('Đã gỡ liên kết đơn hàng', context: context);
+        _loadAccountMasters();
+      } else {
+        Toastr.error(
+          response.message ?? 'Gỡ liên kết thất bại',
+          context: context,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Toastr.error('Lỗi: ${e.toString()}', context: context);
+      }
+    }
+  }
+
+  Future<void> _copySlotInfo(AccountSlot slot) async {
+    final copyText = StringHelper.formatSlotCopyText(slot);
+
+    await Clipboard.setData(ClipboardData(text: copyText));
+
+    if (mounted) {
+      Toastr.success('Đã copy thông tin tài khoản', context: context);
+    }
+  }
+
+  void _showEditSlotSheet(AccountSlot slot) async {
+    final result = await showModalBottomSheet<AccountSlot>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => _EditSlotSheet(
+        slot: slot,
+        accountSlotService: _accountSlotService,
+      ),
+    );
+    if (result != null && mounted) {
+      _loadAccountMasters();
+    }
+  }
+
+  Widget _buildSlotItem(AccountSlot slot, AccountMaster accountMaster) {
     final hasOrder = slot.shopOrderItem?.order != null;
     final customerName = hasOrder
         ? slot.shopOrderItem?.order?.user?.name
         : null;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: colorScheme.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Slot name and order button
-          Row(
-            children: [
-              Icon(Icons.label, size: 14, color: colorScheme.primary),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  slot.name,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Text(
-                slot.daysUntilExpiry <= 0
-                    ? 'Hết hạn'
-                    : 'Còn ${slot.daysUntilExpiry} ngày',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: slot.daysUntilExpiry <= 3
-                      ? Colors.red
-                      : slot.daysUntilExpiry <= 0
-                      ? Colors.red
-                      : colorScheme.primary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          // Date information
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              if (slot.pin.isNotEmpty) ...[
-                Expanded(child: _buildSlotInfo(Icons.vpn_key, 'PIN', slot.pin)),
-              ],
-              Expanded(
-                child: _buildSlotInfo(
-                  Icons.calendar_today,
-                  'Từ',
-                  slot.startDate != null
-                      ? DateHelper.formatDateShort(slot.startDate!)
-                      : 'N/A',
-                ),
-              ),
-              Expanded(
-                child: _buildSlotInfo(
-                  Icons.event_busy,
-                  'Đến',
-                  slot.expiryDate != null
-                      ? DateHelper.formatDateShort(slot.expiryDate!)
-                      : 'N/A',
-                ),
-              ),
-            ],
-          ),
-
-          // Customer name (if available)
-          if (customerName != null && customerName.isNotEmpty) ...[
-            const SizedBox(height: 8),
+    return GestureDetector(
+      onLongPress: () => _showSlotItemMenu(context, slot, accountMaster),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: colorScheme.outlineVariant),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Slot name and order button
             Row(
               children: [
+                Icon(Icons.label, size: 14, color: colorScheme.primary),
+                const SizedBox(width: 6),
                 Expanded(
-                  child: InkWell(
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => CustomerDetailScreen(
-                          user: slot.shopOrderItem!.order!.user!,
-                        ),
-                      ),
+                  child: Text(
+                    slot.name,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
                     ),
-                    child: _buildSlotInfo(Icons.person, '', customerName),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                if (hasOrder)
-                  TextButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => OrderDetailScreen(
-                            orderId: slot.shopOrderItem!.orderId.toString(),
-                          ),
-                        ),
-                      );
-                    },
-                    label: Text(
-                      'Xem đơn hàng',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                    icon: const Icon(Icons.receipt_long, size: 14),
-                    style: TextButton.styleFrom(
-                      minimumSize: Size.zero,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
+                Text(
+                  slot.daysUntilExpiry <= 0
+                      ? 'Hết hạn'
+                      : 'Còn ${slot.daysUntilExpiry} ngày',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: slot.daysUntilExpiry <= 3
+                        ? Colors.red
+                        : slot.daysUntilExpiry <= 0
+                        ? Colors.red
+                        : colorScheme.primary,
                   ),
+                ),
               ],
             ),
+            const SizedBox(height: 8),
+
+            // Date information
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                if (slot.pin.isNotEmpty) ...[
+                  Expanded(
+                    child: _buildSlotInfo(Icons.vpn_key, 'PIN', slot.pin),
+                  ),
+                ],
+                Expanded(
+                  child: _buildSlotInfo(
+                    Icons.calendar_today,
+                    'Từ',
+                    slot.startDate != null
+                        ? DateHelper.formatDateShort(slot.startDate!)
+                        : 'N/A',
+                  ),
+                ),
+                Expanded(
+                  child: _buildSlotInfo(
+                    Icons.event_busy,
+                    'Đến',
+                    slot.expiryDate != null
+                        ? DateHelper.formatDateShort(slot.expiryDate!)
+                        : 'N/A',
+                  ),
+                ),
+              ],
+            ),
+
+            // Customer name (if available)
+            if (customerName != null && customerName.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CustomerDetailScreen(
+                            user: slot.shopOrderItem!.order!.user!,
+                          ),
+                        ),
+                      ),
+                      child: _buildSlotInfo(Icons.person, '', customerName),
+                    ),
+                  ),
+                  if (hasOrder)
+                    TextButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => OrderDetailScreen(
+                              orderId: slot.shopOrderItem!.orderId.toString(),
+                            ),
+                          ),
+                        );
+                      },
+                      label: Text(
+                        'Xem đơn hàng',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                      icon: const Icon(Icons.receipt_long, size: 14),
+                      style: TextButton.styleFrom(
+                        minimumSize: Size.zero,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ),
+                ],
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -815,6 +956,160 @@ class _AccountSlotManagementScreenState
           ),
         ),
       ],
+    );
+  }
+}
+
+class _EditSlotSheet extends StatefulWidget {
+  final AccountSlot slot;
+  final AccountSlotService accountSlotService;
+
+  const _EditSlotSheet({
+    required this.slot,
+    required this.accountSlotService,
+  });
+
+  @override
+  State<_EditSlotSheet> createState() => _EditSlotSheetState();
+}
+
+class _EditSlotSheetState extends State<_EditSlotSheet> {
+  final _formKey = GlobalKey<FormState>();
+  late TextEditingController _nameController;
+  late TextEditingController _pinController;
+  bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.slot.name);
+    _pinController = TextEditingController(text: widget.slot.pin);
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _pinController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleSubmit() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      final response = await widget.accountSlotService.updateSlot(
+        widget.slot.id.toString(),
+        name: _nameController.text.trim(),
+        pin: _pinController.text.trim().isEmpty
+            ? null
+            : _pinController.text.trim(),
+      );
+
+      if (!mounted) return;
+      if (response.success && response.data != null) {
+        Toastr.success('Cập nhật slot thành công', context: context);
+        Navigator.of(context).pop(response.data);
+      } else {
+        Toastr.error(
+          response.message ?? 'Cập nhật thất bại',
+          context: context,
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      Toastr.error('Lỗi: ${e.toString()}', context: context);
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          left: 16,
+          right: 16,
+          top: 16,
+        ),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  const Text(
+                    'Chỉnh sửa slot',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _nameController,
+                decoration: InputDecoration(
+                  labelText: 'Tên slot *',
+                  hintText: 'Nhập tên slot',
+                  prefixIcon: const Icon(Icons.label_outline),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Vui lòng nhập tên slot';
+                  }
+                  return null;
+                },
+                textInputAction: TextInputAction.next,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _pinController,
+                decoration: InputDecoration(
+                  labelText: 'PIN',
+                  hintText: 'Nhập PIN (không bắt buộc)',
+                  prefixIcon: const Icon(Icons.pin_outlined),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                textInputAction: TextInputAction.done,
+              ),
+              const SizedBox(height: 24),
+              FilledButton.icon(
+                onPressed: _isSubmitting ? null : _handleSubmit,
+                icon: LoadingIcon(
+                  icon: Icons.check_circle_outline_outlined,
+                  loading: _isSubmitting,
+                ),
+                label: Text(
+                  _isSubmitting ? 'Đang cập nhật...' : 'Cập nhật',
+                ),
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

@@ -71,6 +71,18 @@ class AccountMasterService {
       parser: (json) => AccountSlot.fromJson(json as Map<String, dynamic>),
     );
   }
+
+  Future<ApiResponse<AccountSlot>> updateSlot(
+    int slotId, {
+    required String name,
+    String? pin,
+  }) {
+    return _api.post<AccountSlot>(
+      '/account-master/slots/$slotId',
+      data: {'name': name, if (pin != null && pin.isNotEmpty) 'pin': pin},
+      parser: (json) => AccountSlot.fromJson(json as Map<String, dynamic>),
+    );
+  }
 }
 
 List<AccountMaster> _parseAccountMasterList(dynamic data) {

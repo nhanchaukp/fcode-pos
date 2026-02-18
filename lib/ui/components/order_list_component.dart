@@ -6,6 +6,15 @@ import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/ui/components/order_status_badge.dart';
 
+/// Chế độ hiển thị danh sách đơn hàng.
+enum OrderListViewMode {
+  /// Đầy đủ: mã đơn, trạng thái, khách hàng, sản phẩm, ngày giờ, tổng tiền.
+  full,
+
+  /// Rút gọn: chỉ mã đơn, trạng thái, ngày giờ, số tiền.
+  compact,
+}
+
 class OrderListComponent extends StatelessWidget {
   /// Danh sách đơn hàng
   final List<Order> orders;
@@ -31,6 +40,9 @@ class OrderListComponent extends StatelessWidget {
   /// Callback khi retry sau lỗi
   final VoidCallback? onRetry;
 
+  /// Chế độ xem: đầy đủ hoặc rút gọn
+  final OrderListViewMode viewMode;
+
   const OrderListComponent({
     super.key,
     required this.orders,
@@ -41,6 +53,7 @@ class OrderListComponent extends StatelessWidget {
     this.onPageChanged,
     this.onOrderTap,
     this.onRetry,
+    this.viewMode = OrderListViewMode.full,
   });
 
   @override
@@ -86,18 +99,114 @@ class OrderListComponent extends StatelessWidget {
       );
     }
 
+    final completedCount =
+        orders.where((o) => o.status == 'complete').length;
+    final paymentSuccessCount =
+        orders.where((o) => o.status == 'payment_success').length;
+    final totalOrders = orders.length;
+    final hasPagination = totalPages > 1;
+
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 12),
       physics: const AlwaysScrollableScrollPhysics(),
-      itemCount: orders.length + (totalPages > 1 ? 1 : 0),
+      itemCount: 1 + orders.length + (hasPagination ? 1 : 0),
       itemBuilder: (context, index) {
-        if (index < orders.length) {
-          final order = orders[index];
-          return _buildOrderTile(order, colorScheme);
-        } else {
-          return _buildPaginationControls(context, colorScheme);
+        if (index == 0) {
+          return _buildStatsCard(
+            context,
+            colorScheme,
+            completedCount: completedCount,
+            paymentSuccessCount: paymentSuccessCount,
+            totalOrders: totalOrders,
+          );
         }
+        if (index <= orders.length) {
+          final order = orders[index - 1];
+          return viewMode == OrderListViewMode.compact
+              ? _buildOrderTileCompact(order, colorScheme)
+              : _buildOrderTile(order, colorScheme);
+        }
+        return _buildPaginationControls(context, colorScheme);
       },
+    );
+  }
+
+  Widget _buildStatsCard(
+    BuildContext context,
+    ColorScheme colorScheme, {
+    required int completedCount,
+    required int paymentSuccessCount,
+    required int totalOrders,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: Card(
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: colorScheme.outlineVariant.applyOpacity(0.5),
+            width: 1,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.check_circle_outline,
+                      size: 18,
+                      color: colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'Hoàn thành $completedCount/$totalOrders',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w500,
+                            ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                width: 1,
+                height: 20,
+                color: colorScheme.outlineVariant.applyOpacity(0.5),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.payments_outlined,
+                      size: 18,
+                      color: colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'Đã thanh toán: $paymentSuccessCount',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w500,
+                            ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -262,6 +371,74 @@ class OrderListComponent extends StatelessWidget {
                       ),
                     ),
                   ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Tile rút gọn: chỉ Đơn hàng #, trạng thái, ngày giờ, số tiền.
+  Widget _buildOrderTileCompact(Order order, ColorScheme colorScheme) {
+    return Builder(
+      builder: (context) => Card(
+        elevation: 0,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: colorScheme.outlineVariant.applyOpacity(0.5),
+            width: 1,
+          ),
+        ),
+        child: InkWell(
+          onTap: () => _onOrderTap(context, order),
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            'Đơn hàng #${order.id}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          OrderStatusBadge(status: order.status),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      if (order.createdAt != null)
+                        Text(
+                          DateHelper.formatDateTime(order.createdAt!),
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  CurrencyHelper.formatCurrency(order.total),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                 ),
               ],
             ),

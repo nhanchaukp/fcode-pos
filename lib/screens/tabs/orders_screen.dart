@@ -4,7 +4,8 @@ import 'package:fcode_pos/screens/global_search_screen.dart';
 import 'package:fcode_pos/screens/order/order_create_screen.dart';
 import 'package:fcode_pos/services/order_service.dart';
 import 'package:fcode_pos/ui/components/dropdown/customer_dropdown.dart';
-import 'package:fcode_pos/ui/components/order_list_component.dart';
+import 'package:fcode_pos/ui/components/order_list_component.dart'
+    show OrderListComponent, OrderListViewMode;
 import 'package:fcode_pos/ui/components/dropdown/order_status_dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,6 +28,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   // Pagination state
   int _currentPage = 1;
   int _totalPages = 1;
+
+  // View mode: full vs compact
+  OrderListViewMode _orderListViewMode = OrderListViewMode.full;
 
   // Orders state
   List<Order> _orders = [];
@@ -125,6 +129,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         title: const Text('Đơn hàng'),
         actions: [
           IconButton(
+            icon: Icon(
+              _orderListViewMode == OrderListViewMode.full
+                  ? Icons.view_agenda_outlined
+                  : Icons.view_list,
+            ),
+            onPressed: () {
+              setState(() {
+                _orderListViewMode =
+                    _orderListViewMode == OrderListViewMode.full
+                    ? OrderListViewMode.compact
+                    : OrderListViewMode.full;
+              });
+            },
+            tooltip: _orderListViewMode == OrderListViewMode.full
+                ? 'Xem rút gọn'
+                : 'Xem đầy đủ',
+          ),
+          IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
               Navigator.push(
@@ -158,6 +180,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             error: _ordersError,
             currentPage: _currentPage,
             totalPages: _totalPages,
+            viewMode: _orderListViewMode,
             onPageChanged: (page) => _loadOrders(page: page),
             onRetry: () => _loadOrders(),
           ),

@@ -42,6 +42,31 @@ class AccountSlotService {
       parser: (json) => AccountSlot.fromJson(ensureMap(json)),
     );
   }
+
+  /// Gỡ liên kết đơn hàng khỏi slot.
+  Future<ApiResponse<AccountSlot>> unlinkOrder(String slotId) {
+    return _api.post<AccountSlot>(
+      '/account-slots/$slotId/unlink-order',
+      data: {},
+      parser: (json) => AccountSlot.fromJson(ensureMap(json)),
+    );
+  }
+
+  /// Cập nhật thông tin slot (tên, pin).
+  Future<ApiResponse<AccountSlot>> updateSlot(
+    String slotId, {
+    required String name,
+    String? pin,
+  }) {
+    return _api.put<AccountSlot>(
+      '/account-slots/$slotId',
+      data: {
+        'name': name,
+        if (pin != null && pin.isNotEmpty) 'pin': pin,
+      },
+      parser: (json) => AccountSlot.fromJson(ensureMap(json)),
+    );
+  }
 }
 
 List<AccountSlot> _parseAccountSlotList(dynamic data) {
