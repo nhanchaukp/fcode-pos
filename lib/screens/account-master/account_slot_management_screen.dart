@@ -6,6 +6,7 @@ import 'package:fcode_pos/screens/account-master/account_master_detail_screen.da
 import 'package:fcode_pos/screens/account-master/account_master_expense_create_screen.dart';
 import 'package:fcode_pos/screens/account-master/account_master_upsert_screen.dart';
 import 'package:fcode_pos/services/account_slot_service.dart';
+import 'package:fcode_pos/services/account_master_service.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/string_helper.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
@@ -24,6 +25,7 @@ class AccountSlotManagementScreen extends StatefulWidget {
 class _AccountSlotManagementScreenState
     extends State<AccountSlotManagementScreen> {
   late AccountSlotService _accountSlotService;
+  late AccountMasterService _accountMasterService;
   List<AccountMaster> _accountMasters = [];
   bool _isLoading = false;
   String? _error;
@@ -40,6 +42,7 @@ class _AccountSlotManagementScreenState
   void initState() {
     super.initState();
     _accountSlotService = AccountSlotService();
+    _accountMasterService = AccountMasterService();
     _searchController.addListener(() {
       if (mounted) {
         setState(() {
@@ -790,7 +793,7 @@ class _AccountSlotManagementScreenState
       ),
       builder: (context) => _EditSlotSheet(
         slot: slot,
-        accountSlotService: _accountSlotService,
+        accountMasterService: _accountMasterService,
       ),
     );
     if (result != null && mounted) {
@@ -962,11 +965,11 @@ class _AccountSlotManagementScreenState
 
 class _EditSlotSheet extends StatefulWidget {
   final AccountSlot slot;
-  final AccountSlotService accountSlotService;
+  final AccountMasterService accountMasterService;
 
   const _EditSlotSheet({
     required this.slot,
-    required this.accountSlotService,
+    required this.accountMasterService,
   });
 
   @override
@@ -999,8 +1002,8 @@ class _EditSlotSheetState extends State<_EditSlotSheet> {
     setState(() => _isSubmitting = true);
 
     try {
-      final response = await widget.accountSlotService.updateSlot(
-        widget.slot.id.toString(),
+      final response = await widget.accountMasterService.updateSlot(
+        widget.slot.id,
         name: _nameController.text.trim(),
         pin: _pinController.text.trim().isEmpty
             ? null
@@ -1012,10 +1015,7 @@ class _EditSlotSheetState extends State<_EditSlotSheet> {
         Toastr.success('Cập nhật slot thành công', context: context);
         Navigator.of(context).pop(response.data);
       } else {
-        Toastr.error(
-          response.message ?? 'Cập nhật thất bại',
-          context: context,
-        );
+        Toastr.error(response.message ?? 'Cập nhật thất bại', context: context);
       }
     } catch (e) {
       if (!mounted) return;
@@ -1047,10 +1047,7 @@ class _EditSlotSheetState extends State<_EditSlotSheet> {
                 children: [
                   const Text(
                     'Chỉnh sửa slot',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const Spacer(),
                   IconButton(
@@ -1098,9 +1095,7 @@ class _EditSlotSheetState extends State<_EditSlotSheet> {
                   icon: Icons.check_circle_outline_outlined,
                   loading: _isSubmitting,
                 ),
-                label: Text(
-                  _isSubmitting ? 'Đang cập nhật...' : 'Cập nhật',
-                ),
+                label: Text(_isSubmitting ? 'Đang cập nhật...' : 'Cập nhật'),
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),

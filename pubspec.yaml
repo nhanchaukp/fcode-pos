@@ -2,7 +2,7 @@ name: fcode_pos
 description: "FCODE Pos - A starter kit for building Flutter applications with Appwrite backend services."
 publish_to: 'none'
 
-version: 1.0.0+8
+version: 1.0.0+10
 
 environment:
   sdk: ^3.8.5

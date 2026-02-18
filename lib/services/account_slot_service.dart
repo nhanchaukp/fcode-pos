@@ -51,22 +51,6 @@ class AccountSlotService {
       parser: (json) => AccountSlot.fromJson(ensureMap(json)),
     );
   }
-
-  /// Cập nhật thông tin slot (tên, pin).
-  Future<ApiResponse<AccountSlot>> updateSlot(
-    String slotId, {
-    required String name,
-    String? pin,
-  }) {
-    return _api.put<AccountSlot>(
-      '/account-slots/$slotId',
-      data: {
-        'name': name,
-        if (pin != null && pin.isNotEmpty) 'pin': pin,
-      },
-      parser: (json) => AccountSlot.fromJson(ensureMap(json)),
-    );
-  }
 }
 
 List<AccountSlot> _parseAccountSlotList(dynamic data) {
