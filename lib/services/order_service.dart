@@ -48,6 +48,30 @@ class OrderService {
     );
   }
 
+  Future<ApiResponse<OrderSummary>> summary({
+    DateTime? fromDate,
+    DateTime? toDate,
+    String status = '',
+    String userId = '',
+    String search = '',
+  }) {
+    return _api.get<OrderSummary>(
+      '/order/summary',
+      queryParameters: {
+        'date_from': fromDate != null
+            ? DateFormat('yyyy-MM-dd').format(fromDate)
+            : null,
+        'date_to': toDate != null
+            ? DateFormat('yyyy-MM-dd').format(toDate)
+            : null,
+        'status': status,
+        'user_id': userId,
+        'search': search,
+      },
+      parser: (json) => OrderSummary.fromJson(ensureMap(json)),
+    );
+  }
+
   Future<ApiResponse<OrderStats>> stats(DateTime fromDate, DateTime toDate) {
     return _api.get<OrderStats>(
       '/order/stats',

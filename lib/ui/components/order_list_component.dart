@@ -43,6 +43,12 @@ class OrderListComponent extends StatelessWidget {
   /// Chế độ xem: đầy đủ hoặc rút gọn
   final OrderListViewMode viewMode;
 
+  /// Thống kê đơn hàng (từ API summary, cùng bộ lọc với danh sách)
+  final OrderSummary? orderSummary;
+
+  /// Đang tải thống kê
+  final bool isLoadingSummary;
+
   const OrderListComponent({
     super.key,
     required this.orders,
@@ -54,6 +60,8 @@ class OrderListComponent extends StatelessWidget {
     this.onOrderTap,
     this.onRetry,
     this.viewMode = OrderListViewMode.full,
+    this.orderSummary,
+    this.isLoadingSummary = false,
   });
 
   @override
@@ -83,51 +91,73 @@ class OrderListComponent extends StatelessWidget {
       );
     }
 
-    if (orders.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.inbox_outlined, size: 48, color: Colors.grey),
-            const SizedBox(height: 16),
-            const Text(
-              'Không có đơn hàng',
-              style: TextStyle(color: Colors.grey, fontSize: 16),
-            ),
-          ],
-        ),
-      );
-    }
-
-    final completedCount =
-        orders.where((o) => o.status == 'complete').length;
-    final paymentSuccessCount =
-        orders.where((o) => o.status == 'payment_success').length;
-    final totalOrders = orders.length;
+    final showStatsCard = orderSummary != null || isLoadingSummary;
     final hasPagination = totalPages > 1;
+    final contentItemCount = orders.isEmpty ? 1 : orders.length;
+    final itemCount = (showStatsCard ? 1 : 0) + contentItemCount + (hasPagination ? 1 : 0);
 
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 12),
       physics: const AlwaysScrollableScrollPhysics(),
-      itemCount: 1 + orders.length + (hasPagination ? 1 : 0),
+      itemCount: itemCount,
       itemBuilder: (context, index) {
-        if (index == 0) {
-          return _buildStatsCard(
-            context,
-            colorScheme,
-            completedCount: completedCount,
-            paymentSuccessCount: paymentSuccessCount,
-            totalOrders: totalOrders,
-          );
+        int offset = 0;
+        if (showStatsCard) {
+          if (index == 0) {
+            return _buildStatsCardFromSummary(context, colorScheme);
+          }
+          offset = 1;
         }
-        if (index <= orders.length) {
-          final order = orders[index - 1];
+        if (index < offset + contentItemCount) {
+          final contentIndex = index - offset;
+          if (orders.isEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.inbox_outlined, size: 48, color: Colors.grey),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Không có đơn hàng',
+                      style: TextStyle(color: Colors.grey, fontSize: 16),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+          final order = orders[contentIndex];
           return viewMode == OrderListViewMode.compact
               ? _buildOrderTileCompact(order, colorScheme)
               : _buildOrderTile(order, colorScheme);
         }
         return _buildPaginationControls(context, colorScheme);
       },
+    );
+  }
+
+  Widget _buildStatsCardFromSummary(
+    BuildContext context,
+    ColorScheme colorScheme,
+  ) {
+    if (isLoadingSummary && orderSummary == null) {
+      return _buildStatsCard(
+        context,
+        colorScheme,
+        completedCount: -1,
+        paymentSuccessCount: -1,
+        totalOrders: -1,
+      );
+    }
+    final s = orderSummary!;
+    return _buildStatsCard(
+      context,
+      colorScheme,
+      completedCount: s.completeOrderCount,
+      paymentSuccessCount: s.paymentSuccessOrderCount,
+      totalOrders: s.totalOrdersCount,
     );
   }
 
@@ -138,6 +168,9 @@ class OrderListComponent extends StatelessWidget {
     required int paymentSuccessCount,
     required int totalOrders,
   }) {
+    final isLoading = completedCount < 0;
+    final completedStr = isLoading ? '...' : '$completedCount/$totalOrders';
+    final paymentStr = isLoading ? '...' : '$paymentSuccessCount';
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       child: Card(
@@ -166,7 +199,7 @@ class OrderListComponent extends StatelessWidget {
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
-                        'Hoàn thành $completedCount/$totalOrders',
+                        'Hoàn thành $completedStr',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.w500,
                             ),
@@ -193,7 +226,7 @@ class OrderListComponent extends StatelessWidget {
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
-                        'Đã thanh toán: $paymentSuccessCount',
+                        'Đã thanh toán: $paymentStr',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.w500,
                             ),

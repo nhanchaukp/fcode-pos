@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 
 class DeepLinkService {
   /// Handle deep link URLs

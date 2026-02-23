@@ -1,3 +1,4 @@
+import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/enums.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/global_search_screen.dart';
@@ -37,6 +38,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   bool _isLoadingOrders = false;
   String? _ordersError;
 
+  // Summary (thống kê) dùng chung bộ lọc với danh sách đơn
+  OrderSummary? _orderSummary;
+  bool _isLoadingSummary = false;
+
   late OrderService _orderService;
 
   @override
@@ -57,10 +62,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     setState(() {
       _isLoadingOrders = true;
       _ordersError = null;
+      _isLoadingSummary = true;
     });
 
     try {
-      final response = await _orderService.list(
+      final listFuture = _orderService.list(
         fromDate: _fromDate,
         toDate: _toDate,
         page: targetPage,
@@ -68,14 +74,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         status: _selectedStatus?.value ?? '',
         userId: _selectedUser?.id.toString() ?? '',
       );
+      final summaryFuture = _orderService.summary(
+        fromDate: _fromDate,
+        toDate: _toDate,
+        status: _selectedStatus?.value ?? '',
+        userId: _selectedUser?.id.toString() ?? '',
+        search: '',
+      );
+
+      final results = await Future.wait([listFuture, summaryFuture]);
+      final listResponse = results[0] as ApiResponse<PaginatedData<Order>>;
+      final summaryResponse = results[1] as ApiResponse<OrderSummary>;
 
       if (mounted) {
-        final pagination = response.data?.pagination;
+        final pagination = listResponse.data?.pagination;
         setState(() {
-          _orders = response.data?.items ?? [];
+          _orders = listResponse.data?.items ?? [];
           _currentPage = pagination?.currentPage ?? 1;
           _totalPages = pagination?.lastPage ?? 1;
+          _orderSummary = summaryResponse.data;
           _isLoadingOrders = false;
+          _isLoadingSummary = false;
         });
       }
     } catch (e, st) {
@@ -84,6 +103,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         setState(() {
           _ordersError = e.toString();
           _isLoadingOrders = false;
+          _isLoadingSummary = false;
         });
       }
     }
@@ -181,6 +201,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             currentPage: _currentPage,
             totalPages: _totalPages,
             viewMode: _orderListViewMode,
+            orderSummary: _orderSummary,
+            isLoadingSummary: _isLoadingSummary,
             onPageChanged: (page) => _loadOrders(page: page),
             onRetry: () => _loadOrders(),
           ),
