@@ -1,7 +1,7 @@
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/product_supply_service.dart';
 import 'package:fcode_pos/ui/components/account_form_input.dart';
-import 'package:fcode_pos/ui/components/account_slot_dropdown.dart';
+import 'package:fcode_pos/ui/components/dropdown/account_slot_dropdown.dart';
 import 'package:fcode_pos/ui/components/loading_icon.dart';
 import 'package:fcode_pos/ui/components/money_form_field.dart';
 import 'package:fcode_pos/ui/components/dropdown/product_dropdown.dart';
@@ -432,43 +432,30 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
   }
 
   Widget _buildAccountSection() {
-    return ExpansionTile(
-      title: const Text(
-        'Tài khoản nâng cấp',
-        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-      ),
-      initiallyExpanded: false,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
-      ),
-      collapsedShape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          child: Column(
-            children: [
-              AccountFormInput(
-                key: ValueKey('account-${widget.itemData.hashCode}'),
-                initialAccount: widget.itemData.account,
-                onAccountChanged: (accountData) {
-                  widget.itemData.account = accountData;
-                },
-              ),
-              const SizedBox(height: 16),
-              AccountSlotDropdown(
-                selectedSlot: widget.itemData.accountSlot,
-                onChanged: (slot) {
-                  setState(() {
-                    widget.itemData.accountSlot = slot;
-                  });
-                },
-              ),
-            ],
-          ),
+        AccountFormInput(
+          key: ValueKey('account-${widget.itemData.account?.hashCode ?? 0}'),
+          initialAccount: widget.itemData.account,
+          onAccountChanged: (accountData) {
+            widget.itemData.account = accountData;
+          },
+        ),
+        const SizedBox(height: 16),
+        const Text(
+          'Account slot',
+          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+        ),
+        const SizedBox(height: 8),
+        AccountSlotDropdown(
+          selectedSlot: widget.itemData.accountSlot,
+          labelText: 'Account slot',
+          onChanged: (slot) {
+            setState(() {
+              widget.itemData.accountSlot = slot;
+            });
+          },
         ),
       ],
     );

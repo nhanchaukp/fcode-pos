@@ -93,12 +93,25 @@ class _AccountFormInputState extends State<AccountFormInput> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Thông tin tài khoản',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-          ),
+        Row(
+          children: [
+            const Text(
+              'Thông tin tài khoản',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const Spacer(),
+            TextButton.icon(
+              onPressed: _clearFields,
+              icon: const Icon(Icons.clear, size: 18),
+              label: const Text('Xóa'),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 8),
         TextFormField(
@@ -122,20 +135,6 @@ class _AccountFormInputState extends State<AccountFormInput> {
           ),
           obscureText: false, // Set to true if you want to hide password
           textInputAction: TextInputAction.done,
-        ),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            TextButton.icon(
-              onPressed: _clearFields,
-              icon: const Icon(Icons.clear, size: 18),
-              label: const Text('Xóa'),
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.red,
-              ),
-            ),
-          ],
         ),
       ],
     );

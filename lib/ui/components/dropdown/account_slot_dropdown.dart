@@ -53,13 +53,13 @@ class _AccountSlotDropdownState extends State<AccountSlotDropdown> {
     }
   }
 
-  Future<void> _loadAvailableSlots() async {
+  /// [forceIncludeId] dùng khi vừa thêm slot mới để đảm bảo slot đó có trong danh sách.
+  Future<void> _loadAvailableSlots({int? forceIncludeId}) async {
     if (!mounted) return;
     setState(() => _isLoading = true);
     try {
-      final activeSlots = await _accountSlotService.available(
-        _selectedSlot?.id,
-      );
+      final includeId = forceIncludeId ?? _selectedSlot?.id;
+      final activeSlots = await _accountSlotService.available(includeId);
 
       if (!mounted) return;
       final items = activeSlots.data ?? [];
@@ -74,13 +74,11 @@ class _AccountSlotDropdownState extends State<AccountSlotDropdown> {
         }
       });
     } catch (e) {
-      debugPrint('Error loading account slots: $e');
       if (!mounted) return;
       setState(() {
         _availableSlots = [];
       });
     } finally {
-      if (!mounted) return;
       setState(() => _isLoading = false);
     }
   }
@@ -157,11 +155,16 @@ class _AccountSlotDropdownState extends State<AccountSlotDropdown> {
                     builder: (context) => const _AddSlotSheet(),
                   );
                   if (newSlot != null) {
-                    await _loadAvailableSlots();
+                    await _loadAvailableSlots(forceIncludeId: newSlot.id);
                     setState(() {
-                      _selectedSlot = newSlot;
+                      // Ưu tiên dùng bản slot từ danh sách vừa load (đủ accountMaster, label)
+                      final fromList = _availableSlots
+                          .where((s) => s.id == newSlot.id)
+                          .cast<AccountSlot?>()
+                          .firstOrNull;
+                      _selectedSlot = fromList ?? newSlot;
                     });
-                    widget.onChanged?.call(newSlot);
+                    widget.onChanged?.call(_selectedSlot);
                   }
                 },
               ),
