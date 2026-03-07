@@ -14,6 +14,9 @@ class MoreScreen extends ConsumerWidget {
     final authState = ref.watch(authProvider);
     final themeMode = ref.watch(themeModeProvider);
     final themeNotifier = ref.read(themeModeProvider.notifier);
+    final seedColorIndex = ref.watch(themeSeedColorIndexProvider);
+    final seedColorNotifier =
+        ref.read(themeSeedColorIndexProvider.notifier);
 
     final user = authState.asData?.value;
     final isLoading = authState.isLoading;
@@ -147,6 +150,100 @@ class MoreScreen extends ConsumerWidget {
                   value ? ThemeMode.dark : ThemeMode.light,
                 );
               },
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ).borderRadius,
+              side: BorderSide(
+                color: colorScheme.outlineVariant.withOpacity(0.5),
+                width: 1,
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.color_lens_outlined,
+                        color: colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Màu chủ đạo',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Chọn màu chính cho ứng dụng (Material 3)',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: List.generate(
+                      material3SeedColors.length,
+                      (index) {
+                        final color = material3SeedColors[index];
+                        final isSelected = index == seedColorIndex;
+                        return InkWell(
+                          onTap: () {
+                            seedColorNotifier.setSeedColorIndex(index);
+                          },
+                          borderRadius: BorderRadius.circular(20),
+                          child: Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: color,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isSelected
+                                    ? Colors.white
+                                    : colorScheme.surface,
+                                width: 2,
+                              ),
+                              boxShadow: isSelected
+                                  ? [
+                                      BoxShadow(
+                                        color:
+                                            colorScheme.primary.withOpacity(0.5),
+                                        blurRadius: 6,
+                                        spreadRadius: 1,
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                            child: isSelected
+                                ? Icon(
+                                    Icons.check,
+                                    size: 18,
+                                    color: colorScheme.onPrimary,
+                                  )
+                                : null,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
 

@@ -41,10 +41,15 @@ class AppInitializer {
 
   /// Configures the device orientation and system UI overlays.
   ///
-  /// Locks the device orientation to portrait mode and ensures system
-  /// UI overlays are manually configured.
+  /// Cho phép xoay dọc và ngang, đồng thời đảm bảo system UI overlays
+  /// được cấu hình thủ công.
   static Future<void> _setupDeviceOrientation() async {
-    await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
 
     await SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.manual,

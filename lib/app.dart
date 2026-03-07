@@ -15,12 +15,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class FcodePosApp extends ConsumerWidget {
   const FcodePosApp({super.key});
 
-  ThemeData _buildLightTheme() {
+  ThemeData _buildLightTheme(Color seedColor) {
     final base = ThemeData(
       useMaterial3: true,
       fontFamily: 'MomoTrustSans',
       colorScheme: ColorScheme.fromSeed(
-        seedColor: Colors.teal,
+        seedColor: seedColor,
         brightness: Brightness.light,
       ),
     );
@@ -41,12 +41,12 @@ class FcodePosApp extends ConsumerWidget {
     );
   }
 
-  ThemeData _buildDarkTheme() {
+  ThemeData _buildDarkTheme(Color seedColor) {
     final base = ThemeData(
       useMaterial3: true,
       fontFamily: 'MomoTrustSans',
       colorScheme: ColorScheme.fromSeed(
-        seedColor: Colors.teal,
+        seedColor: seedColor,
         brightness: Brightness.dark,
       ),
     );
@@ -90,6 +90,14 @@ class FcodePosApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
+    final seedColorIndex = ref.watch(themeSeedColorIndexProvider);
+    int clampedIndex = seedColorIndex;
+    if (clampedIndex < 0) {
+      clampedIndex = 0;
+    } else if (clampedIndex >= material3SeedColors.length) {
+      clampedIndex = material3SeedColors.length - 1;
+    }
+    final seedColor = material3SeedColors[clampedIndex];
 
     return GestureDetector(
       onTap: () {
@@ -101,8 +109,8 @@ class FcodePosApp extends ConsumerWidget {
         scaffoldMessengerKey: rootScaffoldMessengerKey,
         navigatorKey: navigatorKey,
         debugShowCheckedModeBanner: false,
-        theme: _buildLightTheme(),
-        darkTheme: _buildDarkTheme(),
+        theme: _buildLightTheme(seedColor),
+        darkTheme: _buildDarkTheme(seedColor),
         themeMode: themeMode,
         locale: const Locale('vi'),
         supportedLocales: const [Locale('vi'), Locale('en')],

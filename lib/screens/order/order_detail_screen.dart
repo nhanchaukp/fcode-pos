@@ -17,6 +17,7 @@ import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:http/http.dart' as http;
 import 'package:fcode_pos/utils/extensions/colors.dart';
+import 'package:fcode_pos/screens/order/order_create_screen.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final String orderId;
@@ -199,6 +200,20 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     );
   }
 
+  Future<void> _handleCloneOrder() async {
+    if (_order == null) return;
+
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => OrderCreateScreen(initialOrder: _order!, isClone: true),
+      ),
+    );
+
+    if (result == true && mounted) {
+      Toastr.success('Đã clone đơn hàng');
+    }
+  }
+
   Future<void> _handleQuickStatusChange(enums.OrderStatus status) async {
     if (_order == null || _isUpdatingStatus) return;
     if (_order!.status == status.value) return;
@@ -319,7 +334,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     return Scaffold(
       appBar: AppBar(
         centerTitle: false,
-        title: Text('Đơn hàng #${widget.orderId}'),
+        title: Text('#${widget.orderId}'),
         elevation: 0,
         actions: [
           IconButton(
@@ -331,6 +346,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
             icon: const Icon(Icons.edit),
             onPressed: _order != null ? () => _showUpdateDialog() : null,
             tooltip: 'Chỉnh sửa',
+          ),
+          IconButton(
+            icon: const Icon(Icons.copy),
+            onPressed: _order != null ? () => _handleCloneOrder() : null,
+            tooltip: 'Clone đơn hàng',
           ),
         ],
       ),

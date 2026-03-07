@@ -8,7 +8,19 @@ import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 
 class OrderCreateScreen extends StatefulWidget {
-  const OrderCreateScreen({super.key});
+  /// Đơn hàng gốc dùng để clone (nếu có).
+  /// Nếu null thì màn hình hoạt động ở chế độ tạo đơn mới.
+  final Order? initialOrder;
+
+  /// Cờ đánh dấu màn hình đang ở chế độ clone đơn.
+  /// Chủ yếu dùng để hiển thị tiêu đề, tooltip, text nút.
+  final bool isClone;
+
+  const OrderCreateScreen({
+    super.key,
+    this.initialOrder,
+    this.isClone = false,
+  });
 
   @override
   State<OrderCreateScreen> createState() => _OrderCreateScreenState();
@@ -22,6 +34,34 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
   User? _selectedUser;
   bool _isLoading = false;
   final List<OrderItemFormData> _orderItems = [];
+
+  @override
+  void initState() {
+    super.initState();
+
+    final order = widget.initialOrder;
+    if (order != null) {
+      // Giữ nguyên thông tin khách hàng
+      _selectedUser = order.user;
+
+      // Ghi chú đơn
+      _noteController.text = order.note ?? '';
+
+      // Clone các item: giữ sản phẩm, nhà cung cấp, giá, số lượng, ghi chú.
+      // Không mang theo id, account, accountSlot, expiredAt để tránh ảnh hưởng dữ liệu cũ.
+      for (final item in order.items) {
+        final formData = OrderItemFormData(
+          product: item.product,
+          supply: item.supply,
+          quantity: item.quantity,
+          price: item.price,
+          priceSupply: item.priceSupply,
+          note: item.note,
+        );
+        _orderItems.add(formData);
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -79,7 +119,9 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
       await _orderService.create(newOrder);
       if (!mounted) return;
 
-      Toastr.success('Tạo đơn hàng thành công');
+      Toastr.success(
+        widget.isClone ? 'Clone đơn hàng thành công' : 'Tạo đơn hàng thành công',
+      );
       Navigator.of(context).pop(true);
     } catch (e, st) {
       debugPrintStack(stackTrace: st);
@@ -99,13 +141,13 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Tạo đơn hàng'),
+          title: Text(widget.isClone ? 'Clone đơn hàng' : 'Tạo đơn hàng'),
           elevation: 0,
           actions: [
             IconButton(
               icon: const Icon(Icons.check),
               onPressed: _isLoading ? null : _handleCreate,
-              tooltip: 'Tạo đơn',
+              tooltip: widget.isClone ? 'Tạo đơn clone' : 'Tạo đơn',
             ),
           ],
         ),
@@ -468,7 +510,9 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                     )
-                  : const Text('Tạo đơn hàng'),
+                  : Text(
+                      widget.isClone ? 'Tạo đơn clone' : 'Tạo đơn hàng',
+                    ),
             ),
           ),
         ],
