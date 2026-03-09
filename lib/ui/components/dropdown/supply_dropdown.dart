@@ -1,4 +1,5 @@
 import 'package:fcode_pos/models.dart';
+import 'package:fcode_pos/screens/supply/supply_form_screen.dart';
 import 'package:fcode_pos/services/supply_service.dart';
 import 'package:flutter/material.dart';
 import 'package:fcode_pos/ui/components/debounced_search_input.dart';
@@ -111,17 +112,45 @@ class _SupplyDropdownState extends State<SupplyDropdown> {
         labelText: '$label${widget.isRequired ? ' *' : ''}',
         prefixIcon: const Icon(Icons.local_shipping_outlined),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        suffixIcon: _selectedSupply != null && widget.enabled
-            ? IconButton(
+        suffixIcon: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (_selectedSupply != null && widget.enabled)
+              IconButton(
                 icon: const Icon(Icons.clear),
+                tooltip: 'Xóa nhà cung cấp',
                 onPressed: () {
                   setState(() {
                     _selectedSupply = null;
                   });
                   widget.onChanged?.call(null);
                 },
-              )
-            : null,
+              ),
+            if (widget.enabled)
+              IconButton(
+                icon: const Icon(Icons.add_business_outlined),
+                tooltip: 'Thêm nhà cung cấp',
+                onPressed: () async {
+                  final result = await Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const SupplyFormScreen(
+                        returnSupplyOnSuccess: true,
+                      ),
+                    ),
+                  );
+
+                  if (result is Supply) {
+                    setState(() {
+                      _selectedSupply = result;
+                    });
+                    widget.onChanged?.call(result);
+                    // Refresh danh sách để đồng bộ dữ liệu mới
+                    _loadSupplies();
+                  }
+                },
+              ),
+          ],
+        ),
       ),
       onTap: widget.enabled
           ? () async {

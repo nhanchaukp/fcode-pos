@@ -8,8 +8,15 @@ import 'package:flutter/material.dart';
 class SupplyFormScreen extends StatefulWidget {
   /// Supply to edit (null for create mode)
   final Supply? supply;
+  /// Nếu true (dùng cho dropdown), sau khi tạo mới sẽ trả về [Supply] vừa tạo
+  /// qua Navigator.pop thay vì chỉ trả về bool.
+  final bool returnSupplyOnSuccess;
 
-  const SupplyFormScreen({super.key, this.supply});
+  const SupplyFormScreen({
+    super.key,
+    this.supply,
+    this.returnSupplyOnSuccess = false,
+  });
 
   @override
   State<SupplyFormScreen> createState() => _SupplyFormScreenState();
@@ -57,14 +64,17 @@ class _SupplyFormScreenState extends State<SupplyFormScreen> {
         await _supplyService.update(widget.supply!.id, data);
         if (!mounted) return;
         Toastr.success('Cập nhật nhà cung cấp thành công');
+        Navigator.of(context).pop(true);
       } else {
-        await _supplyService.create(data);
+        final response = await _supplyService.create(data);
         if (!mounted) return;
         Toastr.success('Tạo nhà cung cấp thành công');
-      }
 
-      if (mounted) {
-        Navigator.of(context).pop(true);
+        if (widget.returnSupplyOnSuccess) {
+          Navigator.of(context).pop(response.data);
+        } else {
+          Navigator.of(context).pop(true);
+        }
       }
     } catch (e) {
       debugPrint('Error saving supply: $e');

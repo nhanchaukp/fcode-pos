@@ -6,6 +6,7 @@ import 'package:fcode_pos/ui/components/order_item_editor_modal.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 
 class OrderCreateScreen extends StatefulWidget {
   /// Đơn hàng gốc dùng để clone (nếu có).
@@ -116,13 +117,27 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
         refunds: const [],
       );
 
-      await _orderService.create(newOrder);
+      final response = await _orderService.create(newOrder);
       if (!mounted) return;
+
+      final createdOrder = response.data;
 
       Toastr.success(
         widget.isClone ? 'Clone đơn hàng thành công' : 'Tạo đơn hàng thành công',
       );
-      Navigator.of(context).pop(true);
+
+      if (createdOrder != null && createdOrder.id != 0) {
+        // Điều hướng thẳng sang màn chi tiết đơn hàng mới tạo
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) =>
+                OrderDetailScreen(orderId: createdOrder.id.toString()),
+          ),
+        );
+      } else {
+        // Fallback: chỉ pop nếu không lấy được id
+        Navigator.of(context).pop(true);
+      }
     } catch (e, st) {
       debugPrintStack(stackTrace: st);
       if (mounted) {
