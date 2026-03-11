@@ -4,7 +4,8 @@ enum AccountMasterServiceType {
   netflix('Netflix', 'netflix'),
   youtube('YouTube', 'youtube'),
   googleOne('Google One', 'google_one'),
-  chatgpt('ChatGPT', 'chatgpt');
+  chatgpt('ChatGPT', 'chatgpt'),
+  microsoft('Microsoft', 'microsoft');
 
   const AccountMasterServiceType(this.label, this.value);
 

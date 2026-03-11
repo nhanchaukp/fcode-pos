@@ -2,6 +2,7 @@ import 'package:fcode_pos/enums.dart' as enums;
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/order_service.dart';
 import 'package:fcode_pos/ui/components/dropdown/customer_dropdown.dart';
+import 'package:fcode_pos/ui/components/section_header.dart';
 import 'package:fcode_pos/ui/components/order_item_editor_modal.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
@@ -189,86 +190,65 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
   }
 
   Widget _buildSummarySection() {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.receipt_long_outlined,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Thông tin đơn hàng',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _buildCustomerField(),
-            const SizedBox(height: 16),
-            _buildNoteField(),
-          ],
-        ),
+    final theme = Theme.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SectionHeader(
+            icon: Icons.receipt_long_outlined,
+            title: 'Thông tin đơn hàng',
+          ),
+          const SizedBox(height: 12),
+          _buildCustomerField(),
+          const SizedBox(height: 12),
+          _buildNoteField(),
+        ],
       ),
     );
   }
 
   Widget _buildOrderItemsSection() {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.shopping_cart_outlined,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Sản phẩm (${_orderItems.length})',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const Spacer(),
-                FilledButton.icon(
-                  onPressed: _handleAddItem,
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Thêm'),
-                ),
-              ],
+    final theme = Theme.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SectionHeader(
+            icon: Icons.shopping_cart_outlined,
+            title: 'Sản phẩm (${_orderItems.length})',
+            action: FilledButton.icon(
+              onPressed: _handleAddItem,
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Thêm'),
             ),
-            const SizedBox(height: 12),
-            if (_orderItems.isEmpty)
-              _buildEmptyItemsState()
-            else
-              Column(
-                children: List.generate(
-                  _orderItems.length,
-                  (index) => Padding(
-                    padding: EdgeInsets.only(
-                      bottom: index == _orderItems.length - 1 ? 0 : 12,
-                    ),
-                    child: _buildOrderItemRow(index),
+          ),
+          const SizedBox(height: 8),
+          if (_orderItems.isEmpty)
+            _buildEmptyItemsState()
+          else
+            Column(
+              children: List.generate(
+                _orderItems.length,
+                (index) => Padding(
+                  padding: EdgeInsets.only(
+                    bottom: index == _orderItems.length - 1 ? 0 : 8,
                   ),
+                  child: _buildOrderItemRow(index),
                 ),
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }
@@ -276,10 +256,10 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
   Widget _buildEmptyItemsState() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceVariant,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -315,17 +295,13 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
     );
 
     return InkWell(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(10),
       onTap: () => _handleEditItem(index),
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          border: Border.all(
-            color: Theme.of(context).colorScheme.outlineVariant,
-            width: 1,
-          ),
+          borderRadius: BorderRadius.circular(10),
+          color: Theme.of(context).colorScheme.surfaceContainerHigh,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

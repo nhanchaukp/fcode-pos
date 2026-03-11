@@ -7,7 +7,6 @@ import 'package:fcode_pos/providers/theme_provider.dart';
 import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/screens/splash_screen.dart';
 import 'package:fcode_pos/services/deep_link_service.dart';
-import 'package:fcode_pos/utils/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,18 +25,61 @@ class FcodePosApp extends ConsumerWidget {
     );
 
     return base.copyWith(
+      colorScheme: base.colorScheme,
+      textTheme: base.textTheme
+          .copyWith(
+            bodyMedium: base.textTheme.bodyMedium?.copyWith(fontSize: 13),
+            bodySmall: base.textTheme.bodySmall?.copyWith(fontSize: 12),
+            labelLarge: base.textTheme.labelLarge?.copyWith(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+            labelMedium: base.textTheme.labelMedium?.copyWith(fontSize: 12),
+          )
+          .apply(
+            bodyColor: base.colorScheme.onSurface,
+            displayColor: base.colorScheme.onSurface,
+          ),
       scaffoldBackgroundColor: base.colorScheme.surface,
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: base.colorScheme.primary,
-          foregroundColor: base.colorScheme.onPrimary,
+      appBarTheme: base.appBarTheme.copyWith(
+        backgroundColor: base.colorScheme.surface,
+        elevation: 0,
+        centerTitle: false,
+        scrolledUnderElevation: 0,
+        foregroundColor: base.colorScheme.onSurface,
+      ),
+      cardTheme:
+          CardThemeData(
+                color: base.colorScheme.surfaceContainerLowest,
+                elevation: 0,
+                margin: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              )
+              as dynamic,
+      inputDecorationTheme:
+          _buildInputDecorationTheme(
+                base.inputDecorationTheme,
+                base.colorScheme,
+              )
+              as dynamic,
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: base.textTheme.labelLarge,
         ),
       ),
-      inputDecorationTheme: _buildInputDecorationTheme(
-        base.inputDecorationTheme,
-        base.colorScheme,
+      navigationBarTheme: base.navigationBarTheme.copyWith(
+        height: 60,
+        backgroundColor: base.colorScheme.surface,
+        indicatorColor: base.colorScheme.secondaryContainer,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
       ),
-      appBarTheme: base.appBarTheme.copyWith(elevation: 0, centerTitle: false),
     );
   }
 
@@ -52,36 +94,84 @@ class FcodePosApp extends ConsumerWidget {
     );
 
     return base.copyWith(
+      colorScheme: base.colorScheme,
+      textTheme: base.textTheme
+          .copyWith(
+            bodyMedium: base.textTheme.bodyMedium?.copyWith(fontSize: 13),
+            bodySmall: base.textTheme.bodySmall?.copyWith(fontSize: 12),
+            labelLarge: base.textTheme.labelLarge?.copyWith(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+            labelMedium: base.textTheme.labelMedium?.copyWith(fontSize: 12),
+          )
+          .apply(
+            bodyColor: base.colorScheme.onSurface,
+            displayColor: base.colorScheme.onSurface,
+          ),
       scaffoldBackgroundColor: base.colorScheme.surface,
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: base.colorScheme.primary,
-          foregroundColor: base.colorScheme.onPrimary,
+      appBarTheme: base.appBarTheme.copyWith(
+        backgroundColor: base.colorScheme.surface,
+        elevation: 0,
+        centerTitle: false,
+        scrolledUnderElevation: 0,
+        foregroundColor: base.colorScheme.onSurface,
+      ),
+      cardTheme:
+          CardThemeData(
+                color: base.colorScheme.surfaceContainerHigh,
+                elevation: 0,
+                margin: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              )
+              as dynamic,
+      inputDecorationTheme:
+          _buildInputDecorationTheme(
+                base.inputDecorationTheme,
+                base.colorScheme,
+              )
+              as dynamic,
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: base.textTheme.labelLarge,
         ),
       ),
-      inputDecorationTheme: _buildInputDecorationTheme(
-        base.inputDecorationTheme,
-        base.colorScheme,
+      navigationBarTheme: base.navigationBarTheme.copyWith(
+        height: 60,
+        backgroundColor: base.colorScheme.surface,
+        indicatorColor: base.colorScheme.secondaryContainer,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
       ),
-      appBarTheme: base.appBarTheme.copyWith(elevation: 0, centerTitle: false),
     );
   }
 
-  InputDecorationThemeData _buildInputDecorationTheme(
-    InputDecorationThemeData baseTheme,
+  dynamic _buildInputDecorationTheme(
+    dynamic baseTheme,
     ColorScheme colorScheme,
   ) {
-    const inputRadius = BorderRadius.all(Radius.circular(12));
-    OutlineInputBorder outline(Color color) => OutlineInputBorder(
-      borderRadius: inputRadius,
-      borderSide: BorderSide(color: color),
-    );
+    const inputRadius = BorderRadius.all(Radius.circular(10));
+    OutlineInputBorder outline(Color color, [double width = 1]) =>
+        OutlineInputBorder(
+          borderRadius: inputRadius,
+          borderSide: BorderSide(color: color, width: width),
+        );
 
     return baseTheme.copyWith(
-      border: outline(colorScheme.outlineVariant),
-      enabledBorder: outline(colorScheme.outlineVariant),
-      disabledBorder: outline(colorScheme.outlineVariant.applyOpacity(0.5)),
-      focusedBorder: outline(colorScheme.primary),
+      isDense: true,
+      filled: true,
+      fillColor: colorScheme.surfaceContainerLowest,
+      contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+      border: outline(colorScheme.outlineVariant.withOpacity(0.5)),
+      enabledBorder: outline(colorScheme.outlineVariant.withOpacity(0.5)),
+      disabledBorder: outline(colorScheme.outlineVariant.withOpacity(0.3)),
+      focusedBorder: outline(colorScheme.primary, 1.2),
       errorBorder: outline(colorScheme.error),
       focusedErrorBorder: outline(colorScheme.error),
     );

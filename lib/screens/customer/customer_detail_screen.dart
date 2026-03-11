@@ -178,110 +178,115 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen>
 
   Widget _buildProfileCard() {
     final user = _user!;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            // Avatar
-            CircleAvatar(
-              radius: 50,
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              backgroundImage:
-                  user.profilePhotoUrl != null &&
-                      user.profilePhotoUrl!.isNotEmpty
-                  ? NetworkImage(user.profilePhotoUrl!)
-                  : user.avatar != null && user.avatar!.isNotEmpty
-                  ? NetworkImage(user.avatar!)
-                  : null,
-              child:
-                  (user.profilePhotoUrl == null ||
-                          user.profilePhotoUrl!.isEmpty) &&
-                      (user.avatar == null || user.avatar!.isEmpty)
-                  ? Text(
-                      user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
-                      style: TextStyle(
-                        fontSize: 40,
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      ),
-                    )
-                  : null,
-            ),
-            const SizedBox(height: 16),
-            // Name
-            Text(
-              user.name,
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            if (user.fullname != null && user.fullname!.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  user.fullname!,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            const SizedBox(height: 8),
-            // Username
-            Text(
-              '@${user.username}',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            // Balance
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.account_balance_wallet,
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Số dư: ${CurrencyHelper.formatCurrency(user.balance)}',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 46,
+            backgroundColor: colorScheme.primaryContainer,
+            backgroundImage:
+                user.profilePhotoUrl != null && user.profilePhotoUrl!.isNotEmpty
+                    ? NetworkImage(user.profilePhotoUrl!)
+                    : user.avatar != null && user.avatar!.isNotEmpty
+                        ? NetworkImage(user.avatar!)
+                        : null,
+            child: (user.profilePhotoUrl == null ||
+                        user.profilePhotoUrl!.isEmpty) &&
+                    (user.avatar == null || user.avatar!.isEmpty)
+                ? Text(
+                    user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
+                    style: TextStyle(
+                      fontSize: 34,
+                      color: colorScheme.onPrimaryContainer,
                     ),
-                  ),
-                ],
+                  )
+                : null,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            user.name,
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge
+                ?.copyWith(fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+          if (user.fullname != null && user.fullname!.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                user.fullname!,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                textAlign: TextAlign.center,
               ),
             ),
-          ],
-        ),
+          const SizedBox(height: 6),
+          Text(
+            '@${user.username}',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.primary,
+                ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.account_balance_wallet,
+                  color: colorScheme.onPrimaryContainer,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Số dư: ${CurrencyHelper.formatCurrency(user.balance)}',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onPrimaryContainer,
+                      ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildAccountInfoCard() {
     final user = _user!;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Thông tin tài khoản',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Thông tin tài khoản',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
             _buildInfoRow(
               icon: Icons.tag,
               label: 'ID',
@@ -313,8 +318,8 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen>
                   ? DateHelper.formatDateTime(DateTime.parse(user.createdAt!))
                   : 'N/A',
             ),
-            if (user.updatedAt != null) ...[
-              const Divider(height: 24),
+          if (user.updatedAt != null) ...[
+            const Divider(height: 24),
               _buildInfoRow(
                 icon: Icons.update,
                 label: 'Cập nhật lần cuối',
@@ -322,9 +327,8 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen>
                   DateTime.parse(user.updatedAt!),
                 ),
               ),
-            ],
           ],
-        ),
+        ],
       ),
     );
   }
@@ -345,20 +349,24 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen>
       return const SizedBox.shrink();
     }
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Thông tin liên hệ',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            if (hasEmail) ...[
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Thông tin liên hệ',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          if (hasEmail) ...[
               _buildInfoRow(
                 icon: Icons.email,
                 label: 'Email',
@@ -388,10 +396,10 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen>
                   ],
                 ),
               ),
-              if (hasPhone || hasAddress || hasFacebook || hasProvinceId)
-                const Divider(height: 24),
-            ],
-            if (hasPhone) ...[
+            if (hasPhone || hasAddress || hasFacebook || hasProvinceId)
+              const Divider(height: 24),
+          ],
+          if (hasPhone) ...[
               _buildInfoRow(
                 icon: Icons.phone,
                 label: 'Số điện thoại',
@@ -413,19 +421,19 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen>
                   ],
                 ),
               ),
-              if (hasAddress || hasFacebook || hasProvinceId)
-                const Divider(height: 24),
-            ],
-            if (hasAddress) ...[
+            if (hasAddress || hasFacebook || hasProvinceId)
+              const Divider(height: 24),
+          ],
+          if (hasAddress) ...[
               _buildInfoRow(
                 icon: Icons.location_on,
                 label: 'Địa chỉ',
                 value: user.address!,
                 onCopy: () => _copyToClipboard(user.address!, 'Địa chỉ'),
               ),
-              if (hasFacebook || hasProvinceId) const Divider(height: 24),
-            ],
-            if (hasProvinceId) ...[
+            if (hasFacebook || hasProvinceId) const Divider(height: 24),
+          ],
+          if (hasProvinceId) ...[
               _buildInfoRow(
                 icon: Icons.map,
                 label: 'Province ID',
@@ -433,32 +441,31 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen>
                 onCopy: () =>
                     _copyToClipboard(user.provinceId.toString(), 'Province ID'),
               ),
-              if (hasFacebook) const Divider(height: 24),
-            ],
-            if (hasFacebook)
-              _buildInfoRow(
-                icon: Icons.facebook,
-                label: 'Facebook URL',
-                value: user.facebook!,
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.copy, size: 20),
-                      onPressed: () =>
-                          _copyToClipboard(user.facebook!, 'Facebook URL'),
-                      tooltip: 'Copy',
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.open_in_new, size: 20),
-                      onPressed: () => openUrl(user.facebook!),
-                      tooltip: 'Mở',
-                    ),
-                  ],
-                ),
-              ),
+            if (hasFacebook) const Divider(height: 24),
           ],
-        ),
+          if (hasFacebook)
+            _buildInfoRow(
+              icon: Icons.facebook,
+              label: 'Facebook URL',
+              value: user.facebook!,
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.copy, size: 20),
+                    onPressed: () =>
+                        _copyToClipboard(user.facebook!, 'Facebook URL'),
+                    tooltip: 'Copy',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.open_in_new, size: 20),
+                    onPressed: () => openUrl(user.facebook!),
+                    tooltip: 'Mở',
+                  ),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -491,20 +498,24 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen>
       return const SizedBox.shrink();
     }
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Thông tin bổ sung',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            if (hasGoogleId) ...[
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Thông tin bổ sung',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          if (hasGoogleId) ...[
               const Divider(height: 24),
               _buildInfoRow(
                 icon: Icons.g_mobiledata,
@@ -512,38 +523,37 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen>
                 value: user.googleId!,
                 onCopy: () => _copyToClipboard(user.googleId!, 'Google ID'),
               ),
-              if (hasFacebookId || hasTelegramId || hasTwoFactor)
-                const Divider(height: 24),
-            ],
-            if (hasFacebookId) ...[
+            if (hasFacebookId || hasTelegramId || hasTwoFactor)
+              const Divider(height: 24),
+          ],
+          if (hasFacebookId) ...[
               _buildInfoRow(
                 icon: Icons.facebook,
                 label: 'Facebook ID',
                 value: user.facebookId!,
                 onCopy: () => _copyToClipboard(user.facebookId!, 'Facebook ID'),
               ),
-              if (hasTelegramId || hasTwoFactor) const Divider(height: 24),
-            ],
-            if (hasTelegramId) ...[
+            if (hasTelegramId || hasTwoFactor) const Divider(height: 24),
+          ],
+          if (hasTelegramId) ...[
               _buildInfoRow(
                 icon: Icons.telegram,
                 label: 'Telegram ID',
                 value: user.telegramId!,
                 onCopy: () => _copyToClipboard(user.telegramId!, 'Telegram ID'),
               ),
-              if (hasTwoFactor) const Divider(height: 24),
-            ],
-            if (hasTwoFactor) ...[
-              _buildInfoRow(
-                icon: Icons.security,
-                label: 'Xác thực 2 bước',
-                value:
-                    'Đã bật từ ${DateHelper.formatDateTime(DateTime.parse(user.twoFactorConfirmedAt!))}',
-                valueColor: Colors.green,
-              ),
-            ],
+            if (hasTwoFactor) const Divider(height: 24),
           ],
-        ),
+          if (hasTwoFactor) ...[
+            _buildInfoRow(
+              icon: Icons.security,
+              label: 'Xác thực 2 bước',
+              value:
+                  'Đã bật từ ${DateHelper.formatDateTime(DateTime.parse(user.twoFactorConfirmedAt!))}',
+              valueColor: Colors.green,
+            ),
+          ],
+        ],
       ),
     );
   }

@@ -1,6 +1,5 @@
 import 'package:fcode_pos/providers/auth_provider.dart';
 import 'package:fcode_pos/providers/theme_provider.dart';
-import 'package:fcode_pos/utils/extensions/colors.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -33,6 +32,7 @@ class MoreScreen extends ConsumerWidget {
         actions: [
           IconButton(
             tooltip: 'Đăng xuất',
+            visualDensity: VisualDensity.compact,
             onPressed: isLoading
                 ? null
                 : () async {
@@ -51,25 +51,21 @@ class MoreScreen extends ConsumerWidget {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
         children: [
           // User Profile Card
-          Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: BorderSide(
-                color: colorScheme.outlineVariant.applyOpacity(0.5),
-                width: 1,
-              ),
+          Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(12),
               child: Row(
                 children: [
                   Container(
-                    width: 64,
-                    height: 64,
+                    width: 52,
+                    height: 52,
                     decoration: BoxDecoration(
                       color: colorScheme.primaryContainer,
                       shape: BoxShape.circle,
@@ -80,7 +76,7 @@ class MoreScreen extends ConsumerWidget {
                             ? user.name.substring(0, 1).toUpperCase()
                             : 'U',
                         style: TextStyle(
-                          fontSize: 28,
+                          fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: colorScheme.onPrimaryContainer,
                         ),
@@ -97,7 +93,7 @@ class MoreScreen extends ConsumerWidget {
                           style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(fontWeight: FontWeight.w600),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         if (user?.email != null)
                           Text(
                             user!.email,
@@ -112,7 +108,7 @@ class MoreScreen extends ConsumerWidget {
             ),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
 
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
@@ -124,19 +120,17 @@ class MoreScreen extends ConsumerWidget {
               ),
             ),
           ),
-          Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
+          Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerLowest,
               borderRadius: BorderRadius.circular(12),
-              side: BorderSide(
-                color: colorScheme.outlineVariant.withOpacity(0.5),
-                width: 1,
-              ),
             ),
             child: SwitchListTile(
+              dense: true,
+              visualDensity: VisualDensity.compact,
               contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 4,
+                horizontal: 12,
+                vertical: 2,
               ),
               secondary: Icon(
                 isDarkMode ? Icons.dark_mode : Icons.light_mode,
@@ -155,19 +149,13 @@ class MoreScreen extends ConsumerWidget {
 
           const SizedBox(height: 12),
 
-          Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ).borderRadius,
-              side: BorderSide(
-                color: colorScheme.outlineVariant.withOpacity(0.5),
-                width: 1,
-              ),
+          Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -259,19 +247,17 @@ class MoreScreen extends ConsumerWidget {
               ),
             ),
           ),
-          Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
+          Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerLowest,
               borderRadius: BorderRadius.circular(12),
-              side: BorderSide(
-                color: colorScheme.outlineVariant.withOpacity(0.5),
-                width: 1,
-              ),
             ),
             child: ListTile(
+              dense: true,
+              visualDensity: VisualDensity.compact,
               contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
+                horizontal: 12,
+                vertical: 6,
               ),
               leading: Container(
                 width: 40,
@@ -302,19 +288,17 @@ class MoreScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 12),
-          Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
+          Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerLowest,
               borderRadius: BorderRadius.circular(12),
-              side: BorderSide(
-                color: colorScheme.outlineVariant.withOpacity(0.5),
-                width: 1,
-              ),
             ),
             child: ListTile(
+              dense: true,
+              visualDensity: VisualDensity.compact,
               contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
+                horizontal: 12,
+                vertical: 6,
               ),
               leading: Container(
                 width: 40,
@@ -344,19 +328,17 @@ class MoreScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 12),
-          Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
+          Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerLowest,
               borderRadius: BorderRadius.circular(12),
-              side: BorderSide(
-                color: colorScheme.outlineVariant.withOpacity(0.5),
-                width: 1,
-              ),
             ),
             child: ListTile(
+              dense: true,
+              visualDensity: VisualDensity.compact,
               contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
+                horizontal: 12,
+                vertical: 6,
               ),
               leading: Container(
                 width: 40,

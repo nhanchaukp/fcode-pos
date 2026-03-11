@@ -109,32 +109,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
-  void _setQuickDateRange(String range) {
-    final now = DateTime.now();
-    setState(() {
-      switch (range) {
-        case 'today':
-          _fromDate = DateTime(now.year, now.month, now.day);
-          _toDate = now;
-          break;
-        case 'yesterday':
-          final yesterday = now.subtract(Duration(days: 1));
-          _fromDate = DateTime(yesterday.year, yesterday.month, yesterday.day);
-          _toDate = DateTime(now.year, now.month, now.day);
-          break;
-        case '7days':
-          _fromDate = now.subtract(Duration(days: 7));
-          _toDate = now;
-          break;
-        case '1month':
-          _fromDate = DateTime(now.year, now.month - 1, now.day);
-          _toDate = now;
-          break;
-      }
-    });
-    _loadOrders(page: 1); // Reload orders when date range changes
-  }
-
   Future<void> _refreshAll() async {
     // Reload orders
     await _loadOrders(page: 1);
@@ -149,6 +123,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         title: const Text('Đơn hàng'),
         actions: [
           IconButton(
+            visualDensity: VisualDensity.compact,
             icon: Icon(
               _orderListViewMode == OrderListViewMode.full
                   ? Icons.view_agenda_outlined
@@ -158,8 +133,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               setState(() {
                 _orderListViewMode =
                     _orderListViewMode == OrderListViewMode.full
-                    ? OrderListViewMode.compact
-                    : OrderListViewMode.full;
+                        ? OrderListViewMode.compact
+                        : OrderListViewMode.full;
               });
             },
             tooltip: _orderListViewMode == OrderListViewMode.full
@@ -167,6 +142,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 : 'Xem đầy đủ',
           ),
           IconButton(
+            visualDensity: VisualDensity.compact,
             icon: const Icon(Icons.search),
             onPressed: () {
               Navigator.push(
@@ -179,11 +155,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             tooltip: 'Tìm kiếm',
           ),
           IconButton(
+            visualDensity: VisualDensity.compact,
             icon: Badge(
               isLabelVisible:
                   (_selectedStatus != null &&
-                      _selectedStatus != OrderStatus.all) ||
-                  _selectedUser != null,
+                          _selectedStatus != OrderStatus.all) ||
+                      _selectedUser != null,
               child: const Icon(Icons.filter_list),
             ),
             onPressed: () => _showFilterBottomSheet(context),
@@ -231,11 +208,118 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
-      builder: (context) => _buildFilterBottomSheet(),
+      builder: (context) => _OrderFilterSheet(
+        fromDate: _fromDate,
+        toDate: _toDate,
+        selectedStatus: _selectedStatus,
+        selectedUser: _selectedUser,
+        onApply: (from, to, status, user) {
+          setState(() {
+            _fromDate = from;
+            _toDate = to;
+            _selectedStatus = status;
+            _selectedUser = user;
+          });
+          _loadOrders(page: 1);
+          Navigator.pop(context);
+        },
+        onReset: () {
+          setState(() {
+            _fromDate = DateTime.now().subtract(const Duration(days: 7));
+            _toDate = DateTime.now();
+            _selectedStatus = OrderStatus.all;
+            _selectedUser = null;
+          });
+          _loadOrders(page: 1);
+          Navigator.pop(context);
+        },
+      ),
     );
   }
 
-  Widget _buildFilterBottomSheet() {
+}
+
+class _OrderFilterSheet extends StatefulWidget {
+  const _OrderFilterSheet({
+    required this.fromDate,
+    required this.toDate,
+    required this.selectedStatus,
+    required this.selectedUser,
+    required this.onApply,
+    required this.onReset,
+  });
+
+  final DateTime? fromDate;
+  final DateTime? toDate;
+  final OrderStatus? selectedStatus;
+  final User? selectedUser;
+  final void Function(DateTime from, DateTime to, OrderStatus? status, User? user) onApply;
+  final VoidCallback onReset;
+
+  @override
+  State<_OrderFilterSheet> createState() => _OrderFilterSheetState();
+}
+
+class _OrderFilterSheetState extends State<_OrderFilterSheet> {
+  late DateTime? _localFrom;
+  late DateTime? _localTo;
+  late OrderStatus? _localStatus;
+  late User? _localUser;
+
+  @override
+  void initState() {
+    super.initState();
+    _localFrom = widget.fromDate;
+    _localTo = widget.toDate;
+    _localStatus = widget.selectedStatus;
+    _localUser = widget.selectedUser;
+  }
+
+  String? _getActiveQuickDateRange() {
+    if (_localFrom == null || _localTo == null) return null;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final from = DateTime(_localFrom!.year, _localFrom!.month, _localFrom!.day);
+    final to = DateTime(_localTo!.year, _localTo!.month, _localTo!.day);
+    if (from == today && to == today) return 'today';
+    final yesterday = today.subtract(const Duration(days: 1));
+    if (from == yesterday && to == today) return 'yesterday';
+    if (to == today && from == today.subtract(const Duration(days: 7))) return '7days';
+    final oneMonthAgo = DateTime(now.year, now.month - 1, now.day);
+    if (to == today && from == oneMonthAgo) return '1month';
+    return null;
+  }
+
+  void _setQuickDateRange(String type) {
+    final now = DateTime.now();
+    setState(() {
+      switch (type) {
+        case 'today':
+          _localFrom = DateTime(now.year, now.month, now.day);
+          _localTo = now;
+          break;
+        case 'yesterday':
+          final yesterday = now.subtract(const Duration(days: 1));
+          _localFrom = DateTime(yesterday.year, yesterday.month, yesterday.day);
+          _localTo = DateTime(now.year, now.month, now.day);
+          break;
+        case '7days':
+          _localFrom = now.subtract(const Duration(days: 7));
+          _localTo = now;
+          break;
+        case '1month':
+          _localFrom = DateTime(now.year, now.month - 1, now.day);
+          _localTo = now;
+          break;
+        default:
+          _localFrom = DateTime(now.year, now.month, now.day);
+          _localTo = now;
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom + 16,
@@ -247,46 +331,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
-          // Row(
-          //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          //   children: [
-          //     const Text(
-          //       'Bộ lọc',
-          //       style: TextStyle(
-          //         fontSize: 20,
-          //         fontWeight: FontWeight.bold,
-          //       ),
-          //     ),
-          //     IconButton(
-          //       icon: const Icon(Icons.close),
-          //       onPressed: () => Navigator.pop(context),
-          //     ),
-          //   ],
-          // ),
-          // const SizedBox(height: 8),
-
-          // Ngày lọc
           const Text(
             'Khoảng ngày',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
           ),
           const SizedBox(height: 8),
-
-          // Quick date range buttons
-          Wrap(
-            spacing: 4,
-            runSpacing: 4,
-            children: [
-              _buildQuickDateButton('Hôm nay', 'today'),
-              _buildQuickDateButton('Hôm qua', 'yesterday'),
-              _buildQuickDateButton('7 ngày', '7days'),
-              _buildQuickDateButton('1 tháng', '1month'),
-            ],
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildQuickDateChip('Hôm nay', 'today'),
+                const SizedBox(width: 8),
+                _buildQuickDateChip('Hôm qua', 'yesterday'),
+                const SizedBox(width: 8),
+                _buildQuickDateChip('7 ngày', '7days'),
+                const SizedBox(width: 8),
+                _buildQuickDateChip('1 tháng', '1month'),
+              ],
+            ),
           ),
           const SizedBox(height: 18),
-
-          // Custom date range
           Row(
             children: [
               Expanded(
@@ -296,14 +361,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       context: context,
                       firstDate: DateTime(2020),
                       lastDate: DateTime.now(),
-                      initialDateRange: _fromDate != null && _toDate != null
-                          ? DateTimeRange(start: _fromDate!, end: _toDate!)
+                      initialDateRange: _localFrom != null && _localTo != null
+                          ? DateTimeRange(start: _localFrom!, end: _localTo!)
                           : null,
                     );
-                    if (picked != null) {
+                    if (picked != null && mounted) {
                       setState(() {
-                        _fromDate = picked.start;
-                        _toDate = picked.end;
+                        _localFrom = picked.start;
+                        _localTo = picked.end;
                       });
                     }
                   },
@@ -314,8 +379,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       suffixIcon: Icon(Icons.calendar_today),
                     ),
                     child: Text(
-                      _fromDate != null && _toDate != null
-                          ? '${DateFormat('dd/MM/yyyy').format(_fromDate!)} - ${DateFormat('dd/MM/yyyy').format(_toDate!)}'
+                      _localFrom != null && _localTo != null
+                          ? '${DateFormat('dd/MM/yyyy').format(_localFrom!)} - ${DateFormat('dd/MM/yyyy').format(_localTo!)}'
                           : 'Chọn khoảng ngày',
                       style: const TextStyle(fontSize: 14),
                     ),
@@ -325,19 +390,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ],
           ),
           const SizedBox(height: 18),
-          // Trạng thái đơn hàng
-          _buildStatusDropdown(),
+          OrderStatusDropdown(
+            initialValue: _localStatus,
+            onChanged: (value) {
+              setState(() => _localStatus = value);
+            },
+            includeAllOption: true,
+            required: false,
+            hintText: 'Chọn trạng thái',
+          ),
           const SizedBox(height: 18),
-
-          _buildCustomerSearch(),
+          CustomerSearchDropdown(
+            selectedUser: _localUser,
+            onChanged: (user) {
+              setState(() => _localUser = user);
+            },
+            isRequired: false,
+          ),
           const SizedBox(height: 20),
-
-          // Action buttons
           Row(
             children: [
               Expanded(
                 child: TextButton(
-                  onPressed: _resetFilters,
+                  onPressed: widget.onReset,
                   child: const Text('Đặt lại'),
                 ),
               ),
@@ -345,8 +420,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               Expanded(
                 child: FilledButton(
                   onPressed: () {
-                    _loadOrders(page: 1); // Reload orders when filter applied
-                    Navigator.pop(context);
+                    final from = _localFrom ?? DateTime.now();
+                    final to = _localTo ?? DateTime.now();
+                    widget.onApply(from, to, _localStatus, _localUser);
                   },
                   child: const Text('Áp dụng'),
                 ),
@@ -359,44 +435,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildQuickDateButton(String label, String type) {
-    return ActionChip(
+  Widget _buildQuickDateChip(String label, String type) {
+    final isSelected = _getActiveQuickDateRange() == type;
+    return FilterChip(
       label: Text(label),
-      onPressed: () {
-        _setQuickDateRange(type);
-      },
+      selected: isSelected,
+      onSelected: (_) => _setQuickDateRange(type),
     );
-  }
-
-  Widget _buildStatusDropdown() {
-    return OrderStatusDropdown(
-      initialValue: _selectedStatus,
-      onChanged: (value) {
-        setState(() => _selectedStatus = value);
-      },
-      includeAllOption: true,
-      required: false,
-      hintText: 'Chọn trạng thái',
-    );
-  }
-
-  Widget _buildCustomerSearch() {
-    return CustomerSearchDropdown(
-      selectedUser: _selectedUser,
-      onChanged: (user) {
-        setState(() => _selectedUser = user);
-      },
-      isRequired: false,
-    );
-  }
-
-  void _resetFilters() {
-    setState(() {
-      _fromDate = DateTime.now().subtract(Duration(days: 7));
-      _toDate = DateTime.now();
-      _selectedStatus = OrderStatus.all;
-      _selectedUser = null;
-    });
-    _loadOrders(page: 1); // Reload orders when filters reset
   }
 }

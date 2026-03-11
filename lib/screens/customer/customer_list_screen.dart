@@ -132,12 +132,13 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
         appBar: AppBar(
-          toolbarHeight: 64,
+          toolbarHeight: 56,
           automaticallyImplyLeading: false,
           title: SearchBar(
             controller: _searchController,
             hintText: 'Tìm kiếm khách hàng',
             leading: IconButton(
+              visualDensity: VisualDensity.compact,
               icon: const Icon(Icons.arrow_back),
               onPressed: () => Navigator.of(context).pop(),
             ),
@@ -145,12 +146,14 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
               if (_searchController.text.isEmpty)
                 IconButton(
                   tooltip: 'Thống kê',
+                  visualDensity: VisualDensity.compact,
                   icon: const Icon(Icons.assessment),
                   onPressed: _navigateToStats,
                 )
               else
                 IconButton(
                   tooltip: 'Xóa',
+                  visualDensity: VisualDensity.compact,
                   icon: const Icon(Icons.close),
                   onPressed: () {
                     _searchController.clear();
@@ -226,10 +229,10 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
     return RefreshIndicator(
       onRefresh: () => _loadCustomers(page: _currentPage),
       child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: customers.length,
-        separatorBuilder: (context, _) => const SizedBox(height: 10),
+        separatorBuilder: (context, _) => const SizedBox(height: 8),
         itemBuilder: (context, index) {
           final customer = customers[index];
           return _CustomerCard(
@@ -297,93 +300,95 @@ class _CustomerCard extends StatelessWidget {
         ? displayName.trim()[0].toUpperCase()
         : '?';
 
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CircleAvatar(radius: 22, child: Text(initial)),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          displayName,
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w700),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.mail_outlined,
-                              size: 16,
-                              color: colorScheme.primary,
-                            ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                email,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(
-                                      color: colorScheme.onSurfaceVariant,
-                                    ),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerLowest,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircleAvatar(radius: 20, child: Text(initial)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        displayName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.mail_outlined,
+                            size: 16,
+                            color: colorScheme.primary,
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              email,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
                               ),
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: IconText(
-                      icon: Icons.account_balance_wallet_outlined,
-                      value: balanceLabel,
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                  if (facebookUrl != null && facebookUrl.isNotEmpty) ...[
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: InkWell(
-                        onTap: () => openUrl(facebookUrl),
-                        child: IconText(
-                          icon: Icons.link,
-                          value: 'Facebook',
-                          color: colorScheme.secondary,
-                        ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ],
-              ),
-              if (phone != null && phone.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                CopyableIconText(
-                  icon: Icons.phone_outlined,
-                  value: phone,
-                  color: colorScheme.tertiary,
+                    ],
+                  ),
                 ),
               ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: IconText(
+                    icon: Icons.account_balance_wallet_outlined,
+                    value: balanceLabel,
+                    color: colorScheme.primary,
+                  ),
+                ),
+                if (facebookUrl != null && facebookUrl.isNotEmpty) ...[
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => openUrl(facebookUrl),
+                      child: IconText(
+                        icon: Icons.link,
+                        value: 'Facebook',
+                        color: colorScheme.secondary,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            if (phone != null && phone.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              CopyableIconText(
+                icon: Icons.phone_outlined,
+                value: phone,
+                color: colorScheme.tertiary,
+              ),
             ],
-          ),
+          ],
         ),
       ),
     );

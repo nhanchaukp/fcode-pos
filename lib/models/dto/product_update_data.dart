@@ -8,6 +8,8 @@ class ProductUpdateData {
   bool? requireAccount;
   bool? requirePassword;
   int? expiryMonth;
+  String? warning;
+  String? upgradeMethod;
 
   ProductUpdateData({
     this.name,
@@ -19,6 +21,8 @@ class ProductUpdateData {
     this.requireAccount,
     this.requirePassword,
     this.expiryMonth,
+    this.warning,
+    this.upgradeMethod,
   });
 
   factory ProductUpdateData.fromJson(Map<String, dynamic> json) {
@@ -34,6 +38,8 @@ class ProductUpdateData {
       requireAccount: json['require_account'] as bool?,
       requirePassword: json['require_password'] as bool?,
       expiryMonth: json['expiry_month'] as int?,
+      warning: json['warning'] as String?,
+      upgradeMethod: json['upgrade_method'] as String?,
     );
   }
 
@@ -48,6 +54,8 @@ class ProductUpdateData {
       if (requireAccount != null) 'require_account': requireAccount,
       if (requirePassword != null) 'require_password': requirePassword,
       if (expiryMonth != null) 'expiry_month': expiryMonth,
+      if (warning != null) 'warning': warning,
+      if (upgradeMethod != null) 'upgrade_method': upgradeMethod,
     };
   }
 }

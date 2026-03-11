@@ -71,3 +71,9 @@ production : https://docs.flutter.dev/deployment
 
 - This starter project is designed to streamline your Flutter development with Appwrite.
 - Refer to the [Appwrite Documentation](https://appwrite.io/docs) for detailed integration guidance.
+
+---
+
+## 🎨 UI Guidelines (Compact / Borderless)
+
+See `UI_RULES.md` for the UI standards used in this project (compact design, borderless sections, shared tokens/components).

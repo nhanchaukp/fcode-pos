@@ -110,12 +110,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
         appBar: AppBar(
-          toolbarHeight: 64,
+          toolbarHeight: 56,
           automaticallyImplyLeading: false,
           title: SearchBar(
             controller: _searchController,
             hintText: 'Tìm kiếm sản phẩm',
             leading: IconButton(
+              visualDensity: VisualDensity.compact,
               icon: const Icon(Icons.arrow_back),
               onPressed: () => Navigator.of(context).pop(),
             ),
@@ -124,6 +125,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 : [
                     IconButton(
                       tooltip: 'Xóa',
+                      visualDensity: VisualDensity.compact,
                       icon: const Icon(Icons.close),
                       onPressed: () {
                         _searchController.clear();
@@ -196,14 +198,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
     return RefreshIndicator(
       onRefresh: () => _loadProducts(page: _currentPage),
       child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: products.length,
-        separatorBuilder: (context, _) => const SizedBox(height: 10),
+        separatorBuilder: (context, _) => const SizedBox(height: 8),
         itemBuilder: (context, index) {
           final product = products[index];
           return InkWell(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
             onTap: () async {
               final updated = await Navigator.of(context).push<bool>(
                 MaterialPageRoute(
@@ -273,56 +275,59 @@ class _ProductCard extends StatelessWidget {
         : '—';
     final instockLabel = product.instock.toString();
 
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    product.name,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  product.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
-                Tooltip(
-                  message: product.isActive ? 'Đang hoạt động' : 'Đã tạm dừng',
-                  child: Icon(
-                    product.isActive
-                        ? Icons.check_circle_outline
-                        : Icons.cancel_outlined,
-                    color: product.isActive
-                        ? colorScheme.primary
-                        : colorScheme.onSurfaceVariant,
-                    size: 20,
-                  ),
+              ),
+              const SizedBox(width: 8),
+              Tooltip(
+                message: product.isActive ? 'Đang hoạt động' : 'Đã tạm dừng',
+                child: Icon(
+                  product.isActive
+                      ? Icons.check_circle_outline
+                      : Icons.cancel_outlined,
+                  color: product.isActive
+                      ? colorScheme.primary
+                      : colorScheme.onSurfaceVariant,
+                  size: 18,
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                _IconValue(
-                  icon: Icons.price_change_outlined,
-                  value: bestPriceLabel,
-                  color: colorScheme.primary,
-                ),
-                const SizedBox(width: 20),
-                _IconValue(
-                  icon: Icons.inventory_2_outlined,
-                  value: instockLabel,
-                  color: colorScheme.tertiary,
-                ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _IconValue(
+                icon: Icons.price_change_outlined,
+                value: bestPriceLabel,
+                color: colorScheme.primary,
+              ),
+              const SizedBox(width: 16),
+              _IconValue(
+                icon: Icons.inventory_2_outlined,
+                value: instockLabel,
+                color: colorScheme.tertiary,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
