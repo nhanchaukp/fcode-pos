@@ -7,6 +7,7 @@ import 'package:fcode_pos/providers/theme_provider.dart';
 import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/screens/splash_screen.dart';
 import 'package:fcode_pos/services/deep_link_service.dart';
+import 'package:fcode_pos/utils/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -55,6 +56,10 @@ class FcodePosApp extends ConsumerWidget {
                 margin: EdgeInsets.zero,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(
+                    color: base.colorScheme.outlineVariant.applyOpacity(0.5),
+                    width: 0.5,
+                  ),
                 ),
               )
               as dynamic,
@@ -74,7 +79,7 @@ class FcodePosApp extends ConsumerWidget {
         ),
       ),
       navigationBarTheme: base.navigationBarTheme.copyWith(
-        height: 60,
+        // height: 60,
         backgroundColor: base.colorScheme.surface,
         indicatorColor: base.colorScheme.secondaryContainer,
         elevation: 0,
@@ -119,11 +124,16 @@ class FcodePosApp extends ConsumerWidget {
       ),
       cardTheme:
           CardThemeData(
-                color: base.colorScheme.surfaceContainerHigh,
+                // Dùng màu nền sáng hơn cho dark mode để card không bị đen quá
+                color: base.colorScheme.surfaceContainer,
                 elevation: 0,
                 margin: EdgeInsets.zero,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(
+                    color: base.colorScheme.outlineVariant.applyOpacity(0.5),
+                    width: 0.5,
+                  ),
                 ),
               )
               as dynamic,
@@ -143,7 +153,7 @@ class FcodePosApp extends ConsumerWidget {
         ),
       ),
       navigationBarTheme: base.navigationBarTheme.copyWith(
-        height: 60,
+        // height: 60,
         backgroundColor: base.colorScheme.surface,
         indicatorColor: base.colorScheme.secondaryContainer,
         elevation: 0,
@@ -168,9 +178,11 @@ class FcodePosApp extends ConsumerWidget {
       filled: true,
       fillColor: colorScheme.surfaceContainerLowest,
       contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-      border: outline(colorScheme.outlineVariant.withOpacity(0.5)),
-      enabledBorder: outline(colorScheme.outlineVariant.withOpacity(0.5)),
-      disabledBorder: outline(colorScheme.outlineVariant.withOpacity(0.3)),
+      border: outline(colorScheme.outlineVariant.withValues(alpha: 0.5)),
+      enabledBorder: outline(colorScheme.outlineVariant.withValues(alpha: 0.5)),
+      disabledBorder: outline(
+        colorScheme.outlineVariant.withValues(alpha: 0.3),
+      ),
       focusedBorder: outline(colorScheme.primary, 1.2),
       errorBorder: outline(colorScheme.error),
       focusedErrorBorder: outline(colorScheme.error),

@@ -6,7 +6,6 @@ import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/product-supply/product_supply_form_screen.dart';
 import 'package:fcode_pos/services/product_supply_service.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
-import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:flutter/material.dart';
 
 class ProductCostScreen extends StatefulWidget {
@@ -116,14 +115,15 @@ class _ProductCostScreenState extends State<ProductCostScreen> {
       child: Scaffold(
         appBar: AppBar(
           elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
+          automaticallyImplyLeading: false,
           title: SearchBar(
             controller: _searchController,
             hintText: 'Tìm sản phẩm hoặc nhà cung cấp',
-            leading: const SizedBox.shrink(),
+            leading: IconButton(
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
             trailing: _searchController.text.isEmpty
                 ? null
                 : [
@@ -312,118 +312,118 @@ class _ProductSupplyCard extends StatelessWidget {
     final supplyName = productSupply.supply?.name.isNotEmpty == true
         ? productSupply.supply!.name
         : 'Nhà cung cấp #${productSupply.supplyId}';
-    final updatedLabel = DateHelper.timeAgo(productSupply.updatedAt);
     final sku = (productSupply.sku?.trim().isNotEmpty == true
         ? productSupply.sku!.trim()
         : productSupply.product?.sku?.trim().isNotEmpty == true
         ? productSupply.product!.sku!.trim()
         : null);
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  Icons.inventory_2_outlined,
-                  size: 20,
-                  color: colorScheme.primary,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    productName,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            if (sku != null) ...[
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Icon(
-                    Icons.qr_code_2_outlined,
-                    size: 16,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'SKU: $sku',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(
-                  Icons.local_shipping_outlined,
-                  size: 16,
-                  color: colorScheme.secondary,
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    supplyName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  priceLabel,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: colorScheme.primary,
-                  ),
-                ),
-              ],
-            ),
-            if (productSupply.note != null &&
-                productSupply.note!.isNotEmpty) ...[
-              const SizedBox(height: 6),
+    return Card(
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Icon(
-                    Icons.sticky_note_2_outlined,
+                    Icons.inventory_2_outlined,
+                    size: 20,
+                    color: colorScheme.primary,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      productName,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              if (sku != null) ...[
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.qr_code_2_outlined,
+                      size: 16,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'SKU: $sku',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(
+                    Icons.local_shipping_outlined,
                     size: 16,
-                    color: colorScheme.onSurfaceVariant,
+                    color: colorScheme.secondary,
                   ),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      productSupply.note!,
-                      maxLines: 2,
+                      supplyName,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ),
+                  const SizedBox(width: 8),
+                  Text(
+                    priceLabel,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: colorScheme.primary,
+                    ),
+                  ),
                 ],
               ),
+              if (productSupply.note != null &&
+                  productSupply.note!.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.sticky_note_2_outlined,
+                      size: 16,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        productSupply.note!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

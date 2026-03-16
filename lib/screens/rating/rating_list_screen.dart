@@ -398,8 +398,8 @@ class _RatingCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
           color: rating.approved
-              ? colorScheme.primary.withOpacity(0.3)
-              : colorScheme.outline.withOpacity(0.2),
+              ? colorScheme.primary.withValues(alpha: 0.3)
+              : colorScheme.outline.withValues(alpha: 0.2),
           width: rating.approved ? 1.5 : 1,
         ),
       ),
@@ -553,7 +553,7 @@ class _RatingCard extends StatelessWidget {
   Widget _buildApprovalBadge(BuildContext context, bool approved) {
     final colorScheme = Theme.of(context).colorScheme;
     final backgroundColor = approved
-        ? colorScheme.primary.withOpacity(0.15)
+        ? colorScheme.primary.withValues(alpha: 0.15)
         : Colors.grey.shade200;
     final textColor = approved ? colorScheme.primary : Colors.grey.shade700;
     final icon = approved ? Icons.check_circle_outline : Icons.pending_outlined;

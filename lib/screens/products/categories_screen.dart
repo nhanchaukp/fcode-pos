@@ -34,9 +34,7 @@ class CategoriesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Danh mục sản phẩm'),
-      ),
+      appBar: AppBar(title: const Text('Danh mục sản phẩm')),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
         child: Column(
@@ -44,10 +42,9 @@ class CategoriesScreen extends StatelessWidget {
           children: [
             Text(
               'Nhóm sản phẩm',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w700),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 10),
             Expanded(
@@ -89,17 +86,13 @@ class CategoriesScreen extends StatelessWidget {
                               children: [
                                 Text(
                                   category.name,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
+                                  style: Theme.of(context).textTheme.titleMedium
                                       ?.copyWith(fontWeight: FontWeight.w600),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
                                   '${category.productCount} sản phẩm',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
+                                  style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(
                                         color: colorScheme.onSurfaceVariant,
                                       ),
@@ -115,9 +108,7 @@ class CategoriesScreen extends StatelessWidget {
                                 const SizedBox(height: 4),
                                 Text(
                                   'Chiếm ${(category.revenueShare * 100).toStringAsFixed(1)}% doanh thu',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
+                                  style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(
                                         color: colorScheme.onSurfaceVariant,
                                       ),
@@ -128,8 +119,9 @@ class CategoriesScreen extends StatelessWidget {
                           Icon(
                             Icons.chevron_right,
                             size: 18,
-                            color: colorScheme.onSurfaceVariant
-                                .withOpacity(0.6),
+                            color: colorScheme.onSurfaceVariant.withValues(
+                              alpha: 0.6,
+                            ),
                           ),
                         ],
                       ),

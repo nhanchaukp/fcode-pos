@@ -301,7 +301,7 @@ class GradientStatCard extends StatelessWidget {
               child: Icon(
                 icon,
                 size: 120,
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
               ),
             ),
             // Content
@@ -314,7 +314,7 @@ class GradientStatCard extends StatelessWidget {
                   Text(
                     title,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                       fontWeight: FontWeight.w500,
                     ),
                     maxLines: 1,
@@ -334,7 +334,9 @@ class GradientStatCard extends StatelessWidget {
                     Text(
                       percentage,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: percentageColor ?? Colors.white.withOpacity(0.9),
+                        color:
+                            percentageColor ??
+                            Colors.white.withValues(alpha: 0.9),
                         fontWeight: FontWeight.w600,
                       ),
                     ),

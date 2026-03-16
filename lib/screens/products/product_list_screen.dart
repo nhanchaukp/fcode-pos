@@ -110,7 +110,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
         appBar: AppBar(
-          toolbarHeight: 56,
+          elevation: 0,
           automaticallyImplyLeading: false,
           title: SearchBar(
             controller: _searchController,
@@ -275,59 +275,72 @@ class _ProductCard extends StatelessWidget {
         : '—';
     final instockLabel = product.instock.toString();
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  product.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+    return Card(
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    product.name,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            if (product.sku != null) ...[
+              Row(
+                children: [
+                  _IconValue(
+                    icon: Icons.qr_code_2_outlined,
+                    value: product.sku!,
+                    color: colorScheme.primary,
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              Tooltip(
-                message: product.isActive ? 'Đang hoạt động' : 'Đã tạm dừng',
-                child: Icon(
-                  product.isActive
-                      ? Icons.check_circle_outline
-                      : Icons.cancel_outlined,
-                  color: product.isActive
-                      ? colorScheme.primary
-                      : colorScheme.onSurfaceVariant,
-                  size: 18,
+              const SizedBox(height: 8),
+            ],
+
+            Row(
+              children: [
+                Tooltip(
+                  message: product.isActive ? 'Đang hoạt động' : 'Đã tạm dừng',
+                  child: Icon(
+                    product.isActive
+                        ? Icons.check_circle_outline
+                        : Icons.cancel_outlined,
+                    color: product.isActive
+                        ? colorScheme.primary
+                        : colorScheme.onSurfaceVariant,
+                    size: 18,
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              _IconValue(
-                icon: Icons.price_change_outlined,
-                value: bestPriceLabel,
-                color: colorScheme.primary,
-              ),
-              const SizedBox(width: 16),
-              _IconValue(
-                icon: Icons.inventory_2_outlined,
-                value: instockLabel,
-                color: colorScheme.tertiary,
-              ),
-            ],
-          ),
-        ],
+                const SizedBox(width: 16),
+
+                _IconValue(
+                  icon: Icons.price_change_outlined,
+                  value: bestPriceLabel,
+                  color: colorScheme.primary,
+                ),
+                const SizedBox(width: 16),
+                _IconValue(
+                  icon: Icons.inventory_2_outlined,
+                  value: instockLabel,
+                  color: colorScheme.tertiary,
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -300,95 +300,96 @@ class _CustomerCard extends StatelessWidget {
         ? displayName.trim()[0].toUpperCase()
         : '?';
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CircleAvatar(radius: 20, child: Text(initial)),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        displayName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w700),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.mail_outlined,
-                            size: 16,
-                            color: colorScheme.primary,
-                          ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              email,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: IconText(
-                    icon: Icons.account_balance_wallet_outlined,
-                    value: balanceLabel,
-                    color: colorScheme.primary,
-                  ),
-                ),
-                if (facebookUrl != null && facebookUrl.isNotEmpty) ...[
+    return Card(
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(radius: 20, child: Text(initial)),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: InkWell(
-                      onTap: () => openUrl(facebookUrl),
-                      child: IconText(
-                        icon: Icons.link,
-                        value: 'Facebook',
-                        color: colorScheme.secondary,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          displayName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.mail_outlined,
+                              size: 16,
+                              color: colorScheme.primary,
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                email,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ],
-              ],
-            ),
-            if (phone != null && phone.isNotEmpty) ...[
-              const SizedBox(height: 6),
-              CopyableIconText(
-                icon: Icons.phone_outlined,
-                value: phone,
-                color: colorScheme.tertiary,
               ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: IconText(
+                      icon: Icons.account_balance_wallet_outlined,
+                      value: balanceLabel,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                  if (facebookUrl != null && facebookUrl.isNotEmpty) ...[
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: InkWell(
+                        onTap: () => openUrl(facebookUrl),
+                        child: IconText(
+                          icon: Icons.link,
+                          value: 'Facebook',
+                          color: colorScheme.secondary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              if (phone != null && phone.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                CopyableIconText(
+                  icon: Icons.phone_outlined,
+                  value: phone,
+                  color: colorScheme.tertiary,
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

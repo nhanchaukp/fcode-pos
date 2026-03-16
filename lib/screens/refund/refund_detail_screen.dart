@@ -1,6 +1,5 @@
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/customer/customer_detail_screen.dart';
-import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/ui/components/refund_reason_badge.dart';
 import 'package:fcode_pos/ui/components/refund_status_badge.dart';
 import 'package:fcode_pos/ui/components/refund_type_badge.dart';
@@ -202,19 +201,17 @@ class RefundDetailScreen extends StatelessWidget {
                   color: colorScheme(context).onSurface,
                 ),
               ),
-              if (order != null)
-                IconButton(
-                  icon: const Icon(Icons.arrow_forward, size: 20),
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            OrderDetailScreen(orderId: order.id.toString()),
-                      ),
-                    );
-                  },
-                  tooltip: 'Xem đơn hàng',
-                ),
+            if (order != null)
+              IconButton(
+                icon: const Icon(Icons.arrow_forward, size: 20),
+                onPressed: () {
+                  Navigator.of(context).pushNamed(
+                    '/order-detail',
+                    arguments: order.id.toString(),
+                  );
+                },
+                tooltip: 'Xem đơn hàng',
+              ),
             ],
           ),
           const SizedBox(height: 12),

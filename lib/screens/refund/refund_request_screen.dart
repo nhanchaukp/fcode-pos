@@ -192,31 +192,32 @@ class _RefundRequestScreenState extends ConsumerState<RefundRequestScreen> {
     );
 
     return Card(
-      clipBehavior: Clip.antiAlias,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: colorScheme.surface,
       elevation: 0,
-      shadowColor: Colors.transparent,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         side: BorderSide(
           color: colorScheme.outlineVariant.applyOpacity(0.5),
           width: 1,
         ),
       ),
       child: InkWell(
-        onTap: () {
-          Navigator.of(context).push(
+        onTap: () async {
+          final updated = await Navigator.of(context).push<bool>(
             MaterialPageRoute(
               builder: (_) => RefundDetailScreen(refund: refund),
             ),
           );
+          if (updated == true && mounted) {
+            _loadRefunds(page: _currentPage);
+          }
         },
-        borderRadius: BorderRadius.circular(16),
-        splashColor: colorScheme.primary.applyOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        splashColor: colorScheme.primary.applyOpacity(0.06),
         highlightColor: Colors.transparent,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

@@ -12,6 +12,7 @@ import 'package:fcode_pos/ui/components/order_status_split_button.dart';
 import 'package:fcode_pos/ui/components/order_update_bottom_sheet.dart';
 import 'package:fcode_pos/ui/components/order_item_update_bottom_sheet.dart';
 import 'package:fcode_pos/screens/customer/customer_detail_screen.dart';
+import 'package:fcode_pos/screens/refund/refund_detail_screen.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
@@ -1119,7 +1120,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.1),
+                    color: statusColor.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -1335,33 +1336,57 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
         ? DateTime.parse(refund['created_at'].toString()).toLocal()
         : null;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                CurrencyHelper.formatCurrency(amount),
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.orange,
+    return Card(
+      elevation: 0,
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          // Điều hướng sang màn chi tiết hoàn tiền nếu có đủ dữ liệu id
+          if (refund is Map && refund['id'] != null) {
+            final refundMap = Map<String, dynamic>.from(refund);
+            try {
+              final refundModel = Refund.fromJson(refundMap);
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => RefundDetailScreen(refund: refundModel),
                 ),
+              );
+            } catch (_) {
+              // Nếu parse lỗi thì bỏ qua điều hướng, chỉ hiển thị card
+            }
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    CurrencyHelper.formatCurrency(amount),
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.error,
+                    ),
+                  ),
+                  const Icon(Icons.money_off, size: 20, color: Colors.orange),
+                ],
               ),
-              const Icon(Icons.money_off, color: Colors.orange, size: 20),
+              const SizedBox(height: 6),
+              _buildPaymentInfo('Lý do', reason),
+              if (createdAt != null)
+                _buildPaymentInfo(
+                  'Thời gian',
+                  DateHelper.formatDateTime(createdAt),
+                ),
             ],
           ),
-          const SizedBox(height: 6),
-          _buildPaymentInfo('Lý do', reason),
-          if (createdAt != null)
-            _buildPaymentInfo(
-              'Thời gian',
-              DateHelper.formatDateTime(createdAt),
-            ),
-        ],
+        ),
       ),
     );
   }

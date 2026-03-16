@@ -14,8 +14,7 @@ class MoreScreen extends ConsumerWidget {
     final themeMode = ref.watch(themeModeProvider);
     final themeNotifier = ref.read(themeModeProvider.notifier);
     final seedColorIndex = ref.watch(themeSeedColorIndexProvider);
-    final seedColorNotifier =
-        ref.read(themeSeedColorIndexProvider.notifier);
+    final seedColorNotifier = ref.read(themeSeedColorIndexProvider.notifier);
 
     final user = authState.asData?.value;
     final isLoading = authState.isLoading;
@@ -54,11 +53,10 @@ class MoreScreen extends ConsumerWidget {
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
         children: [
           // User Profile Card
-          Container(
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerLowest,
-              borderRadius: BorderRadius.circular(12),
-            ),
+          Card(
+            elevation: 0,
+            margin: EdgeInsets.zero,
+            clipBehavior: Clip.antiAlias,
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Row(
@@ -120,11 +118,10 @@ class MoreScreen extends ConsumerWidget {
               ),
             ),
           ),
-          Container(
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerLowest,
-              borderRadius: BorderRadius.circular(12),
-            ),
+          Card(
+            elevation: 0,
+            margin: EdgeInsets.zero,
+            clipBehavior: Clip.antiAlias,
             child: SwitchListTile(
               dense: true,
               visualDensity: VisualDensity.compact,
@@ -149,11 +146,10 @@ class MoreScreen extends ConsumerWidget {
 
           const SizedBox(height: 12),
 
-          Container(
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerLowest,
-              borderRadius: BorderRadius.circular(12),
-            ),
+          Card(
+            elevation: 0,
+            margin: EdgeInsets.zero,
+            clipBehavior: Clip.antiAlias,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               child: Column(
@@ -168,9 +164,7 @@ class MoreScreen extends ConsumerWidget {
                       const SizedBox(width: 8),
                       const Text(
                         'Màu chủ đạo',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ],
                   ),
@@ -178,57 +172,57 @@ class MoreScreen extends ConsumerWidget {
                   Text(
                     'Chọn màu chính cho ứng dụng (Material 3)',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: List.generate(
-                      material3SeedColors.length,
-                      (index) {
-                        final color = material3SeedColors[index];
-                        final isSelected = index == seedColorIndex;
-                        return InkWell(
-                          onTap: () {
-                            seedColorNotifier.setSeedColorIndex(index);
-                          },
-                          borderRadius: BorderRadius.circular(20),
-                          child: Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: color,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: isSelected
-                                    ? Colors.white
-                                    : colorScheme.surface,
-                                width: 2,
-                              ),
-                              boxShadow: isSelected
-                                  ? [
-                                      BoxShadow(
-                                        color:
-                                            colorScheme.primary.withOpacity(0.5),
-                                        blurRadius: 6,
-                                        spreadRadius: 1,
-                                      ),
-                                    ]
-                                  : null,
+                    children: List.generate(material3SeedColors.length, (
+                      index,
+                    ) {
+                      final color = material3SeedColors[index];
+                      final isSelected = index == seedColorIndex;
+                      return InkWell(
+                        onTap: () {
+                          seedColorNotifier.setSeedColorIndex(index);
+                        },
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: color,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSelected
+                                  ? Colors.white
+                                  : colorScheme.surface,
+                              width: 2,
                             ),
-                            child: isSelected
-                                ? Icon(
-                                    Icons.check,
-                                    size: 18,
-                                    color: colorScheme.onPrimary,
-                                  )
+                            boxShadow: isSelected
+                                ? [
+                                    BoxShadow(
+                                      color: colorScheme.primary.withValues(
+                                        alpha: 0.5,
+                                      ),
+                                      blurRadius: 6,
+                                      spreadRadius: 1,
+                                    ),
+                                  ]
                                 : null,
                           ),
-                        );
-                      },
-                    ),
+                          child: isSelected
+                              ? Icon(
+                                  Icons.check,
+                                  size: 18,
+                                  color: colorScheme.onPrimary,
+                                )
+                              : null,
+                        ),
+                      );
+                    }),
                   ),
                 ],
               ),
@@ -247,11 +241,10 @@ class MoreScreen extends ConsumerWidget {
               ),
             ),
           ),
-          Container(
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerLowest,
-              borderRadius: BorderRadius.circular(12),
-            ),
+          Card(
+            elevation: 0,
+            margin: EdgeInsets.zero,
+            clipBehavior: Clip.antiAlias,
             child: ListTile(
               dense: true,
               visualDensity: VisualDensity.compact,
@@ -263,7 +256,7 @@ class MoreScreen extends ConsumerWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.15),
+                  color: Colors.blue.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
@@ -288,11 +281,10 @@ class MoreScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 12),
-          Container(
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerLowest,
-              borderRadius: BorderRadius.circular(12),
-            ),
+          Card(
+            elevation: 0,
+            margin: EdgeInsets.zero,
+            clipBehavior: Clip.antiAlias,
             child: ListTile(
               dense: true,
               visualDensity: VisualDensity.compact,
@@ -304,7 +296,7 @@ class MoreScreen extends ConsumerWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.15),
+                  color: Colors.orange.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
@@ -328,11 +320,10 @@ class MoreScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 12),
-          Container(
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerLowest,
-              borderRadius: BorderRadius.circular(12),
-            ),
+          Card(
+            elevation: 0,
+            margin: EdgeInsets.zero,
+            clipBehavior: Clip.antiAlias,
             child: ListTile(
               dense: true,
               visualDensity: VisualDensity.compact,
@@ -344,7 +335,7 @@ class MoreScreen extends ConsumerWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.15),
+                  color: Colors.green.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(Icons.lock_outline, color: Colors.green),
@@ -370,7 +361,7 @@ class MoreScreen extends ConsumerWidget {
             builder: (context, snapshot) {
               final info = snapshot.data;
               final version = info != null
-                  ? '${info.version} (${info.buildNumber})'
+                  ? '${info.version}+${info.buildNumber}'
                   : 'Đang tải...';
               return Center(
                 child: Text(

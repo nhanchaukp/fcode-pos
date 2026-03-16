@@ -95,63 +95,69 @@ class ProductHubScreen extends StatelessWidget {
 
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: item.builder),
-                  );
-                },
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerLowest,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: itemColor.applyOpacity(0.15),
-                          borderRadius: BorderRadius.circular(12),
+              child: Card(
+                elevation: 0,
+                margin: EdgeInsets.zero,
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: item.builder),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: itemColor.applyOpacity(0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(item.icon, size: 24, color: itemColor),
                         ),
-                        child: Icon(item.icon, size: 24, color: itemColor),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item.title,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
-                                  ?.copyWith(fontWeight: FontWeight.w600),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              item.description,
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item.title,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(fontWeight: FontWeight.w600),
                               ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
+                              const SizedBox(height: 2),
+                              Text(
+                                item.description,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      Icon(
-                        Icons.chevron_right,
-                        size: 18,
-                        color: colorScheme.onSurfaceVariant.applyOpacity(0.5),
-                      ),
-                    ],
+                        Icon(
+                          Icons.chevron_right,
+                          size: 18,
+                          color:
+                              colorScheme.onSurfaceVariant.applyOpacity(0.5),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

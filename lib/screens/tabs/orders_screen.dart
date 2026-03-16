@@ -133,8 +133,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               setState(() {
                 _orderListViewMode =
                     _orderListViewMode == OrderListViewMode.full
-                        ? OrderListViewMode.compact
-                        : OrderListViewMode.full;
+                    ? OrderListViewMode.compact
+                    : OrderListViewMode.full;
               });
             },
             tooltip: _orderListViewMode == OrderListViewMode.full
@@ -159,8 +159,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             icon: Badge(
               isLabelVisible:
                   (_selectedStatus != null &&
-                          _selectedStatus != OrderStatus.all) ||
-                      _selectedUser != null,
+                      _selectedStatus != OrderStatus.all) ||
+                  _selectedUser != null,
               child: const Icon(Icons.filter_list),
             ),
             onPressed: () => _showFilterBottomSheet(context),
@@ -225,7 +225,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         },
         onReset: () {
           setState(() {
-            _fromDate = DateTime.now().subtract(const Duration(days: 7));
+            _fromDate = DateTime.now();
             _toDate = DateTime.now();
             _selectedStatus = OrderStatus.all;
             _selectedUser = null;
@@ -236,7 +236,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
   }
-
 }
 
 class _OrderFilterSheet extends StatefulWidget {
@@ -253,7 +252,13 @@ class _OrderFilterSheet extends StatefulWidget {
   final DateTime? toDate;
   final OrderStatus? selectedStatus;
   final User? selectedUser;
-  final void Function(DateTime from, DateTime to, OrderStatus? status, User? user) onApply;
+  final void Function(
+    DateTime from,
+    DateTime to,
+    OrderStatus? status,
+    User? user,
+  )
+  onApply;
   final VoidCallback onReset;
 
   @override
@@ -284,7 +289,8 @@ class _OrderFilterSheetState extends State<_OrderFilterSheet> {
     if (from == today && to == today) return 'today';
     final yesterday = today.subtract(const Duration(days: 1));
     if (from == yesterday && to == today) return 'yesterday';
-    if (to == today && from == today.subtract(const Duration(days: 7))) return '7days';
+    if (to == today && from == today.subtract(const Duration(days: 7)))
+      return '7days';
     final oneMonthAgo = DateTime(now.year, now.month - 1, now.day);
     if (to == today && from == oneMonthAgo) return '1month';
     return null;
