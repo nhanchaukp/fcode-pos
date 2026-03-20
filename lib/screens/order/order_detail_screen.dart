@@ -663,7 +663,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
               // Email bên trái, ellipsis nếu dài
               Expanded(
                 child: GestureDetector(
-                  onTap: () => Toastr.success('Đã copy Email: ${user.email}'),
+                  onTap: () async {
+                    await Clipboard.setData(
+                      ClipboardData(text: user.email),
+                    );
+                    if (mounted) {
+                      Toastr.success('Đã copy email');
+                    }
+                  },
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -693,8 +700,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
               if (hasPhone) ...[
                 const SizedBox(width: 12),
                 GestureDetector(
-                  onTap: () =>
-                      Toastr.success('Đã copy số điện thoại: ${user.phone!}'),
+                  onTap: () async {
+                    await Clipboard.setData(
+                      ClipboardData(text: user.phone!),
+                    );
+                    if (mounted) {
+                      Toastr.success('Đã copy số điện thoại');
+                    }
+                  },
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
