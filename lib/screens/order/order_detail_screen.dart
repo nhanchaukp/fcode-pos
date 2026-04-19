@@ -19,17 +19,19 @@ import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:http/http.dart' as http;
 import 'package:fcode_pos/utils/extensions/colors.dart';
 import 'package:fcode_pos/screens/order/order_create_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fcode_pos/providers/order/order_list_provider.dart';
 
-class OrderDetailScreen extends StatefulWidget {
+class OrderDetailScreen extends ConsumerStatefulWidget {
   final String orderId;
 
   const OrderDetailScreen({super.key, required this.orderId});
 
   @override
-  State<OrderDetailScreen> createState() => _OrderDetailScreenState();
+  ConsumerState<OrderDetailScreen> createState() => _OrderDetailScreenState();
 }
 
-class _OrderDetailScreenState extends State<OrderDetailScreen>
+class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
     with SingleTickerProviderStateMixin {
   late OrderService _orderService;
   Order? _order;
@@ -58,7 +60,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
   // Quick access to theme
   ColorScheme get colorScheme => Theme.of(context).colorScheme;
 
-  Future<void> _loadOrderDetail() async {
+  void _syncOrderToList(Order order) {
+    ref.read(orderListProvider.notifier).updateOrder(order);
+  }
+
+  Future<void> _loadOrderDetail({bool syncList = false}) async {
     if (!mounted) return;
     setState(() {
       _isLoading = true;
@@ -68,10 +74,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     try {
       final response = await _orderService.detail(widget.orderId);
       if (!mounted) return;
+
+      final order = response.data;
       setState(() {
-        _order = response.data;
+        _order = order;
         _isLoading = false;
       });
+
+      if (syncList && order != null) {
+        _syncOrderToList(order);
+      }
     } catch (e, st) {
       debugPrintStack(
         stackTrace: st,
@@ -96,15 +108,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
       builder: (context) => OrderUpdateBottomSheet(
         order: _order!,
         onSuccess: () {
-          // Reload order detail after successful update
-          _loadOrderDetail();
+          _loadOrderDetail(syncList: true);
         },
       ),
     );
 
-    // Optional: Show a message or perform additional actions if needed
     if (result == true && mounted) {
-      // Dialog was closed after successful update
       debugPrint('Order updated successfully');
     }
   }
@@ -241,30 +250,30 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
 
       if (!mounted) return;
 
-      setState(() {
-        _order = Order(
-          id: currentOrder.id,
-          userId: currentOrder.userId,
-          total: currentOrder.total,
-          discount: currentOrder.discount,
-          status: status.value,
-          type: currentOrder.type,
-          refundAmount: currentOrder.refundAmount,
-          note: currentOrder.note,
-          transactionId: currentOrder.transactionId,
-          createdAt: currentOrder.createdAt,
-          updatedAt: DateTime.now(),
-          paymentId: currentOrder.paymentId,
-          utmSource: currentOrder.utmSource,
-          user: currentOrder.user,
-          items: currentOrder.items,
-          itemCount: currentOrder.itemCount,
-          paymentHistories: currentOrder.paymentHistories,
-          refunds: currentOrder.refunds,
-          urlQrCodePayment: currentOrder.urlQrCodePayment,
-        );
-      });
+      final updatedLocal = Order(
+        id: currentOrder.id,
+        userId: currentOrder.userId,
+        total: currentOrder.total,
+        discount: currentOrder.discount,
+        status: status.value,
+        type: currentOrder.type,
+        refundAmount: currentOrder.refundAmount,
+        note: currentOrder.note,
+        transactionId: currentOrder.transactionId,
+        createdAt: currentOrder.createdAt,
+        updatedAt: DateTime.now(),
+        paymentId: currentOrder.paymentId,
+        utmSource: currentOrder.utmSource,
+        user: currentOrder.user,
+        items: currentOrder.items,
+        itemCount: currentOrder.itemCount,
+        paymentHistories: currentOrder.paymentHistories,
+        refunds: currentOrder.refunds,
+        urlQrCodePayment: currentOrder.urlQrCodePayment,
+      );
 
+      setState(() => _order = updatedLocal);
+      _syncOrderToList(updatedLocal);
       Toastr.success('Đã cập nhật trạng thái đơn hàng');
     } catch (e, st) {
       debugPrintStack(
@@ -1012,8 +1021,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
         orderId: _order!.id,
         orderItem: item,
         onSuccess: () {
-          // Reload order detail after successful update
-          _loadOrderDetail();
+          _loadOrderDetail(syncList: true);
         },
       ),
     );
@@ -1033,8 +1041,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
         orderId: orderId,
         orderItem: null,
         onSuccess: () {
-          // Reload order detail after successful addition
-          _loadOrderDetail();
+          _loadOrderDetail(syncList: true);
         },
       ),
     );

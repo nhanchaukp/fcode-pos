@@ -1,9 +1,9 @@
-import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/enums.dart';
 import 'package:fcode_pos/models.dart';
+import 'package:fcode_pos/providers/order/order_filter_provider.dart';
+import 'package:fcode_pos/providers/order/order_list_provider.dart';
 import 'package:fcode_pos/screens/global_search_screen.dart';
 import 'package:fcode_pos/screens/order/order_create_screen.dart';
-import 'package:fcode_pos/services/order_service.dart';
 import 'package:fcode_pos/ui/components/dropdown/customer_dropdown.dart';
 import 'package:fcode_pos/ui/components/order_list_component.dart'
     show OrderListComponent, OrderListViewMode;
@@ -20,103 +20,12 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  // Filter state
-  DateTime? _fromDate;
-  DateTime? _toDate;
-  OrderStatus? _selectedStatus;
-  User? _selectedUser;
-
-  // Pagination state
-  int _currentPage = 1;
-  int _totalPages = 1;
-
-  // View mode: full vs compact
   OrderListViewMode _orderListViewMode = OrderListViewMode.full;
-
-  // Orders state
-  List<Order> _orders = [];
-  bool _isLoadingOrders = false;
-  String? _ordersError;
-
-  // Summary (thống kê) dùng chung bộ lọc với danh sách đơn
-  OrderSummary? _orderSummary;
-  bool _isLoadingSummary = false;
-
-  late OrderService _orderService;
-
-  @override
-  void initState() {
-    super.initState();
-    _orderService = OrderService();
-    _fromDate = DateTime.now();
-    _toDate = DateTime.now();
-    _selectedStatus = OrderStatus.all;
-    _loadOrders();
-  }
-
-  Future<void> _loadOrders({int? page}) async {
-    if (_fromDate == null || _toDate == null) return;
-
-    final targetPage = page ?? _currentPage;
-
-    setState(() {
-      _isLoadingOrders = true;
-      _ordersError = null;
-      _isLoadingSummary = true;
-    });
-
-    try {
-      final listFuture = _orderService.list(
-        fromDate: _fromDate,
-        toDate: _toDate,
-        page: targetPage,
-        perPage: 20,
-        status: _selectedStatus?.value ?? '',
-        userId: _selectedUser?.id.toString() ?? '',
-      );
-      final summaryFuture = _orderService.summary(
-        fromDate: _fromDate,
-        toDate: _toDate,
-        status: _selectedStatus?.value ?? '',
-        userId: _selectedUser?.id.toString() ?? '',
-        search: '',
-      );
-
-      final results = await Future.wait([listFuture, summaryFuture]);
-      final listResponse = results[0] as ApiResponse<PaginatedData<Order>>;
-      final summaryResponse = results[1] as ApiResponse<OrderSummary>;
-
-      if (mounted) {
-        final pagination = listResponse.data?.pagination;
-        setState(() {
-          _orders = listResponse.data?.items ?? [];
-          _currentPage = pagination?.currentPage ?? 1;
-          _totalPages = pagination?.lastPage ?? 1;
-          _orderSummary = summaryResponse.data;
-          _isLoadingOrders = false;
-          _isLoadingSummary = false;
-        });
-      }
-    } catch (e, st) {
-      debugPrintStack(stackTrace: st, label: 'Error loading orders: $e');
-      if (mounted) {
-        setState(() {
-          _ordersError = e.toString();
-          _isLoadingOrders = false;
-          _isLoadingSummary = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _refreshAll() async {
-    // Reload orders
-    await _loadOrders(page: 1);
-  }
 
   @override
   Widget build(BuildContext context) {
-    // final user = ref.watch(authProvider).value;
+    final filter = ref.watch(orderFilterProvider);
+    final orderListAsync = ref.watch(orderListProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -143,24 +52,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
           IconButton(
             visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const GlobalSearchScreen(),
-                ),
-              );
-            },
-            tooltip: 'Tìm kiếm',
-          ),
-          IconButton(
-            visualDensity: VisualDensity.compact,
             icon: Badge(
-              isLabelVisible:
-                  (_selectedStatus != null &&
-                      _selectedStatus != OrderStatus.all) ||
-                  _selectedUser != null,
+              isLabelVisible: filter.hasActiveFilters,
               child: const Icon(Icons.filter_list),
             ),
             onPressed: () => _showFilterBottomSheet(context),
@@ -170,67 +63,119 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
       body: SafeArea(
         child: RefreshIndicator(
-          onRefresh: _refreshAll,
-          child: OrderListComponent(
-            orders: _orders,
-            isLoading: _isLoadingOrders,
-            error: _ordersError,
-            currentPage: _currentPage,
-            totalPages: _totalPages,
-            viewMode: _orderListViewMode,
-            orderSummary: _orderSummary,
-            isLoadingSummary: _isLoadingSummary,
-            onPageChanged: (page) => _loadOrders(page: page),
-            onRetry: () => _loadOrders(),
+          onRefresh: () async {
+            ref.invalidate(orderListProvider);
+          },
+          child: orderListAsync.when(
+            data: (state) => OrderListComponent(
+              orders: state.orders,
+              isLoading: false,
+              error: null,
+              currentPage: state.pagination?.currentPage ?? 1,
+              totalPages: state.pagination?.lastPage ?? 1,
+              viewMode: _orderListViewMode,
+              orderSummary: state.summary,
+              isLoadingSummary: false,
+              onPageChanged: (page) {
+                ref.read(orderFilterProvider.notifier).state = filter.copyWith(
+                  page: page,
+                );
+              },
+              onRetry: () => ref.invalidate(orderListProvider),
+            ),
+            loading: () => OrderListComponent(
+              orders: const [],
+              isLoading: true,
+              error: null,
+              currentPage: filter.page,
+              totalPages: 1,
+              viewMode: _orderListViewMode,
+              orderSummary: null,
+              isLoadingSummary: true,
+              onPageChanged: (_) {},
+              onRetry: () {},
+            ),
+            error: (error, _) => OrderListComponent(
+              orders: const [],
+              isLoading: false,
+              error: error.toString(),
+              currentPage: filter.page,
+              totalPages: 1,
+              viewMode: _orderListViewMode,
+              orderSummary: null,
+              isLoadingSummary: false,
+              onPageChanged: (_) {},
+              onRetry: () => ref.invalidate(orderListProvider),
+            ),
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final result = await Navigator.push<bool>(
-            context,
-            MaterialPageRoute(builder: (context) => const OrderCreateScreen()),
-          );
-
-          // Refresh list if order was created successfully
-          if (result == true && mounted) {
-            _loadOrders(page: 1); // Reload orders after creating new order
-          }
-        },
-        child: const Icon(Icons.add),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FloatingActionButton.small(
+            heroTag: 'search',
+            shape: const CircleBorder(),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const GlobalSearchScreen(),
+                ),
+              );
+            },
+            child: const Icon(Icons.search),
+          ),
+          const SizedBox(height: 8),
+          FloatingActionButton(
+            heroTag: 'create',
+            shape: const CircleBorder(),
+            onPressed: () {
+              Navigator.push<bool>(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const OrderCreateScreen(),
+                ),
+              );
+            },
+            child: const Icon(Icons.add),
+          ),
+        ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 
   void _showFilterBottomSheet(BuildContext context) {
+    final filter = ref.read(orderFilterProvider);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
       builder: (context) => _OrderFilterSheet(
-        fromDate: _fromDate,
-        toDate: _toDate,
-        selectedStatus: _selectedStatus,
-        selectedUser: _selectedUser,
+        fromDate: filter.fromDate,
+        toDate: filter.toDate,
+        selectedStatus: filter.status,
+        selectedUser: filter.user,
         onApply: (from, to, status, user) {
-          setState(() {
-            _fromDate = from;
-            _toDate = to;
-            _selectedStatus = status;
-            _selectedUser = user;
-          });
-          _loadOrders(page: 1);
+          ref.read(orderFilterProvider.notifier).state = OrderFilter(
+            fromDate: from,
+            toDate: to,
+            status: status,
+            user: user,
+            page: 1,
+          );
           Navigator.pop(context);
         },
         onReset: () {
-          setState(() {
-            _fromDate = DateTime.now();
-            _toDate = DateTime.now();
-            _selectedStatus = OrderStatus.all;
-            _selectedUser = null;
-          });
-          _loadOrders(page: 1);
+          final now = DateTime.now();
+          ref.read(orderFilterProvider.notifier).state = OrderFilter(
+            fromDate: now,
+            toDate: now,
+            status: OrderStatus.all,
+            page: 1,
+          );
           Navigator.pop(context);
         },
       ),
@@ -289,8 +234,9 @@ class _OrderFilterSheetState extends State<_OrderFilterSheet> {
     if (from == today && to == today) return 'today';
     final yesterday = today.subtract(const Duration(days: 1));
     if (from == yesterday && to == today) return 'yesterday';
-    if (to == today && from == today.subtract(const Duration(days: 7)))
+    if (to == today && from == today.subtract(const Duration(days: 7))) {
       return '7days';
+    }
     final oneMonthAgo = DateTime(now.year, now.month - 1, now.day);
     if (to == today && from == oneMonthAgo) return '1month';
     return null;

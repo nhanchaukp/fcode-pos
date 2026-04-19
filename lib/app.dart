@@ -43,11 +43,9 @@ class FcodePosApp extends ConsumerWidget {
           ),
       scaffoldBackgroundColor: base.colorScheme.surface,
       appBarTheme: base.appBarTheme.copyWith(
-        backgroundColor: base.colorScheme.surface,
         elevation: 0,
         centerTitle: false,
         scrolledUnderElevation: 0,
-        foregroundColor: base.colorScheme.onSurface,
       ),
       cardTheme:
           CardThemeData(
@@ -116,11 +114,9 @@ class FcodePosApp extends ConsumerWidget {
           ),
       scaffoldBackgroundColor: base.colorScheme.surface,
       appBarTheme: base.appBarTheme.copyWith(
-        backgroundColor: base.colorScheme.surface,
         elevation: 0,
         centerTitle: false,
         scrolledUnderElevation: 0,
-        foregroundColor: base.colorScheme.onSurface,
       ),
       cardTheme:
           CardThemeData(

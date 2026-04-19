@@ -7,9 +7,11 @@ import 'package:fcode_pos/ui/components/order_item_editor_modal.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fcode_pos/providers/order/order_list_provider.dart';
 import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 
-class OrderCreateScreen extends StatefulWidget {
+class OrderCreateScreen extends ConsumerStatefulWidget {
   /// Đơn hàng gốc dùng để clone (nếu có).
   /// Nếu null thì màn hình hoạt động ở chế độ tạo đơn mới.
   final Order? initialOrder;
@@ -25,10 +27,10 @@ class OrderCreateScreen extends StatefulWidget {
   });
 
   @override
-  State<OrderCreateScreen> createState() => _OrderCreateScreenState();
+  ConsumerState<OrderCreateScreen> createState() => _OrderCreateScreenState();
 }
 
-class _OrderCreateScreenState extends State<OrderCreateScreen> {
+class _OrderCreateScreenState extends ConsumerState<OrderCreateScreen> {
   final _formKey = GlobalKey<FormState>();
   final _orderService = OrderService();
   final _noteController = TextEditingController();
@@ -123,12 +125,15 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
 
       final createdOrder = response.data;
 
+      if (createdOrder != null) {
+        ref.read(orderListProvider.notifier).addOrder(createdOrder);
+      }
+
       Toastr.success(
         widget.isClone ? 'Clone đơn hàng thành công' : 'Tạo đơn hàng thành công',
       );
 
       if (createdOrder != null && createdOrder.id != 0) {
-        // Điều hướng thẳng sang màn chi tiết đơn hàng mới tạo
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (_) =>
@@ -136,7 +141,6 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
           ),
         );
       } else {
-        // Fallback: chỉ pop nếu không lấy được id
         Navigator.of(context).pop(true);
       }
     } catch (e, st) {
