@@ -178,6 +178,7 @@ class OrderListComponent extends StatelessWidget {
     final paymentStr = isLoading ? '...' : '$paymentSuccessCount';
     return Container(
       decoration: BoxDecoration(
+        color: colorScheme.surfaceContainer,
         border: Border(
           bottom: BorderSide(color: colorScheme.outlineVariant.applyOpacity(0.3)),
         ),
@@ -268,6 +269,7 @@ class OrderListComponent extends StatelessWidget {
           onTap: () => _onOrderTap(context, order),
           child: Container(
             decoration: BoxDecoration(
+              color: colorScheme.surfaceContainer,
               border: Border(
                 bottom: BorderSide(
                   color: colorScheme.outlineVariant.applyOpacity(0.3),
@@ -407,6 +409,7 @@ class OrderListComponent extends StatelessWidget {
           onTap: () => _onOrderTap(context, order),
           child: Container(
             decoration: BoxDecoration(
+              color: colorScheme.surfaceContainer,
               border: Border(
                 bottom: BorderSide(
                   color: colorScheme.outlineVariant.applyOpacity(0.3),
