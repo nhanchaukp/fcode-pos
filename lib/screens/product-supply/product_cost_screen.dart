@@ -110,55 +110,52 @@ class _ProductCostScreenState extends State<ProductCostScreen> {
     final items = _page?.items ?? const <ProductSupply>[];
     final pagination = _page?.pagination;
 
-    return GestureDetector(
-      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: Scaffold(
-        appBar: AppBar(
-          elevation: 0,
-          automaticallyImplyLeading: false,
-          title: SearchBar(
-            controller: _searchController,
-            hintText: 'Tìm sản phẩm hoặc nhà cung cấp',
-            leading: IconButton(
-              visualDensity: VisualDensity.compact,
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            trailing: _searchController.text.isEmpty
-                ? null
-                : [
-                    IconButton(
-                      tooltip: 'Xóa',
-                      icon: const Icon(Icons.close),
-                      onPressed: () {
-                        _searchController.clear();
-                        _loadProductSupplies(page: 1);
-                      },
-                    ),
-                  ],
-            onSubmitted: (_) => _loadProductSupplies(page: 1),
-            textInputAction: TextInputAction.search,
-            elevation: const WidgetStatePropertyAll(0),
-            backgroundColor: WidgetStatePropertyAll(
-              Theme.of(context).colorScheme.surfaceContainerLow,
-            ),
-            padding: const WidgetStatePropertyAll<EdgeInsets>(
-              EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            ),
+    return Scaffold(
+      appBar: AppBar(
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        title: SearchBar(
+          controller: _searchController,
+          hintText: 'Tìm sản phẩm hoặc nhà cung cấp',
+          leading: IconButton(
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          trailing: _searchController.text.isEmpty
+              ? null
+              : [
+                  IconButton(
+                    tooltip: 'Xóa',
+                    icon: const Icon(Icons.close),
+                    onPressed: () {
+                      _searchController.clear();
+                      _loadProductSupplies(page: 1);
+                    },
+                  ),
+                ],
+          onSubmitted: (_) => _loadProductSupplies(page: 1),
+          textInputAction: TextInputAction.search,
+          elevation: const WidgetStatePropertyAll(0),
+          backgroundColor: WidgetStatePropertyAll(
+            Theme.of(context).colorScheme.surfaceContainerLow,
+          ),
+          padding: const WidgetStatePropertyAll<EdgeInsets>(
+            EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           ),
         ),
-        body: Column(
-          children: [
-            if (_isLoading) const LinearProgressIndicator(minHeight: 2),
-            Expanded(child: _buildContent(items)),
-            _buildPaginationControls(pagination),
-          ],
-        ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: _navigateToAddScreen,
-          icon: const Icon(Icons.add),
-          label: const Text('Thêm giá nhập'),
-        ),
+      ),
+      body: Column(
+        children: [
+          if (_isLoading) const LinearProgressIndicator(minHeight: 2),
+          Expanded(child: _buildContent(items)),
+          _buildPaginationControls(pagination),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _navigateToAddScreen,
+        icon: const Icon(Icons.add),
+        label: const Text('Thêm giá nhập'),
       ),
     );
   }

@@ -45,8 +45,10 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
       final currentValue = _searchController.text.trim();
       if (currentValue == _lastSearchValue) return;
       _lastSearchValue = currentValue;
-      ref.read(productFilterProvider.notifier).state =
-          ProductFilter(search: currentValue, page: 1);
+      ref.read(productFilterProvider.notifier).state = ProductFilter(
+        search: currentValue,
+        page: 1,
+      );
     });
 
     if (mounted) setState(() {});
@@ -65,66 +67,65 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
         : null;
     final hasData = productListAsync.hasValue;
 
-    return GestureDetector(
-      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: Scaffold(
-        appBar: AppBar(
-          elevation: 0,
-          automaticallyImplyLeading: false,
-          title: SearchBar(
-            controller: _searchController,
-            hintText: 'Tìm kiếm sản phẩm',
-            leading: IconButton(
-              visualDensity: VisualDensity.compact,
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            trailing: _searchController.text.isEmpty
-                ? null
-                : [
-                    IconButton(
-                      tooltip: 'Xóa',
-                      visualDensity: VisualDensity.compact,
-                      icon: const Icon(Icons.close),
-                      onPressed: () {
-                        _searchController.clear();
-                        _lastSearchValue = '';
-                        ref.read(productFilterProvider.notifier).state =
-                            const ProductFilter(search: '', page: 1);
-                      },
-                    ),
-                  ],
-            onSubmitted: (_) {
-              final value = _searchController.text.trim();
-              _lastSearchValue = value;
-              ref.read(productFilterProvider.notifier).state =
-                  ProductFilter(search: value, page: 1);
-            },
-            textInputAction: TextInputAction.search,
-            elevation: const WidgetStatePropertyAll(0),
-            backgroundColor: WidgetStatePropertyAll(
-              Theme.of(context).colorScheme.surfaceContainerHigh,
-            ),
-            padding: const WidgetStatePropertyAll<EdgeInsets>(
-              EdgeInsets.symmetric(horizontal: 8),
-            ),
+    return Scaffold(
+      appBar: AppBar(
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        title: SearchBar(
+          controller: _searchController,
+          hintText: 'Tìm kiếm sản phẩm',
+          leading: IconButton(
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          trailing: _searchController.text.isEmpty
+              ? null
+              : [
+                  IconButton(
+                    tooltip: 'Xóa',
+                    visualDensity: VisualDensity.compact,
+                    icon: const Icon(Icons.close),
+                    onPressed: () {
+                      _searchController.clear();
+                      _lastSearchValue = '';
+                      ref.read(productFilterProvider.notifier).state =
+                          const ProductFilter(search: '', page: 1);
+                    },
+                  ),
+                ],
+          onSubmitted: (_) {
+            final value = _searchController.text.trim();
+            _lastSearchValue = value;
+            ref.read(productFilterProvider.notifier).state = ProductFilter(
+              search: value,
+              page: 1,
+            );
+          },
+          textInputAction: TextInputAction.search,
+          elevation: const WidgetStatePropertyAll(0),
+          backgroundColor: WidgetStatePropertyAll(
+            Theme.of(context).colorScheme.surfaceContainerHigh,
+          ),
+          padding: const WidgetStatePropertyAll<EdgeInsets>(
+            EdgeInsets.symmetric(horizontal: 8),
           ),
         ),
-        body: Column(
-          children: [
-            if (isLoading) const LinearProgressIndicator(minHeight: 2),
-            Expanded(
-              child: _buildContent(
-                products: products,
-                isLoading: isLoading,
-                hasData: hasData,
-                error: error,
-                currentPage: filter.page,
-              ),
+      ),
+      body: Column(
+        children: [
+          if (isLoading) const LinearProgressIndicator(minHeight: 2),
+          Expanded(
+            child: _buildContent(
+              products: products,
+              isLoading: isLoading,
+              hasData: hasData,
+              error: error,
+              currentPage: filter.page,
             ),
-            _buildPaginationControls(pagination, isLoading),
-          ],
-        ),
+          ),
+          _buildPaginationControls(pagination, isLoading),
+        ],
       ),
     );
   }
@@ -222,10 +223,9 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
           FilledButton.tonalIcon(
             onPressed: !isLoading && pagination.currentPage > 1
                 ? () {
-                    ref.read(productFilterProvider.notifier).state =
-                        ref.read(productFilterProvider).copyWith(
-                          page: pagination.currentPage - 1,
-                        );
+                    ref.read(productFilterProvider.notifier).state = ref
+                        .read(productFilterProvider)
+                        .copyWith(page: pagination.currentPage - 1);
                   }
                 : null,
             icon: const Icon(Icons.chevron_left),
@@ -235,13 +235,12 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
           FilledButton.tonalIcon(
             onPressed:
                 !isLoading && pagination.currentPage < pagination.lastPage
-                    ? () {
-                        ref.read(productFilterProvider.notifier).state =
-                            ref.read(productFilterProvider).copyWith(
-                              page: pagination.currentPage + 1,
-                            );
-                      }
-                    : null,
+                ? () {
+                    ref.read(productFilterProvider.notifier).state = ref
+                        .read(productFilterProvider)
+                        .copyWith(page: pagination.currentPage + 1);
+                  }
+                : null,
             icon: const Icon(Icons.chevron_right),
             label: const Text('Sau'),
           ),

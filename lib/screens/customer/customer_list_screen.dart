@@ -128,57 +128,54 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
     final customers = _page?.items ?? const <User>[];
     final pagination = _page?.pagination;
 
-    return GestureDetector(
-      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: Scaffold(
-        appBar: AppBar(
-          toolbarHeight: 56,
-          automaticallyImplyLeading: false,
-          title: SearchBar(
-            controller: _searchController,
-            hintText: 'Tìm kiếm khách hàng',
-            leading: IconButton(
-              visualDensity: VisualDensity.compact,
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            trailing: [
-              if (_searchController.text.isEmpty)
-                IconButton(
-                  tooltip: 'Thống kê',
-                  visualDensity: VisualDensity.compact,
-                  icon: const Icon(Icons.assessment),
-                  onPressed: _navigateToStats,
-                )
-              else
-                IconButton(
-                  tooltip: 'Xóa',
-                  visualDensity: VisualDensity.compact,
-                  icon: const Icon(Icons.close),
-                  onPressed: () {
-                    _searchController.clear();
-                    _loadCustomers(page: 1);
-                  },
-                ),
-            ],
-            onSubmitted: (_) => _loadCustomers(page: 1),
-            textInputAction: TextInputAction.search,
-            elevation: const WidgetStatePropertyAll(0),
-            backgroundColor: WidgetStatePropertyAll(
-              Theme.of(context).colorScheme.surfaceContainerHigh,
-            ),
-            padding: const WidgetStatePropertyAll<EdgeInsets>(
-              EdgeInsets.symmetric(horizontal: 8),
-            ),
+    return Scaffold(
+      appBar: AppBar(
+        toolbarHeight: 56,
+        automaticallyImplyLeading: false,
+        title: SearchBar(
+          controller: _searchController,
+          hintText: 'Tìm kiếm khách hàng',
+          leading: IconButton(
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          trailing: [
+            if (_searchController.text.isEmpty)
+              IconButton(
+                tooltip: 'Thống kê',
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(Icons.assessment),
+                onPressed: _navigateToStats,
+              )
+            else
+              IconButton(
+                tooltip: 'Xóa',
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(Icons.close),
+                onPressed: () {
+                  _searchController.clear();
+                  _loadCustomers(page: 1);
+                },
+              ),
+          ],
+          onSubmitted: (_) => _loadCustomers(page: 1),
+          textInputAction: TextInputAction.search,
+          elevation: const WidgetStatePropertyAll(0),
+          backgroundColor: WidgetStatePropertyAll(
+            Theme.of(context).colorScheme.surfaceContainerHigh,
+          ),
+          padding: const WidgetStatePropertyAll<EdgeInsets>(
+            EdgeInsets.symmetric(horizontal: 8),
           ),
         ),
-        body: Column(
-          children: [
-            if (_isLoading) const LinearProgressIndicator(minHeight: 2),
-            Expanded(child: _buildContent(customers)),
-            _buildPaginationControls(pagination),
-          ],
-        ),
+      ),
+      body: Column(
+        children: [
+          if (_isLoading) const LinearProgressIndicator(minHeight: 2),
+          Expanded(child: _buildContent(customers)),
+          _buildPaginationControls(pagination),
+        ],
       ),
     );
   }

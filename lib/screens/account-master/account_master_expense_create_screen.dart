@@ -133,120 +133,114 @@ class _AccountMasterExpenseCreateScreenState
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: Scaffold(
-        appBar: AppBar(title: const Text('Tạo chi phí')),
-        body: Form(
-          key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Thông tin tài khoản',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 12),
-                      _buildInfoRow(
-                        'Dịch vụ',
-                        widget.accountMaster.serviceType,
-                      ),
-                      const SizedBox(height: 8),
-                      _buildInfoRow('Username', widget.accountMaster.username),
-                      if (widget.accountMaster.monthlyCost != null) ...[
-                        const SizedBox(height: 8),
-                        _buildInfoRow(
-                          'Chi phí hàng tháng',
-                          widget.accountMaster.monthlyCost.toString(),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              FinancialTransactionTypeDropdown(
-                initialValue: _selectedType,
-                required: true,
-                onChanged: (v) => setState(() => _selectedType = v!),
-              ),
-              const SizedBox(height: 12),
-              FinancialTransactionCategoryDropdown(
-                initialValue: _selectedCategory,
-                required: true,
-                onChanged: (v) => setState(() => _selectedCategory = v!),
-              ),
-              const SizedBox(height: 12),
-              MoneyFormField(
-                controller: _amountController,
-                labelText: 'Chi phí *',
-                initialValue: _defaultAmount,
-                onChanged: (_) {},
-                validator: (value) {
-                  final amount = _amountController.moneyValue;
-                  if (amount <= 0) {
-                    return 'Vui lòng nhập số tiền hợp lệ';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 12),
-              InkWell(
-                onTap: _pickDateTime,
-                borderRadius: BorderRadius.circular(12),
-                child: InputDecorator(
-                  decoration: InputDecoration(
-                    labelText: 'Thời gian chi phí *',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+    return Scaffold(
+      appBar: AppBar(title: const Text('Tạo chi phí')),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Thông tin tài khoản',
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
-                    suffixIcon: const Icon(Icons.calendar_today),
-                  ),
-                  child: Text(
-                    _selectedDate.toLocal().toString().substring(0, 19),
-                  ),
+                    const SizedBox(height: 12),
+                    _buildInfoRow('Dịch vụ', widget.accountMaster.serviceType),
+                    const SizedBox(height: 8),
+                    _buildInfoRow('Username', widget.accountMaster.username),
+                    if (widget.accountMaster.monthlyCost != null) ...[
+                      const SizedBox(height: 8),
+                      _buildInfoRow(
+                        'Chi phí hàng tháng',
+                        widget.accountMaster.monthlyCost.toString(),
+                      ),
+                    ],
+                  ],
                 ),
               ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _descriptionController,
-                maxLines: 3,
+            ),
+            const SizedBox(height: 16),
+            FinancialTransactionTypeDropdown(
+              initialValue: _selectedType,
+              required: true,
+              onChanged: (v) => setState(() => _selectedType = v!),
+            ),
+            const SizedBox(height: 12),
+            FinancialTransactionCategoryDropdown(
+              initialValue: _selectedCategory,
+              required: true,
+              onChanged: (v) => setState(() => _selectedCategory = v!),
+            ),
+            const SizedBox(height: 12),
+            MoneyFormField(
+              controller: _amountController,
+              labelText: 'Chi phí *',
+              initialValue: _defaultAmount,
+              onChanged: (_) {},
+              validator: (value) {
+                final amount = _amountController.moneyValue;
+                if (amount <= 0) {
+                  return 'Vui lòng nhập số tiền hợp lệ';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+            InkWell(
+              onTap: _pickDateTime,
+              borderRadius: BorderRadius.circular(12),
+              child: InputDecorator(
                 decoration: InputDecoration(
-                  labelText: 'Mô tả *',
+                  labelText: 'Thời gian chi phí *',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
+                  suffixIcon: const Icon(Icons.calendar_today),
                 ),
-                validator: (value) => value == null || value.trim().isEmpty
-                    ? 'Vui lòng nhập mô tả'
-                    : null,
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                height: 48,
-                child: FilledButton.icon(
-                  onPressed: _isSubmitting ? null : _submit,
-                  icon: _isSubmitting
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Icon(Icons.save),
-                  label: Text(_isSubmitting ? 'Đang xử lý...' : 'Tạo chi phí'),
+                child: Text(
+                  _selectedDate.toLocal().toString().substring(0, 19),
                 ),
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _descriptionController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                labelText: 'Mô tả *',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              validator: (value) => value == null || value.trim().isEmpty
+                  ? 'Vui lòng nhập mô tả'
+                  : null,
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              height: 48,
+              child: FilledButton.icon(
+                onPressed: _isSubmitting ? null : _submit,
+                icon: _isSubmitting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.save),
+                label: Text(_isSubmitting ? 'Đang xử lý...' : 'Tạo chi phí'),
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -172,7 +172,7 @@ class FcodePosApp extends ConsumerWidget {
     return baseTheme.copyWith(
       isDense: true,
       filled: true,
-      fillColor: colorScheme.surfaceContainerLowest,
+      fillColor: colorScheme.surfaceContainerHigh,
       contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
       border: outline(colorScheme.outlineVariant.withValues(alpha: 0.5)),
       enabledBorder: outline(colorScheme.outlineVariant.withValues(alpha: 0.5)),
@@ -197,29 +197,23 @@ class FcodePosApp extends ConsumerWidget {
     }
     final seedColor = material3SeedColors[clampedIndex];
 
-    return GestureDetector(
-      onTap: () {
-        FocusManager.instance.primaryFocus?.unfocus();
-      },
-      behavior: HitTestBehavior.translucent,
-      child: MaterialApp(
-        title: Environment.appName,
-        scaffoldMessengerKey: rootScaffoldMessengerKey,
-        navigatorKey: navigatorKey,
-        debugShowCheckedModeBanner: false,
-        theme: _buildLightTheme(seedColor),
-        darkTheme: _buildDarkTheme(seedColor),
-        themeMode: themeMode,
-        locale: const Locale('vi'),
-        supportedLocales: const [Locale('vi'), Locale('en')],
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-        ],
-        onGenerateRoute: _onGenerateRoute,
-        home: const _DeepLinkWrapper(child: SplashScreen()),
-      ),
+    return MaterialApp(
+      title: Environment.appName,
+      scaffoldMessengerKey: rootScaffoldMessengerKey,
+      navigatorKey: navigatorKey,
+      debugShowCheckedModeBanner: false,
+      theme: _buildLightTheme(seedColor),
+      darkTheme: _buildDarkTheme(seedColor),
+      themeMode: themeMode,
+      locale: const Locale('vi'),
+      supportedLocales: const [Locale('vi'), Locale('en')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      onGenerateRoute: _onGenerateRoute,
+      home: const _DeepLinkWrapper(child: SplashScreen()),
     );
   }
 

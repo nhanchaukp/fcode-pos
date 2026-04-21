@@ -295,126 +295,120 @@ class _AccountSlotManagementScreenState
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: Scaffold(
-        appBar: AppBar(
-          toolbarHeight: 64,
-          automaticallyImplyLeading: false,
-          title: SearchBar(
-            controller: _searchController,
-            hintText: 'Tìm theo tên, username',
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            trailing: [
-              if (_searchQuery.isNotEmpty)
-                IconButton(
-                  tooltip: 'Xóa',
-                  icon: const Icon(Icons.close),
-                  onPressed: () {
-                    _searchController.clear();
-                    setState(() {
-                      _searchQuery = '';
-                    });
-                    _loadAccountMasters();
-                  },
-                ),
+    return Scaffold(
+      appBar: AppBar(
+        toolbarHeight: 64,
+        automaticallyImplyLeading: false,
+        title: SearchBar(
+          controller: _searchController,
+          hintText: 'Tìm theo tên, username',
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          trailing: [
+            if (_searchQuery.isNotEmpty)
               IconButton(
-                icon: Badge(
-                  isLabelVisible:
-                      _selectedServiceType != null ||
-                      _selectedIsActive != null ||
-                      _selectedDaysRemaining != null,
-                  child: const Icon(Icons.filter_list),
-                ),
-                onPressed: _showFilterDialog,
-                tooltip: 'Bộ lọc',
-              ),
-              IconButton(
-                icon: const Icon(Icons.add),
-                onPressed: () async {
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const AccountMasterUpsertScreen(),
-                    ),
-                  );
-                  if (result == true) {
-                    _loadAccountMasters();
-                  }
+                tooltip: 'Xóa',
+                icon: const Icon(Icons.close),
+                onPressed: () {
+                  _searchController.clear();
+                  setState(() {
+                    _searchQuery = '';
+                  });
+                  _loadAccountMasters();
                 },
-                tooltip: 'Tạo tài khoản',
               ),
-            ],
-            onSubmitted: (_) => _loadAccountMasters(),
-            textInputAction: TextInputAction.search,
-            elevation: const WidgetStatePropertyAll(0),
-            backgroundColor: WidgetStatePropertyAll(
-              Theme.of(context).colorScheme.surfaceContainerHigh,
+            IconButton(
+              icon: Badge(
+                isLabelVisible:
+                    _selectedServiceType != null ||
+                    _selectedIsActive != null ||
+                    _selectedDaysRemaining != null,
+                child: const Icon(Icons.filter_list),
+              ),
+              onPressed: _showFilterDialog,
+              tooltip: 'Bộ lọc',
             ),
-            padding: const WidgetStatePropertyAll<EdgeInsets>(
-              EdgeInsets.symmetric(horizontal: 8),
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AccountMasterUpsertScreen(),
+                  ),
+                );
+                if (result == true) {
+                  _loadAccountMasters();
+                }
+              },
+              tooltip: 'Tạo tài khoản',
             ),
+          ],
+          onSubmitted: (_) => _loadAccountMasters(),
+          textInputAction: TextInputAction.search,
+          elevation: const WidgetStatePropertyAll(0),
+          backgroundColor: WidgetStatePropertyAll(
+            Theme.of(context).colorScheme.surfaceContainerHigh,
+          ),
+          padding: const WidgetStatePropertyAll<EdgeInsets>(
+            EdgeInsets.symmetric(horizontal: 8),
           ),
         ),
-        body: Column(
-          children: [
-            // Active filters display
-            if (_selectedServiceType != null ||
-                _selectedIsActive != null ||
-                _selectedDaysRemaining != null)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                child: Wrap(
-                  spacing: 8,
-                  children: [
-                    if (_selectedServiceType != null)
-                      Chip(
-                        label: Text('Loại: ${_selectedServiceType!.label}'),
-                        onDeleted: () {
-                          setState(() {
-                            _selectedServiceType = null;
-                          });
-                          _loadAccountMasters();
-                        },
+      ),
+      body: Column(
+        children: [
+          // Active filters display
+          if (_selectedServiceType != null ||
+              _selectedIsActive != null ||
+              _selectedDaysRemaining != null)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Wrap(
+                spacing: 8,
+                children: [
+                  if (_selectedServiceType != null)
+                    Chip(
+                      label: Text('Loại: ${_selectedServiceType!.label}'),
+                      onDeleted: () {
+                        setState(() {
+                          _selectedServiceType = null;
+                        });
+                        _loadAccountMasters();
+                      },
+                    ),
+                  if (_selectedIsActive != null)
+                    Chip(
+                      label: Text(
+                        _selectedIsActive!
+                            ? 'Đang hoạt động'
+                            : 'Không hoạt động',
                       ),
-                    if (_selectedIsActive != null)
-                      Chip(
-                        label: Text(
-                          _selectedIsActive!
-                              ? 'Đang hoạt động'
-                              : 'Không hoạt động',
-                        ),
-                        onDeleted: () {
-                          setState(() {
-                            _selectedIsActive = null;
-                          });
-                          _loadAccountMasters();
-                        },
-                      ),
-                    if (_selectedDaysRemaining != null)
-                      Chip(
-                        label: Text('Còn ≤ $_selectedDaysRemaining ngày'),
-                        onDeleted: () {
-                          setState(() {
-                            _selectedDaysRemaining = null;
-                          });
-                          _loadAccountMasters();
-                        },
-                      ),
-                  ],
-                ),
+                      onDeleted: () {
+                        setState(() {
+                          _selectedIsActive = null;
+                        });
+                        _loadAccountMasters();
+                      },
+                    ),
+                  if (_selectedDaysRemaining != null)
+                    Chip(
+                      label: Text('Còn ≤ $_selectedDaysRemaining ngày'),
+                      onDeleted: () {
+                        setState(() {
+                          _selectedDaysRemaining = null;
+                        });
+                        _loadAccountMasters();
+                      },
+                    ),
+                ],
               ),
+            ),
 
-            // Content
-            Expanded(child: _buildBody()),
-          ],
-        ),
+          // Content
+          Expanded(child: _buildBody()),
+        ],
       ),
     );
   }
@@ -489,7 +483,7 @@ class _AccountSlotManagementScreenState
     final hasSlots =
         accountMaster.slots != null && accountMaster.slots!.isNotEmpty;
 
-    return GestureDetector(
+    return InkWell(
       onTap: () {
         Navigator.push(
           context,
@@ -807,7 +801,7 @@ class _AccountSlotManagementScreenState
         ? slot.shopOrderItem?.order?.user?.name
         : null;
 
-    return GestureDetector(
+    return InkWell(
       onLongPress: () => _showSlotItemMenu(context, slot, accountMaster),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),

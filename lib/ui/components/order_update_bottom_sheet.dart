@@ -100,38 +100,35 @@ class _OrderUpdateBottomSheetState extends State<OrderUpdateBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-          left: 16,
-          right: 16,
-          top: 16,
-        ),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildHeader(),
-                const SizedBox(height: 24),
-                _buildCustomerField(),
-                const SizedBox(height: 16),
-                _buildTotalField(),
-                const SizedBox(height: 16),
-                _buildStatusField(),
-                const SizedBox(height: 16),
-                _buildUtmSourceField(),
-                const SizedBox(height: 16),
-                _buildNoteField(),
-                const SizedBox(height: 24),
-                _buildActions(),
-                const SizedBox(height: 16),
-              ],
-            ),
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+        left: 16,
+        right: 16,
+        top: 16,
+      ),
+      child: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildHeader(),
+              const SizedBox(height: 24),
+              _buildCustomerField(),
+              const SizedBox(height: 16),
+              _buildTotalField(),
+              const SizedBox(height: 16),
+              _buildStatusField(),
+              const SizedBox(height: 16),
+              _buildUtmSourceField(),
+              const SizedBox(height: 16),
+              _buildNoteField(),
+              const SizedBox(height: 24),
+              _buildActions(),
+              const SizedBox(height: 16),
+            ],
           ),
         ),
       ),

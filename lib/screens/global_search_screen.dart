@@ -2,14 +2,12 @@ import 'dart:async';
 
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/customer/customer_detail_screen.dart';
-import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/screens/products/product_edit_screen.dart';
 import 'package:fcode_pos/services/customer_service.dart';
 import 'package:fcode_pos/services/order_service.dart';
 import 'package:fcode_pos/services/product_service.dart';
-import 'package:fcode_pos/ui/components/order_status_badge.dart';
+import 'package:fcode_pos/ui/components/order_list_component.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
-import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/extensions.dart';
 import 'package:flutter/material.dart';
 
@@ -102,7 +100,10 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
           setState(() => _products = result.data?.items ?? []);
           break;
         case _SearchTab.customers:
-          final result = await _customerService.list(search: query, perPage: 20);
+          final result = await _customerService.list(
+            search: query,
+            perPage: 20,
+          );
           if (!mounted) return;
           setState(() => _customers = result.data?.items ?? []);
           break;
@@ -124,24 +125,21 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
-    return GestureDetector(
-      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          title: const Text('Tìm kiếm'),
-          elevation: 0,
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
         ),
-        body: Column(
-          children: [
-            if (_isSearching) const LinearProgressIndicator(minHeight: 2),
-            Expanded(child: _buildSearchResults()),
-            _buildBottomBar(colorScheme, bottomInset),
-          ],
-        ),
+        title: const Text('Tìm kiếm'),
+        elevation: 0,
+      ),
+      body: Column(
+        children: [
+          if (_isSearching) const LinearProgressIndicator(minHeight: 2),
+          Expanded(child: _buildSearchResults()),
+          _buildBottomBar(colorScheme, bottomInset),
+        ],
       ),
     );
   }
@@ -157,7 +155,10 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Divider(height: 1, color: colorScheme.outlineVariant.applyOpacity(0.3)),
+          Divider(
+            height: 1,
+            color: colorScheme.outlineVariant.applyOpacity(0.3),
+          ),
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
             child: SegmentedButton<_SearchTab>(
@@ -316,85 +317,12 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
   // -- Order results --
 
   Widget _buildOrderResults() {
-    if (_orders.isEmpty) return _buildEmptyState('đơn hàng');
-
-    return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 8),
-      itemCount: _orders.length,
-      itemBuilder: (context, index) => _buildOrderTile(_orders[index]),
-    );
-  }
-
-  Widget _buildOrderTile(Order order) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final colorScheme = theme.colorScheme;
-
-    return InkWell(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => OrderDetailScreen(orderId: order.id.toString()),
-        ),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: colorScheme.outlineVariant.applyOpacity(0.3),
-            ),
-          ),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        'ĐH #${order.id}',
-                        style: textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      OrderStatusBadge(status: order.status),
-                    ],
-                  ),
-                  if (order.user != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      order.user!.name,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                  if (order.createdAt != null) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      DateHelper.formatDateTime(order.createdAt!),
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            Text(
-              CurrencyHelper.formatCurrency(order.total),
-              style: textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: colorScheme.primary,
-              ),
-            ),
-          ],
-        ),
-      ),
+    return OrderListComponent(
+      orders: _orders,
+      isLoading: false,
+      currentPage: 1,
+      totalPages: 1,
+      viewMode: OrderListViewMode.compact,
     );
   }
 
@@ -419,9 +347,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     return InkWell(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (_) => ProductEditScreen(product: product),
-        ),
+        MaterialPageRoute(builder: (_) => ProductEditScreen(product: product)),
       ),
       child: Container(
         decoration: BoxDecoration(
@@ -472,7 +398,9 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  bestPrice > 0 ? CurrencyHelper.formatCurrency(bestPrice) : '—',
+                  bestPrice > 0
+                      ? CurrencyHelper.formatCurrency(bestPrice)
+                      : '—',
                   style: textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                     color: colorScheme.primary,
@@ -532,9 +460,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
               radius: 18,
               backgroundColor: colorScheme.primaryContainer,
               child: Text(
-                customer.name.isNotEmpty
-                    ? customer.name[0].toUpperCase()
-                    : '?',
+                customer.name.isNotEmpty ? customer.name[0].toUpperCase() : '?',
                 style: textTheme.titleSmall?.copyWith(
                   color: colorScheme.onPrimaryContainer,
                   fontWeight: FontWeight.w700,

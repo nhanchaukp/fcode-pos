@@ -20,11 +20,7 @@ class OrderCreateScreen extends ConsumerStatefulWidget {
   /// Chủ yếu dùng để hiển thị tiêu đề, tooltip, text nút.
   final bool isClone;
 
-  const OrderCreateScreen({
-    super.key,
-    this.initialOrder,
-    this.isClone = false,
-  });
+  const OrderCreateScreen({super.key, this.initialOrder, this.isClone = false});
 
   @override
   ConsumerState<OrderCreateScreen> createState() => _OrderCreateScreenState();
@@ -130,7 +126,9 @@ class _OrderCreateScreenState extends ConsumerState<OrderCreateScreen> {
       }
 
       Toastr.success(
-        widget.isClone ? 'Clone đơn hàng thành công' : 'Tạo đơn hàng thành công',
+        widget.isClone
+            ? 'Clone đơn hàng thành công'
+            : 'Tạo đơn hàng thành công',
       );
 
       if (createdOrder != null && createdOrder.id != 0) {
@@ -157,39 +155,36 @@ class _OrderCreateScreenState extends ConsumerState<OrderCreateScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(widget.isClone ? 'Clone đơn hàng' : 'Tạo đơn hàng'),
-          elevation: 0,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.check),
-              onPressed: _isLoading ? null : _handleCreate,
-              tooltip: widget.isClone ? 'Tạo đơn clone' : 'Tạo đơn',
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.isClone ? 'Clone đơn hàng' : 'Tạo đơn hàng'),
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.check),
+            onPressed: _isLoading ? null : _handleCreate,
+            tooltip: widget.isClone ? 'Tạo đơn clone' : 'Tạo đơn',
+          ),
+        ],
+      ),
+      body: Form(
+        key: _formKey,
+        child: CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  _buildOrderItemsSection(),
+                  const SizedBox(height: 16),
+                  _buildSummarySection(),
+                ]),
+              ),
             ),
           ],
         ),
-        body: Form(
-          key: _formKey,
-          child: CustomScrollView(
-            slivers: [
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    _buildOrderItemsSection(),
-                    const SizedBox(height: 16),
-                    _buildSummarySection(),
-                  ]),
-                ),
-              ),
-            ],
-          ),
-        ),
-        bottomNavigationBar: _buildBottomBar(),
       ),
+      bottomNavigationBar: _buildBottomBar(),
     );
   }
 
@@ -505,9 +500,7 @@ class _OrderCreateScreenState extends ConsumerState<OrderCreateScreen> {
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                     )
-                  : Text(
-                      widget.isClone ? 'Tạo đơn clone' : 'Tạo đơn hàng',
-                    ),
+                  : Text(widget.isClone ? 'Tạo đơn clone' : 'Tạo đơn hàng'),
             ),
           ),
         ],

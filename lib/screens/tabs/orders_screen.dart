@@ -75,6 +75,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             tooltip: 'Bộ lọc',
           ),
         ],
+        bottom: orderListAsync.isLoading
+            ? const PreferredSize(
+                preferredSize: Size.fromHeight(2),
+                child: LinearProgressIndicator(minHeight: 2),
+              )
+            : null,
       ),
       body: SafeArea(
         child: RefreshIndicator(

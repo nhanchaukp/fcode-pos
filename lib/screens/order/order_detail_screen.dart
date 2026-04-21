@@ -343,7 +343,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: GestureDetector(
+        title: InkWell(
           onTap: () {
             Clipboard.setData(
               ClipboardData(text: 'Đơn hàng ${widget.orderId}'),
@@ -671,11 +671,9 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
             children: [
               // Email bên trái, ellipsis nếu dài
               Expanded(
-                child: GestureDetector(
+                child: InkWell(
                   onTap: () async {
-                    await Clipboard.setData(
-                      ClipboardData(text: user.email),
-                    );
+                    await Clipboard.setData(ClipboardData(text: user.email));
                     if (mounted) {
                       Toastr.success('Đã copy email');
                     }
@@ -708,11 +706,9 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
               // SĐT bên phải (nếu có)
               if (hasPhone) ...[
                 const SizedBox(width: 12),
-                GestureDetector(
+                InkWell(
                   onTap: () async {
-                    await Clipboard.setData(
-                      ClipboardData(text: user.phone!),
-                    );
+                    await Clipboard.setData(ClipboardData(text: user.phone!));
                     if (mounted) {
                       Toastr.success('Đã copy số điện thoại');
                     }
