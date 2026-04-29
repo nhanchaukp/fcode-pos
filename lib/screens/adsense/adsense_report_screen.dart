@@ -18,6 +18,8 @@ class AdsenseReportScreen extends StatefulWidget {
 }
 
 class _AdsenseReportScreenState extends State<AdsenseReportScreen> {
+  static final DateTime _minReportDate = DateTime(2020, 1, 1);
+
   late final AdsenseService _adsenseService;
   final TextEditingController _filterController = TextEditingController();
   final DateFormat _dateFormatter = DateFormat('dd/MM/yyyy');
@@ -124,7 +126,9 @@ class _AdsenseReportScreenState extends State<AdsenseReportScreen> {
         });
       }
     } catch (e) {
-      debugPrint('Error saving AdSense credential: $e');
+      debugPrint(
+        'Non-fatal: could not persist AdSense credentials (requires re-login). $e',
+      );
     }
   }
 
@@ -256,7 +260,7 @@ class _AdsenseReportScreenState extends State<AdsenseReportScreen> {
   Future<void> _selectDateRange() async {
     final result = await showDateRangePicker(
       context: context,
-      firstDate: DateTime(2020),
+      firstDate: _minReportDate,
       lastDate: DateTime.now(),
       initialDateRange: DateTimeRange(start: _fromDate, end: _toDate),
     );
