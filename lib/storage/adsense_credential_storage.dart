@@ -33,8 +33,11 @@ class AdsenseCredential {
   };
 
   factory AdsenseCredential.fromJson(Map<String, dynamic> json) {
-    final parsedUpdatedAt =
-        DateTime.tryParse(json['updatedAt'] as String? ?? '');
+    final updatedAtRaw = json['updatedAt'];
+    DateTime? parsedUpdatedAt;
+    if (updatedAtRaw is String && updatedAtRaw.isNotEmpty) {
+      parsedUpdatedAt = DateTime.tryParse(updatedAtRaw);
+    }
     return AdsenseCredential(
       email: json['email'] as String? ?? '',
       displayName: json['displayName'] as String?,

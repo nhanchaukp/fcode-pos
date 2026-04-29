@@ -116,16 +116,19 @@ class AdsenseService {
   }
 
   Map<String, dynamic> _decodeResponse(http.Response response) {
-    Map<String, dynamic> body = {};
+    Map<String, dynamic> body;
     try {
       final decoded = jsonDecode(response.body);
       if (decoded is Map<String, dynamic>) {
         body = decoded;
       } else if (decoded is Map) {
         body = Map<String, dynamic>.from(decoded);
+      } else {
+        body = {};
       }
     } catch (e) {
       debugPrint('Error decoding AdSense response: $e');
+      body = {};
     }
 
     if (response.statusCode >= 400) {

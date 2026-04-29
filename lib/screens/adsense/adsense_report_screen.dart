@@ -19,6 +19,7 @@ class AdsenseReportScreen extends StatefulWidget {
 
 class _AdsenseReportScreenState extends State<AdsenseReportScreen> {
   static const int _minReportYear = 2020;
+  static const int _reportRowLimit = 50;
 
   late final AdsenseService _adsenseService;
   final TextEditingController _filterController = TextEditingController();
@@ -127,7 +128,7 @@ class _AdsenseReportScreenState extends State<AdsenseReportScreen> {
       }
     } catch (e) {
       debugPrint(
-        'Non-fatal: could not persist AdSense credentials (requires re-login). $e',
+        'Non-fatal: failed to cache AdSense credentials; user must sign in again on next launch. $e',
       );
     }
   }
@@ -231,7 +232,7 @@ class _AdsenseReportScreenState extends State<AdsenseReportScreen> {
         dimensions:
             _selectedDimension.isEmpty ? const [] : [_selectedDimension],
         filters: _activeFilters(),
-        limit: 50,
+        limit: _reportRowLimit,
       );
       if (!mounted) return;
       setState(() {
@@ -718,7 +719,7 @@ class _AdsenseReportScreenState extends State<AdsenseReportScreen> {
     final report = _report;
     if (report == null) return const [];
     final headers = report.headers;
-    return report.rows.take(50).map((row) {
+    return report.rows.take(_reportRowLimit).map((row) {
       return Card(
         elevation: 0,
         margin: const EdgeInsets.only(bottom: AppSpacing.s),
