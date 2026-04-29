@@ -795,7 +795,7 @@ class _AdsenseReportScreenState extends State<AdsenseReportScreen> {
     if (number == null) return value;
     final formatter = NumberFormat('#,##0.##', 'vi_VN');
     if (metric == 'CTR') {
-      // AdSense sometimes returns CTR as ratio (0-1). Treat <= 1 as ratio.
+      // AdSense reports CTR as a ratio (0-1) per API docs; treat <= 1 as ratio.
       final percentValue = number <= 1 ? number * 100 : number;
       return '${formatter.format(percentValue)}%';
     }
@@ -809,17 +809,20 @@ class _AdsenseReportScreenState extends State<AdsenseReportScreen> {
 
   String _normalizeNumberString(String raw) {
     final trimmed = raw.trim();
+    if (trimmed.isEmpty) return trimmed;
     final hasComma = trimmed.contains(',');
     final hasDot = trimmed.contains('.');
     if (hasComma && hasDot) {
-      final lastComma = trimmed.lastIndexOf(',');
-      final lastDot = trimmed.lastIndexOf('.');
-      if (lastComma > lastDot) {
-        return trimmed.replaceAll('.', '').replaceAll(',', '.');
-      }
-      return trimmed.replaceAll(',', '');
+      // Use the last separator as decimal to normalize 1.234,56 or 1,234.56.
+      final decimalIsComma = trimmed.lastIndexOf(',') > trimmed.lastIndexOf('.');
+      final thousandsSeparator = decimalIsComma ? '.' : ',';
+      final decimalSeparator = decimalIsComma ? ',' : '.';
+      return trimmed
+          .replaceAll(thousandsSeparator, '')
+          .replaceAll(decimalSeparator, '.');
     }
     if (hasComma) {
+      // vi_VN often uses comma as decimal separator.
       return trimmed.replaceAll('.', '').replaceAll(',', '.');
     }
     return trimmed.replaceAll(',', '');
