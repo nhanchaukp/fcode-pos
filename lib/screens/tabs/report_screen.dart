@@ -1,4 +1,5 @@
 import 'package:fcode_pos/models.dart';
+import 'package:fcode_pos/screens/adsense/adsense_report_screen.dart';
 import 'package:fcode_pos/screens/financial_report_screen.dart';
 import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/services/order_service.dart';
@@ -127,6 +128,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
       appBar: AppBar(
         title: const Text('Báo cáo'),
         actions: [
+          IconButton(
+            tooltip: 'Báo cáo Google AdSense',
+            icon: const Icon(Icons.ads_click),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AdsenseReportScreen(),
+                ),
+              );
+            },
+          ),
           IconButton(
             tooltip: 'Báo cáo tài chính',
             icon: const Icon(Icons.bar_chart_outlined),
