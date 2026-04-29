@@ -790,11 +790,12 @@ class _AdsenseReportScreenState extends State<AdsenseReportScreen> {
     String metric,
     String? currencyCode,
   ) {
-    final sanitized = value.replaceAll(',', '').trim();
+    final sanitized = _normalizeNumberString(value);
     final number = double.tryParse(sanitized);
     if (number == null) return value;
     final formatter = NumberFormat('#,##0.##', 'vi_VN');
     if (metric == 'CTR') {
+      // AdSense sometimes returns CTR as ratio (0-1). Treat <= 1 as ratio.
       final percentValue = number <= 1 ? number * 100 : number;
       return '${formatter.format(percentValue)}%';
     }
@@ -804,6 +805,24 @@ class _AdsenseReportScreenState extends State<AdsenseReportScreen> {
       return '${formatter.format(number)} $currencyCode';
     }
     return formatter.format(number);
+  }
+
+  String _normalizeNumberString(String raw) {
+    final trimmed = raw.trim();
+    final hasComma = trimmed.contains(',');
+    final hasDot = trimmed.contains('.');
+    if (hasComma && hasDot) {
+      final lastComma = trimmed.lastIndexOf(',');
+      final lastDot = trimmed.lastIndexOf('.');
+      if (lastComma > lastDot) {
+        return trimmed.replaceAll('.', '').replaceAll(',', '.');
+      }
+      return trimmed.replaceAll(',', '');
+    }
+    if (hasComma) {
+      return trimmed.replaceAll('.', '').replaceAll(',', '.');
+    }
+    return trimmed.replaceAll(',', '');
   }
 
   String _readableError(Object error) {

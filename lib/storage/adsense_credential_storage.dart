@@ -53,6 +53,7 @@ class AdsenseCredential {
 class AdsenseCredentialStorage {
   static const _storage = FlutterSecureStorage(
     aOptions: AndroidOptions(resetOnError: true),
+    iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
   );
   static const _keyCredential = 'adsense_credential';
 
