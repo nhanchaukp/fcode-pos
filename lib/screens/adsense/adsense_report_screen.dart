@@ -18,7 +18,7 @@ class AdsenseReportScreen extends StatefulWidget {
 }
 
 class _AdsenseReportScreenState extends State<AdsenseReportScreen> {
-  static final DateTime _minReportDate = DateTime(2020, 1, 1);
+  static const int _minReportYear = 2020;
 
   late final AdsenseService _adsenseService;
   final TextEditingController _filterController = TextEditingController();
@@ -260,7 +260,7 @@ class _AdsenseReportScreenState extends State<AdsenseReportScreen> {
   Future<void> _selectDateRange() async {
     final result = await showDateRangePicker(
       context: context,
-      firstDate: _minReportDate,
+      firstDate: DateTime(_minReportYear, 1, 1),
       lastDate: DateTime.now(),
       initialDateRange: DateTimeRange(start: _fromDate, end: _toDate),
     );
@@ -763,7 +763,11 @@ class _AdsenseReportScreenState extends State<AdsenseReportScreen> {
     final label = raw.replaceAll('_', ' ').toLowerCase();
     return label
         .split(' ')
-        .map((part) => part.isEmpty ? part : part[0].toUpperCase() + part.substring(1))
+        .map((part) {
+          if (part.isEmpty) return part;
+          if (part.length == 1) return part.toUpperCase();
+          return part[0].toUpperCase() + part.substring(1);
+        })
         .join(' ');
   }
 
