@@ -110,54 +110,51 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
     final supplies = _page?.items ?? const <Supply>[];
     final pagination = _page?.pagination;
 
-    return GestureDetector(
-      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: Scaffold(
-        appBar: AppBar(
-          toolbarHeight: 64,
-          automaticallyImplyLeading: false,
-          title: SearchBar(
-            controller: _searchController,
-            hintText: 'Tìm kiếm nhà cung cấp',
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            trailing: _searchController.text.isEmpty
-                ? null
-                : [
-                    IconButton(
-                      tooltip: 'Xóa',
-                      icon: const Icon(Icons.close),
-                      onPressed: () {
-                        _searchController.clear();
-                        _loadSuppliers(page: 1);
-                      },
-                    ),
-                  ],
-            onSubmitted: (_) => _loadSuppliers(page: 1),
-            textInputAction: TextInputAction.search,
-            elevation: const WidgetStatePropertyAll(0),
-            backgroundColor: WidgetStatePropertyAll(
-              Theme.of(context).colorScheme.surfaceContainerHigh,
-            ),
-            padding: const WidgetStatePropertyAll<EdgeInsets>(
-              EdgeInsets.symmetric(horizontal: 8),
-            ),
+    return Scaffold(
+      appBar: AppBar(
+        toolbarHeight: 64,
+        automaticallyImplyLeading: false,
+        title: SearchBar(
+          controller: _searchController,
+          hintText: 'Tìm kiếm nhà cung cấp',
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          trailing: _searchController.text.isEmpty
+              ? null
+              : [
+                  IconButton(
+                    tooltip: 'Xóa',
+                    icon: const Icon(Icons.close),
+                    onPressed: () {
+                      _searchController.clear();
+                      _loadSuppliers(page: 1);
+                    },
+                  ),
+                ],
+          onSubmitted: (_) => _loadSuppliers(page: 1),
+          textInputAction: TextInputAction.search,
+          elevation: const WidgetStatePropertyAll(0),
+          backgroundColor: WidgetStatePropertyAll(
+            Theme.of(context).colorScheme.surfaceContainerHigh,
+          ),
+          padding: const WidgetStatePropertyAll<EdgeInsets>(
+            EdgeInsets.symmetric(horizontal: 8),
           ),
         ),
-        body: Column(
-          children: [
-            if (_isLoading) const LinearProgressIndicator(minHeight: 2),
-            Expanded(child: _buildContent(supplies)),
-            _buildPaginationControls(pagination),
-          ],
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: _handleCreateSupply,
-          tooltip: 'Thêm nhà cung cấp',
-          child: const Icon(Icons.add),
-        ),
+      ),
+      body: Column(
+        children: [
+          if (_isLoading) const LinearProgressIndicator(minHeight: 2),
+          Expanded(child: _buildContent(supplies)),
+          _buildPaginationControls(pagination),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _handleCreateSupply,
+        tooltip: 'Thêm nhà cung cấp',
+        child: const Icon(Icons.add),
       ),
     );
   }

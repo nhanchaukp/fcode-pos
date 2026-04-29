@@ -128,54 +128,54 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
     final customers = _page?.items ?? const <User>[];
     final pagination = _page?.pagination;
 
-    return GestureDetector(
-      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: Scaffold(
-        appBar: AppBar(
-          toolbarHeight: 64,
-          automaticallyImplyLeading: false,
-          title: SearchBar(
-            controller: _searchController,
-            hintText: 'Tìm kiếm khách hàng',
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            trailing: [
-              if (_searchController.text.isEmpty)
-                IconButton(
-                  tooltip: 'Thống kê',
-                  icon: const Icon(Icons.assessment),
-                  onPressed: _navigateToStats,
-                )
-              else
-                IconButton(
-                  tooltip: 'Xóa',
-                  icon: const Icon(Icons.close),
-                  onPressed: () {
-                    _searchController.clear();
-                    _loadCustomers(page: 1);
-                  },
-                ),
-            ],
-            onSubmitted: (_) => _loadCustomers(page: 1),
-            textInputAction: TextInputAction.search,
-            elevation: const WidgetStatePropertyAll(0),
-            backgroundColor: WidgetStatePropertyAll(
-              Theme.of(context).colorScheme.surfaceContainerHigh,
-            ),
-            padding: const WidgetStatePropertyAll<EdgeInsets>(
-              EdgeInsets.symmetric(horizontal: 8),
-            ),
+    return Scaffold(
+      appBar: AppBar(
+        toolbarHeight: 56,
+        automaticallyImplyLeading: false,
+        title: SearchBar(
+          controller: _searchController,
+          hintText: 'Tìm kiếm khách hàng',
+          leading: IconButton(
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          trailing: [
+            if (_searchController.text.isEmpty)
+              IconButton(
+                tooltip: 'Thống kê',
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(Icons.assessment),
+                onPressed: _navigateToStats,
+              )
+            else
+              IconButton(
+                tooltip: 'Xóa',
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(Icons.close),
+                onPressed: () {
+                  _searchController.clear();
+                  _loadCustomers(page: 1);
+                },
+              ),
+          ],
+          onSubmitted: (_) => _loadCustomers(page: 1),
+          textInputAction: TextInputAction.search,
+          elevation: const WidgetStatePropertyAll(0),
+          backgroundColor: WidgetStatePropertyAll(
+            Theme.of(context).colorScheme.surfaceContainerHigh,
+          ),
+          padding: const WidgetStatePropertyAll<EdgeInsets>(
+            EdgeInsets.symmetric(horizontal: 8),
           ),
         ),
-        body: Column(
-          children: [
-            if (_isLoading) const LinearProgressIndicator(minHeight: 2),
-            Expanded(child: _buildContent(customers)),
-            _buildPaginationControls(pagination),
-          ],
-        ),
+      ),
+      body: Column(
+        children: [
+          if (_isLoading) const LinearProgressIndicator(minHeight: 2),
+          Expanded(child: _buildContent(customers)),
+          _buildPaginationControls(pagination),
+        ],
       ),
     );
   }
@@ -226,10 +226,10 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
     return RefreshIndicator(
       onRefresh: () => _loadCustomers(page: _currentPage),
       child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: customers.length,
-        separatorBuilder: (context, _) => const SizedBox(height: 10),
+        separatorBuilder: (context, _) => const SizedBox(height: 8),
         itemBuilder: (context, index) {
           final customer = customers[index];
           return _CustomerCard(
@@ -299,26 +299,29 @@ class _CustomerCard extends StatelessWidget {
 
     return Card(
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CircleAvatar(radius: 22, child: Text(initial)),
-                  const SizedBox(width: 16),
+                  CircleAvatar(radius: 20, child: Text(initial)),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           displayName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.w700),
                         ),
@@ -349,7 +352,7 @@ class _CustomerCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Row(
                 children: [
                   Expanded(
@@ -360,7 +363,7 @@ class _CustomerCard extends StatelessWidget {
                     ),
                   ),
                   if (facebookUrl != null && facebookUrl.isNotEmpty) ...[
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: InkWell(
                         onTap: () => openUrl(facebookUrl),
@@ -375,7 +378,7 @@ class _CustomerCard extends StatelessWidget {
                 ],
               ),
               if (phone != null && phone.isNotEmpty) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 CopyableIconText(
                   icon: Icons.phone_outlined,
                   value: phone,

@@ -17,7 +17,7 @@ class CopyableIconText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return InkWell(
       onTap: () {
         Clipboard.setData(ClipboardData(text: value));
         Toastr.success('Số điện thoại đã được sao chép vào clipboard.');

@@ -26,18 +26,63 @@ class FcodePosApp extends ConsumerWidget {
     );
 
     return base.copyWith(
+      colorScheme: base.colorScheme,
+      textTheme: base.textTheme
+          .copyWith(
+            bodyMedium: base.textTheme.bodyMedium?.copyWith(fontSize: 13),
+            bodySmall: base.textTheme.bodySmall?.copyWith(fontSize: 12),
+            labelLarge: base.textTheme.labelLarge?.copyWith(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+            labelMedium: base.textTheme.labelMedium?.copyWith(fontSize: 12),
+          )
+          .apply(
+            bodyColor: base.colorScheme.onSurface,
+            displayColor: base.colorScheme.onSurface,
+          ),
       scaffoldBackgroundColor: base.colorScheme.surface,
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: base.colorScheme.primary,
-          foregroundColor: base.colorScheme.onPrimary,
+      appBarTheme: base.appBarTheme.copyWith(
+        elevation: 0,
+        centerTitle: false,
+        scrolledUnderElevation: 0,
+      ),
+      cardTheme:
+          CardThemeData(
+                color: base.colorScheme.surfaceContainerLowest,
+                elevation: 0,
+                margin: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(
+                    color: base.colorScheme.outlineVariant.applyOpacity(0.5),
+                    width: 0.5,
+                  ),
+                ),
+              )
+              as dynamic,
+      inputDecorationTheme:
+          _buildInputDecorationTheme(
+                base.inputDecorationTheme,
+                base.colorScheme,
+              )
+              as dynamic,
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: base.textTheme.labelLarge,
         ),
       ),
-      inputDecorationTheme: _buildInputDecorationTheme(
-        base.inputDecorationTheme,
-        base.colorScheme,
+      navigationBarTheme: base.navigationBarTheme.copyWith(
+        // height: 60,
+        backgroundColor: base.colorScheme.surface,
+        indicatorColor: base.colorScheme.secondaryContainer,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
       ),
-      appBarTheme: base.appBarTheme.copyWith(elevation: 0, centerTitle: false),
     );
   }
 
@@ -52,36 +97,89 @@ class FcodePosApp extends ConsumerWidget {
     );
 
     return base.copyWith(
+      colorScheme: base.colorScheme,
+      textTheme: base.textTheme
+          .copyWith(
+            bodyMedium: base.textTheme.bodyMedium?.copyWith(fontSize: 13),
+            bodySmall: base.textTheme.bodySmall?.copyWith(fontSize: 12),
+            labelLarge: base.textTheme.labelLarge?.copyWith(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+            labelMedium: base.textTheme.labelMedium?.copyWith(fontSize: 12),
+          )
+          .apply(
+            bodyColor: base.colorScheme.onSurface,
+            displayColor: base.colorScheme.onSurface,
+          ),
       scaffoldBackgroundColor: base.colorScheme.surface,
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: base.colorScheme.primary,
-          foregroundColor: base.colorScheme.onPrimary,
+      appBarTheme: base.appBarTheme.copyWith(
+        elevation: 0,
+        centerTitle: false,
+        scrolledUnderElevation: 0,
+      ),
+      cardTheme:
+          CardThemeData(
+                // Dùng màu nền sáng hơn cho dark mode để card không bị đen quá
+                color: base.colorScheme.surfaceContainer,
+                elevation: 0,
+                margin: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(
+                    color: base.colorScheme.outlineVariant.applyOpacity(0.5),
+                    width: 0.5,
+                  ),
+                ),
+              )
+              as dynamic,
+      inputDecorationTheme:
+          _buildInputDecorationTheme(
+                base.inputDecorationTheme,
+                base.colorScheme,
+              )
+              as dynamic,
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: base.textTheme.labelLarge,
         ),
       ),
-      inputDecorationTheme: _buildInputDecorationTheme(
-        base.inputDecorationTheme,
-        base.colorScheme,
+      navigationBarTheme: base.navigationBarTheme.copyWith(
+        // height: 60,
+        backgroundColor: base.colorScheme.surface,
+        indicatorColor: base.colorScheme.secondaryContainer,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
       ),
-      appBarTheme: base.appBarTheme.copyWith(elevation: 0, centerTitle: false),
     );
   }
 
-  InputDecorationThemeData _buildInputDecorationTheme(
-    InputDecorationThemeData baseTheme,
+  dynamic _buildInputDecorationTheme(
+    dynamic baseTheme,
     ColorScheme colorScheme,
   ) {
-    const inputRadius = BorderRadius.all(Radius.circular(12));
-    OutlineInputBorder outline(Color color) => OutlineInputBorder(
-      borderRadius: inputRadius,
-      borderSide: BorderSide(color: color),
-    );
+    const inputRadius = BorderRadius.all(Radius.circular(10));
+    OutlineInputBorder outline(Color color, [double width = 1]) =>
+        OutlineInputBorder(
+          borderRadius: inputRadius,
+          borderSide: BorderSide(color: color, width: width),
+        );
 
     return baseTheme.copyWith(
-      border: outline(colorScheme.outlineVariant),
-      enabledBorder: outline(colorScheme.outlineVariant),
-      disabledBorder: outline(colorScheme.outlineVariant.applyOpacity(0.5)),
-      focusedBorder: outline(colorScheme.primary),
+      isDense: true,
+      filled: true,
+      fillColor: colorScheme.surfaceContainerHigh,
+      contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+      border: outline(colorScheme.outlineVariant.withValues(alpha: 0.5)),
+      enabledBorder: outline(colorScheme.outlineVariant.withValues(alpha: 0.5)),
+      disabledBorder: outline(
+        colorScheme.outlineVariant.withValues(alpha: 0.3),
+      ),
+      focusedBorder: outline(colorScheme.primary, 1.2),
       errorBorder: outline(colorScheme.error),
       focusedErrorBorder: outline(colorScheme.error),
     );
@@ -99,29 +197,23 @@ class FcodePosApp extends ConsumerWidget {
     }
     final seedColor = material3SeedColors[clampedIndex];
 
-    return GestureDetector(
-      onTap: () {
-        FocusManager.instance.primaryFocus?.unfocus();
-      },
-      behavior: HitTestBehavior.translucent,
-      child: MaterialApp(
-        title: Environment.appName,
-        scaffoldMessengerKey: rootScaffoldMessengerKey,
-        navigatorKey: navigatorKey,
-        debugShowCheckedModeBanner: false,
-        theme: _buildLightTheme(seedColor),
-        darkTheme: _buildDarkTheme(seedColor),
-        themeMode: themeMode,
-        locale: const Locale('vi'),
-        supportedLocales: const [Locale('vi'), Locale('en')],
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-        ],
-        onGenerateRoute: _onGenerateRoute,
-        home: const _DeepLinkWrapper(child: SplashScreen()),
-      ),
+    return MaterialApp(
+      title: Environment.appName,
+      scaffoldMessengerKey: rootScaffoldMessengerKey,
+      navigatorKey: navigatorKey,
+      debugShowCheckedModeBanner: false,
+      theme: _buildLightTheme(seedColor),
+      darkTheme: _buildDarkTheme(seedColor),
+      themeMode: themeMode,
+      locale: const Locale('vi'),
+      supportedLocales: const [Locale('vi'), Locale('en')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      onGenerateRoute: _onGenerateRoute,
+      home: const _DeepLinkWrapper(child: SplashScreen()),
     );
   }
 

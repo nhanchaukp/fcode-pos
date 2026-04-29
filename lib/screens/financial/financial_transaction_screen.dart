@@ -390,8 +390,8 @@ class _FinancialTransactionScreenState
                   ),
                   decoration: BoxDecoration(
                     color: isIncome
-                        ? Colors.green.withOpacity(0.1)
-                        : Colors.red.withOpacity(0.1),
+                        ? Colors.green.withValues(alpha: 0.1)
+                        : Colors.red.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
@@ -466,13 +466,13 @@ class _FinancialTransactionScreenState
 
     switch (status.toLowerCase()) {
       case 'completed':
-        backgroundColor = Colors.green.withOpacity(0.15);
+        backgroundColor = Colors.green.withValues(alpha: 0.15);
         textColor = Colors.green.shade700;
       case 'pending':
-        backgroundColor = Colors.orange.withOpacity(0.15);
+        backgroundColor = Colors.orange.withValues(alpha: 0.15);
         textColor = Colors.orange.shade700;
       case 'failed':
-        backgroundColor = Colors.red.withOpacity(0.15);
+        backgroundColor = Colors.red.withValues(alpha: 0.15);
         textColor = Colors.red.shade700;
       default:
         backgroundColor = colorScheme.surfaceContainerHighest;

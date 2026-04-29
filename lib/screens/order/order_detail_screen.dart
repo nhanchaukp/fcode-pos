@@ -12,23 +12,26 @@ import 'package:fcode_pos/ui/components/order_status_split_button.dart';
 import 'package:fcode_pos/ui/components/order_update_bottom_sheet.dart';
 import 'package:fcode_pos/ui/components/order_item_update_bottom_sheet.dart';
 import 'package:fcode_pos/screens/customer/customer_detail_screen.dart';
+import 'package:fcode_pos/screens/refund/refund_detail_screen.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:http/http.dart' as http;
 import 'package:fcode_pos/utils/extensions/colors.dart';
 import 'package:fcode_pos/screens/order/order_create_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fcode_pos/providers/order/order_list_provider.dart';
 
-class OrderDetailScreen extends StatefulWidget {
+class OrderDetailScreen extends ConsumerStatefulWidget {
   final String orderId;
 
   const OrderDetailScreen({super.key, required this.orderId});
 
   @override
-  State<OrderDetailScreen> createState() => _OrderDetailScreenState();
+  ConsumerState<OrderDetailScreen> createState() => _OrderDetailScreenState();
 }
 
-class _OrderDetailScreenState extends State<OrderDetailScreen>
+class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
     with SingleTickerProviderStateMixin {
   late OrderService _orderService;
   Order? _order;
@@ -57,7 +60,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
   // Quick access to theme
   ColorScheme get colorScheme => Theme.of(context).colorScheme;
 
-  Future<void> _loadOrderDetail() async {
+  void _syncOrderToList(Order order) {
+    ref.read(orderListProvider.notifier).updateOrder(order);
+  }
+
+  Future<void> _loadOrderDetail({bool syncList = false}) async {
     if (!mounted) return;
     setState(() {
       _isLoading = true;
@@ -67,10 +74,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     try {
       final response = await _orderService.detail(widget.orderId);
       if (!mounted) return;
+
+      final order = response.data;
       setState(() {
-        _order = response.data;
+        _order = order;
         _isLoading = false;
       });
+
+      if (syncList && order != null) {
+        _syncOrderToList(order);
+      }
     } catch (e, st) {
       debugPrintStack(
         stackTrace: st,
@@ -95,15 +108,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
       builder: (context) => OrderUpdateBottomSheet(
         order: _order!,
         onSuccess: () {
-          // Reload order detail after successful update
-          _loadOrderDetail();
+          _loadOrderDetail(syncList: true);
         },
       ),
     );
 
-    // Optional: Show a message or perform additional actions if needed
     if (result == true && mounted) {
-      // Dialog was closed after successful update
       debugPrint('Order updated successfully');
     }
   }
@@ -240,30 +250,30 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
 
       if (!mounted) return;
 
-      setState(() {
-        _order = Order(
-          id: currentOrder.id,
-          userId: currentOrder.userId,
-          total: currentOrder.total,
-          discount: currentOrder.discount,
-          status: status.value,
-          type: currentOrder.type,
-          refundAmount: currentOrder.refundAmount,
-          note: currentOrder.note,
-          transactionId: currentOrder.transactionId,
-          createdAt: currentOrder.createdAt,
-          updatedAt: DateTime.now(),
-          paymentId: currentOrder.paymentId,
-          utmSource: currentOrder.utmSource,
-          user: currentOrder.user,
-          items: currentOrder.items,
-          itemCount: currentOrder.itemCount,
-          paymentHistories: currentOrder.paymentHistories,
-          refunds: currentOrder.refunds,
-          urlQrCodePayment: currentOrder.urlQrCodePayment,
-        );
-      });
+      final updatedLocal = Order(
+        id: currentOrder.id,
+        userId: currentOrder.userId,
+        total: currentOrder.total,
+        discount: currentOrder.discount,
+        status: status.value,
+        type: currentOrder.type,
+        refundAmount: currentOrder.refundAmount,
+        note: currentOrder.note,
+        transactionId: currentOrder.transactionId,
+        createdAt: currentOrder.createdAt,
+        updatedAt: DateTime.now(),
+        paymentId: currentOrder.paymentId,
+        utmSource: currentOrder.utmSource,
+        user: currentOrder.user,
+        items: currentOrder.items,
+        itemCount: currentOrder.itemCount,
+        paymentHistories: currentOrder.paymentHistories,
+        refunds: currentOrder.refunds,
+        urlQrCodePayment: currentOrder.urlQrCodePayment,
+      );
 
+      setState(() => _order = updatedLocal);
+      _syncOrderToList(updatedLocal);
       Toastr.success('Đã cập nhật trạng thái đơn hàng');
     } catch (e, st) {
       debugPrintStack(
@@ -333,21 +343,30 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        centerTitle: false,
-        title: Text('#${widget.orderId}'),
-        elevation: 0,
+        title: InkWell(
+          onTap: () {
+            Clipboard.setData(
+              ClipboardData(text: 'Đơn hàng ${widget.orderId}'),
+            );
+            Toastr.success('Đã copy mã đơn hàng ${widget.orderId}');
+          },
+          child: Text('ĐH #${widget.orderId}'),
+        ),
         actions: [
           IconButton(
+            visualDensity: VisualDensity.compact,
             icon: const Icon(Icons.qr_code),
             onPressed: _order != null ? () => _showQrCodeDialog() : null,
             tooltip: 'Hiện thị mã QR',
           ),
           IconButton(
+            visualDensity: VisualDensity.compact,
             icon: const Icon(Icons.edit),
             onPressed: _order != null ? () => _showUpdateDialog() : null,
             tooltip: 'Chỉnh sửa',
           ),
           IconButton(
+            visualDensity: VisualDensity.compact,
             icon: const Icon(Icons.copy),
             onPressed: _order != null ? () => _handleCloneOrder() : null,
             tooltip: 'Clone đơn hàng',
@@ -410,6 +429,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
           color: Theme.of(context).scaffoldBackgroundColor,
           child: TabBar(
             controller: _tabController,
+            dividerHeight: 0,
             tabs: [
               Tab(icon: Icon(Icons.shopping_bag, size: 20), text: 'Sản phẩm'),
               Tab(
@@ -442,13 +462,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
   Widget _buildOrderInfoCard(Order order) {
     final createdAt = order.createdAt;
 
-    return Container(
-      padding: const EdgeInsets.all(16),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header: ID, Status, Customer
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
                 child: Column(
@@ -489,8 +510,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                       ],
                     ),
                     const SizedBox(height: 6),
-                    // Customer info
-                    // _buildCustomerInfo(order.user),
                   ],
                 ),
               ),
@@ -506,13 +525,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
           ),
           const SizedBox(height: 6),
           _buildCustomerInfo(order.user),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Divider(
             height: 1,
             thickness: 0.7,
-            color: colorScheme.outlineVariant.applyOpacity(0.6),
+            color: colorScheme.outlineVariant.applyOpacity(0.45),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
 
           // Financial Summary (compact)
           Row(
@@ -560,7 +579,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
             ],
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
 
           // Footer: Time & Source (compact)
           Row(
@@ -609,7 +628,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
             ],
           ),
           if (order.note != null && order.note!.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Row(
               children: [
                 Icon(Icons.note, size: 12, color: colorScheme.onSurfaceVariant),
@@ -641,36 +660,79 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
       );
     }
 
+    final hasPhone = user.phone != null && user.phone!.isNotEmpty;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Name
         if (user.email.isNotEmpty) ...[
           if (user.name.isNotEmpty) const SizedBox(height: 2),
           Row(
             children: [
-              Icon(
-                Icons.email_outlined,
-                size: 14,
-                color: colorScheme.secondary,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                user.email,
-                style: TextStyle(
-                  fontSize: 13,
-                  height: 1.4,
-                  color: colorScheme.secondary.applyOpacity(0.95),
+              // Email bên trái, ellipsis nếu dài
+              Expanded(
+                child: InkWell(
+                  onTap: () async {
+                    await Clipboard.setData(ClipboardData(text: user.email));
+                    if (mounted) {
+                      Toastr.success('Đã copy email');
+                    }
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.email_outlined,
+                        size: 14,
+                        color: colorScheme.secondary,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          user.email,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13,
+                            height: 1.4,
+                            color: colorScheme.secondary.applyOpacity(0.95),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
+              // SĐT bên phải (nếu có)
+              if (hasPhone) ...[
+                const SizedBox(width: 12),
+                InkWell(
+                  onTap: () async {
+                    await Clipboard.setData(ClipboardData(text: user.phone!));
+                    if (mounted) {
+                      Toastr.success('Đã copy số điện thoại');
+                    }
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.phone, size: 14, color: colorScheme.secondary),
+                      const SizedBox(width: 4),
+                      Text(
+                        user.phone!,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: colorScheme.secondary.applyOpacity(0.95),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ),
-        ],
-        // Phone (clickable)
-        if (user.phone != null && user.phone!.isNotEmpty) ...[
-          const SizedBox(height: 4),
+        ] else if (hasPhone) ...[
+          // Trường hợp không có email, chỉ hiển thị SĐT
           CopyableIconText(
             icon: Icons.phone,
             value: user.phone!,
@@ -955,8 +1017,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
         orderId: _order!.id,
         orderItem: item,
         onSuccess: () {
-          // Reload order detail after successful update
-          _loadOrderDetail();
+          _loadOrderDetail(syncList: true);
         },
       ),
     );
@@ -976,8 +1037,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
         orderId: orderId,
         orderItem: null,
         onSuccess: () {
-          // Reload order detail after successful addition
-          _loadOrderDetail();
+          _loadOrderDetail(syncList: true);
         },
       ),
     );
@@ -1041,7 +1101,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
       child: ListView.separated(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         itemCount: order.paymentHistories.length,
-        separatorBuilder: (context, index) => const Divider(height: 1),
+        separatorBuilder: (context, index) => const SizedBox(height: 8),
         itemBuilder: (context, index) {
           final payment = order.paymentHistories[index];
           return _buildPaymentHistoryItem(payment);
@@ -1052,52 +1112,175 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
 
   Widget _buildPaymentHistoryItem(PaymentHistory payment) {
     final statusColor = _getPaymentStatusColor(payment.status);
+    final paymentable = payment.paymentable;
+    final isBalancePayment =
+        payment.paymentMethod != null && payment.paymentMethod == 'balance';
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                CurrencyHelper.formatCurrency(payment.amount),
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: statusColor.applyOpacity(0.1),
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: statusColor),
-                ),
-                child: Text(
-                  payment.status.toUpperCase(),
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: !isBalancePayment && paymentable != null
+          ? () => _showPaymentableDetailBottomSheet(payment)
+          : null,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerLowest,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    payment.amount >= 0
+                        ? Icons.arrow_downward
+                        : Icons.arrow_upward,
+                    size: 18,
                     color: statusColor,
                   ),
                 ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        CurrencyHelper.formatCurrency(payment.amount),
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: statusColor.applyOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    payment.status.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: statusColor,
+                    ),
+                  ),
+                ),
+                if (!isBalancePayment && paymentable != null) ...[
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.chevron_right,
+                    size: 18,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 6),
+            if (payment.transactionReference != null)
+              _buildPaymentInfo('Mã GD', payment.transactionReference!),
+            if (payment.createdAt != null)
+              _buildPaymentInfo(
+                'Thời gian',
+                DateHelper.formatDateTime(payment.createdAt),
               ),
+            if (payment.notes != null && payment.notes!.isNotEmpty)
+              _buildPaymentInfo('Ghi chú', payment.notes!),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showPaymentableDetailBottomSheet(PaymentHistory payment) async {
+    final paymentable = payment.paymentable;
+    if (paymentable == null) return;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (context) {
+        final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
+        return Padding(
+          padding: EdgeInsets.fromLTRB(16, 8, 16, 16 + bottomPadding),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    child: Icon(
+                      Icons.account_balance,
+                      color: colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          paymentable.gateway,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          CurrencyHelper.formatCurrency(
+                            paymentable.transferAmount,
+                          ),
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: colorScheme.primary,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              _buildPaymentInfo(
+                'Số giao dịch',
+                paymentable.transactionNumber.toString(),
+              ),
+              _buildPaymentInfo('Loại chuyển', paymentable.transferType),
+              if (paymentable.transactionDate != null)
+                _buildPaymentInfo(
+                  'Thời gian chuyển',
+                  DateHelper.formatDateTime(paymentable.transactionDate!),
+                ),
+              _buildPaymentInfo('Số tài khoản', paymentable.accountNumber),
+              _buildPaymentInfo('Sub account', paymentable.subAccount),
+              _buildPaymentInfo('Mã tham chiếu', paymentable.referenceCode),
+              _buildPaymentInfo('Code đơn', paymentable.code),
+              const SizedBox(height: 8),
+              _buildPaymentInfo('Nội dung', paymentable.content),
+              const SizedBox(height: 8),
+              _buildPaymentInfo('Mô tả', paymentable.description),
             ],
           ),
-          const SizedBox(height: 6),
-          if (payment.paymentMethod != null)
-            _buildPaymentInfo('Phương thức', payment.paymentMethod!),
-          if (payment.transactionReference != null)
-            _buildPaymentInfo('Mã GD', payment.transactionReference!),
-          if (payment.createdAt != null)
-            _buildPaymentInfo(
-              'Thời gian',
-              DateHelper.formatDateTime(payment.createdAt),
-            ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -1169,33 +1352,57 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
         ? DateTime.parse(refund['created_at'].toString()).toLocal()
         : null;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                CurrencyHelper.formatCurrency(amount),
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.orange,
+    return Card(
+      elevation: 0,
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          // Điều hướng sang màn chi tiết hoàn tiền nếu có đủ dữ liệu id
+          if (refund is Map && refund['id'] != null) {
+            final refundMap = Map<String, dynamic>.from(refund);
+            try {
+              final refundModel = Refund.fromJson(refundMap);
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => RefundDetailScreen(refund: refundModel),
                 ),
+              );
+            } catch (_) {
+              // Nếu parse lỗi thì bỏ qua điều hướng, chỉ hiển thị card
+            }
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    CurrencyHelper.formatCurrency(amount),
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.error,
+                    ),
+                  ),
+                  const Icon(Icons.money_off, size: 20, color: Colors.orange),
+                ],
               ),
-              const Icon(Icons.money_off, color: Colors.orange, size: 20),
+              const SizedBox(height: 6),
+              _buildPaymentInfo('Lý do', reason),
+              if (createdAt != null)
+                _buildPaymentInfo(
+                  'Thời gian',
+                  DateHelper.formatDateTime(createdAt),
+                ),
             ],
           ),
-          const SizedBox(height: 6),
-          _buildPaymentInfo('Lý do', reason),
-          if (createdAt != null)
-            _buildPaymentInfo(
-              'Thời gian',
-              DateHelper.formatDateTime(createdAt),
-            ),
-        ],
+        ),
       ),
     );
   }

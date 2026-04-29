@@ -24,8 +24,6 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Scaffold(
       body: PageStorage(
         bucket: _bucket,
@@ -37,8 +35,6 @@ class _MainShellState extends State<MainShell> {
         onDestinationSelected: (index) {
           setState(() => _currentIndex = index);
         },
-        height: 72,
-        indicatorColor: colorScheme.secondaryContainer,
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.receipt_long_outlined),

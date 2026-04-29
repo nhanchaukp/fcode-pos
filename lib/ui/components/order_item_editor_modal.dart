@@ -50,6 +50,7 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
   final _formKey = GlobalKey<FormState>();
   final _productSupplyService = ProductSupplyService();
   late final TextEditingController _expiredAtController;
+  late final TextEditingController _noteController;
 
   bool _isLoadingBestPrice = false;
   bool _isProcessing = false;
@@ -60,11 +61,27 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
     _expiredAtController = TextEditingController(
       text: _formatExpiredAt(widget.itemData.expiredAt),
     );
+    _noteController = TextEditingController(text: widget.itemData.note ?? '');
+    _noteController.addListener(() {
+      var text = _noteController.text;
+      if (text.contains('|')) {
+        final transformed = text.replaceAll('|', '\n');
+        if (transformed != text) {
+          _noteController.value = TextEditingValue(
+            text: transformed,
+            selection: TextSelection.collapsed(offset: transformed.length),
+          );
+          text = transformed;
+        }
+      }
+      widget.itemData.note = text.isEmpty ? null : text;
+    });
   }
 
   @override
   void dispose() {
     _expiredAtController.dispose();
+    _noteController.dispose();
     super.dispose();
   }
 
@@ -415,19 +432,16 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
 
   Widget _buildNoteField() {
     return TextFormField(
-      initialValue: widget.itemData.note,
       decoration: const InputDecoration(
         labelText: 'Ghi chú',
         hintText: 'Nhập ghi chú cho sản phẩm này',
         border: OutlineInputBorder(),
         alignLabelWithHint: true,
       ),
+      controller: _noteController,
       maxLines: 2,
       keyboardType: TextInputType.multiline,
       textInputAction: TextInputAction.newline,
-      onChanged: (value) {
-        widget.itemData.note = value.isEmpty ? null : value;
-      },
     );
   }
 

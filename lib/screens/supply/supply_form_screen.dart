@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 class SupplyFormScreen extends StatefulWidget {
   /// Supply to edit (null for create mode)
   final Supply? supply;
+
   /// Nếu true (dùng cho dropdown), sau khi tạo mới sẽ trả về [Supply] vừa tạo
   /// qua Navigator.pop thay vì chỉ trả về bool.
   final bool returnSupplyOnSuccess;
@@ -90,27 +91,24 @@ class _SupplyFormScreenState extends State<SupplyFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            _isEditMode ? 'Chỉnh sửa nhà cung cấp' : 'Thêm nhà cung cấp',
-          ),
-          elevation: 0,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          _isEditMode ? 'Chỉnh sửa nhà cung cấp' : 'Thêm nhà cung cấp',
         ),
-        body: Form(
-          key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              _buildNameField(),
-              const SizedBox(height: 16),
-              _buildContentField(),
-              const SizedBox(height: 24),
-              _buildSubmitButton(),
-            ],
-          ),
+        elevation: 0,
+      ),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            _buildNameField(),
+            const SizedBox(height: 16),
+            _buildContentField(),
+            const SizedBox(height: 24),
+            _buildSubmitButton(),
+          ],
         ),
       ),
     );

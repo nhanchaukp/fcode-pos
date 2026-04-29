@@ -1,6 +1,5 @@
 import 'package:fcode_pos/providers/auth_provider.dart';
 import 'package:fcode_pos/providers/theme_provider.dart';
-import 'package:fcode_pos/utils/extensions/colors.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,8 +14,7 @@ class MoreScreen extends ConsumerWidget {
     final themeMode = ref.watch(themeModeProvider);
     final themeNotifier = ref.read(themeModeProvider.notifier);
     final seedColorIndex = ref.watch(themeSeedColorIndexProvider);
-    final seedColorNotifier =
-        ref.read(themeSeedColorIndexProvider.notifier);
+    final seedColorNotifier = ref.read(themeSeedColorIndexProvider.notifier);
 
     final user = authState.asData?.value;
     final isLoading = authState.isLoading;
@@ -33,6 +31,7 @@ class MoreScreen extends ConsumerWidget {
         actions: [
           IconButton(
             tooltip: 'Đăng xuất',
+            visualDensity: VisualDensity.compact,
             onPressed: isLoading
                 ? null
                 : () async {
@@ -51,25 +50,20 @@ class MoreScreen extends ConsumerWidget {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
         children: [
           // User Profile Card
           Card(
             elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: BorderSide(
-                color: colorScheme.outlineVariant.applyOpacity(0.5),
-                width: 1,
-              ),
-            ),
+            margin: EdgeInsets.zero,
+            clipBehavior: Clip.antiAlias,
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(12),
               child: Row(
                 children: [
                   Container(
-                    width: 64,
-                    height: 64,
+                    width: 52,
+                    height: 52,
                     decoration: BoxDecoration(
                       color: colorScheme.primaryContainer,
                       shape: BoxShape.circle,
@@ -80,7 +74,7 @@ class MoreScreen extends ConsumerWidget {
                             ? user.name.substring(0, 1).toUpperCase()
                             : 'U',
                         style: TextStyle(
-                          fontSize: 28,
+                          fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: colorScheme.onPrimaryContainer,
                         ),
@@ -97,7 +91,7 @@ class MoreScreen extends ConsumerWidget {
                           style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(fontWeight: FontWeight.w600),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         if (user?.email != null)
                           Text(
                             user!.email,
@@ -112,7 +106,7 @@ class MoreScreen extends ConsumerWidget {
             ),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
 
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
@@ -126,17 +120,14 @@ class MoreScreen extends ConsumerWidget {
           ),
           Card(
             elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(
-                color: colorScheme.outlineVariant.withOpacity(0.5),
-                width: 1,
-              ),
-            ),
+            margin: EdgeInsets.zero,
+            clipBehavior: Clip.antiAlias,
             child: SwitchListTile(
+              dense: true,
+              visualDensity: VisualDensity.compact,
               contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 4,
+                horizontal: 12,
+                vertical: 2,
               ),
               secondary: Icon(
                 isDarkMode ? Icons.dark_mode : Icons.light_mode,
@@ -157,17 +148,10 @@ class MoreScreen extends ConsumerWidget {
 
           Card(
             elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ).borderRadius,
-              side: BorderSide(
-                color: colorScheme.outlineVariant.withOpacity(0.5),
-                width: 1,
-              ),
-            ),
+            margin: EdgeInsets.zero,
+            clipBehavior: Clip.antiAlias,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -180,9 +164,7 @@ class MoreScreen extends ConsumerWidget {
                       const SizedBox(width: 8),
                       const Text(
                         'Màu chủ đạo',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ],
                   ),
@@ -190,57 +172,57 @@ class MoreScreen extends ConsumerWidget {
                   Text(
                     'Chọn màu chính cho ứng dụng (Material 3)',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: List.generate(
-                      material3SeedColors.length,
-                      (index) {
-                        final color = material3SeedColors[index];
-                        final isSelected = index == seedColorIndex;
-                        return InkWell(
-                          onTap: () {
-                            seedColorNotifier.setSeedColorIndex(index);
-                          },
-                          borderRadius: BorderRadius.circular(20),
-                          child: Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: color,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: isSelected
-                                    ? Colors.white
-                                    : colorScheme.surface,
-                                width: 2,
-                              ),
-                              boxShadow: isSelected
-                                  ? [
-                                      BoxShadow(
-                                        color:
-                                            colorScheme.primary.withOpacity(0.5),
-                                        blurRadius: 6,
-                                        spreadRadius: 1,
-                                      ),
-                                    ]
-                                  : null,
+                    children: List.generate(material3SeedColors.length, (
+                      index,
+                    ) {
+                      final color = material3SeedColors[index];
+                      final isSelected = index == seedColorIndex;
+                      return InkWell(
+                        onTap: () {
+                          seedColorNotifier.setSeedColorIndex(index);
+                        },
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: color,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSelected
+                                  ? Colors.white
+                                  : colorScheme.surface,
+                              width: 2,
                             ),
-                            child: isSelected
-                                ? Icon(
-                                    Icons.check,
-                                    size: 18,
-                                    color: colorScheme.onPrimary,
-                                  )
+                            boxShadow: isSelected
+                                ? [
+                                    BoxShadow(
+                                      color: colorScheme.primary.withValues(
+                                        alpha: 0.5,
+                                      ),
+                                      blurRadius: 6,
+                                      spreadRadius: 1,
+                                    ),
+                                  ]
                                 : null,
                           ),
-                        );
-                      },
-                    ),
+                          child: isSelected
+                              ? Icon(
+                                  Icons.check,
+                                  size: 18,
+                                  color: colorScheme.onPrimary,
+                                )
+                              : null,
+                        ),
+                      );
+                    }),
                   ),
                 ],
               ),
@@ -261,23 +243,20 @@ class MoreScreen extends ConsumerWidget {
           ),
           Card(
             elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(
-                color: colorScheme.outlineVariant.withOpacity(0.5),
-                width: 1,
-              ),
-            ),
+            margin: EdgeInsets.zero,
+            clipBehavior: Clip.antiAlias,
             child: ListTile(
+              dense: true,
+              visualDensity: VisualDensity.compact,
               contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
+                horizontal: 12,
+                vertical: 6,
               ),
               leading: Container(
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.15),
+                  color: Colors.blue.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
@@ -304,23 +283,20 @@ class MoreScreen extends ConsumerWidget {
           const SizedBox(height: 12),
           Card(
             elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(
-                color: colorScheme.outlineVariant.withOpacity(0.5),
-                width: 1,
-              ),
-            ),
+            margin: EdgeInsets.zero,
+            clipBehavior: Clip.antiAlias,
             child: ListTile(
+              dense: true,
+              visualDensity: VisualDensity.compact,
               contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
+                horizontal: 12,
+                vertical: 6,
               ),
               leading: Container(
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.15),
+                  color: Colors.orange.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
@@ -346,23 +322,20 @@ class MoreScreen extends ConsumerWidget {
           const SizedBox(height: 12),
           Card(
             elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(
-                color: colorScheme.outlineVariant.withOpacity(0.5),
-                width: 1,
-              ),
-            ),
+            margin: EdgeInsets.zero,
+            clipBehavior: Clip.antiAlias,
             child: ListTile(
+              dense: true,
+              visualDensity: VisualDensity.compact,
               contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
+                horizontal: 12,
+                vertical: 6,
               ),
               leading: Container(
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.15),
+                  color: Colors.green.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(Icons.lock_outline, color: Colors.green),
@@ -388,7 +361,7 @@ class MoreScreen extends ConsumerWidget {
             builder: (context, snapshot) {
               final info = snapshot.data;
               final version = info != null
-                  ? '${info.version} (${info.buildNumber})'
+                  ? '${info.version}+${info.buildNumber}'
                   : 'Đang tải...';
               return Center(
                 child: Text(

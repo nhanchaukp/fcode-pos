@@ -94,10 +94,11 @@ class OrderListComponent extends StatelessWidget {
     final showStatsCard = orderSummary != null || isLoadingSummary;
     final hasPagination = totalPages > 1;
     final contentItemCount = orders.isEmpty ? 1 : orders.length;
-    final itemCount = (showStatsCard ? 1 : 0) + contentItemCount + (hasPagination ? 1 : 0);
+    final itemCount =
+        (showStatsCard ? 1 : 0) + contentItemCount + (hasPagination ? 1 : 0);
 
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      // padding: const EdgeInsets.symmetric(vertical: 12),
       physics: const AlwaysScrollableScrollPhysics(),
       itemCount: itemCount,
       itemBuilder: (context, index) {
@@ -117,7 +118,11 @@ class OrderListComponent extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.inbox_outlined, size: 48, color: Colors.grey),
+                    const Icon(
+                      Icons.inbox_outlined,
+                      size: 48,
+                      color: Colors.grey,
+                    ),
                     const SizedBox(height: 16),
                     const Text(
                       'Không có đơn hàng',
@@ -171,74 +176,65 @@ class OrderListComponent extends StatelessWidget {
     final isLoading = completedCount < 0;
     final completedStr = isLoading ? '...' : '$completedCount/$totalOrders';
     final paymentStr = isLoading ? '...' : '$paymentSuccessCount';
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-      child: Card(
-        elevation: 0,
-        margin: EdgeInsets.zero,
-        clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(
-            color: colorScheme.outlineVariant.applyOpacity(0.5),
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainer,
+        border: Border(
+          bottom: BorderSide(color: colorScheme.outlineVariant.applyOpacity(0.3)),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                Icon(
+                  Icons.check_circle_outline,
+                  size: 18,
+                  color: colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    'Hoàn thành $completedStr',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
             width: 1,
+            height: 20,
+            color: colorScheme.outlineVariant.applyOpacity(0.5),
           ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.check_circle_outline,
-                      size: 18,
-                      color: colorScheme.primary,
-                    ),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        'Hoàn thành $completedStr',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w500,
-                            ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
+          const SizedBox(width: 12),
+          Expanded(
+            child: Row(
+              children: [
+                Icon(
+                  Icons.payments_outlined,
+                  size: 18,
+                  color: colorScheme.primary,
                 ),
-              ),
-              Container(
-                width: 1,
-                height: 20,
-                color: colorScheme.outlineVariant.applyOpacity(0.5),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.payments_outlined,
-                      size: 18,
-                      color: colorScheme.primary,
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    'Đã thanh toán: $paymentStr',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
                     ),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        'Đã thanh toán: $paymentStr',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w500,
-                            ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -265,34 +261,32 @@ class OrderListComponent extends StatelessWidget {
     final hasMoreProducts = order.items.length > 3;
 
     return Builder(
-      builder: (context) => Card(
-        elevation: 0,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(
-            color: colorScheme.outlineVariant.applyOpacity(0.5),
-            width: 1,
-          ),
-        ),
-        child: InkWell(
+      builder: (context) {
+        final theme = Theme.of(context);
+        final textTheme = theme.textTheme;
+
+        return InkWell(
           onTap: () => _onOrderTap(context, order),
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
+          child: Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainer,
+              border: Border(
+                bottom: BorderSide(
+                  color: colorScheme.outlineVariant.applyOpacity(0.3),
+                ),
+              ),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header: Mã đơn và trạng thái
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       'Đơn hàng #${order.id}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     OrderStatusBadge(status: order.status),
@@ -301,28 +295,22 @@ class OrderListComponent extends StatelessWidget {
 
                 const SizedBox(height: 12),
 
-                // Thông tin khách hàng (nếu có)
                 if (order.user != null) ...[
                   Row(
                     children: [
                       const Icon(Icons.person_outline, size: 16),
                       const SizedBox(width: 4),
-                      Text(
-                        order.user!.name,
-                        style: const TextStyle(fontSize: 14),
-                      ),
+                      Text(order.user!.name, style: textTheme.bodyMedium),
                     ],
                   ),
                   const SizedBox(height: 8),
                 ],
 
-                // Danh sách sản phẩm
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.surfaceContainerHighest.applyOpacity(0.3),
+                    color: theme.colorScheme.surfaceContainerHighest
+                        .applyOpacity(0.3),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Column(
@@ -334,9 +322,8 @@ class OrderListComponent extends StatelessWidget {
                           const SizedBox(width: 4),
                           Text(
                             'Sản phẩm (${order.items.length})',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
+                            style: textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
@@ -353,13 +340,13 @@ class OrderListComponent extends StatelessWidget {
                                 margin: const EdgeInsets.only(right: 8),
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: Theme.of(context).colorScheme.primary,
+                                  color: theme.colorScheme.primary,
                                 ),
                               ),
                               Expanded(
                                 child: Text(
                                   name,
-                                  style: const TextStyle(fontSize: 14),
+                                  style: textTheme.bodyMedium,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -373,8 +360,7 @@ class OrderListComponent extends StatelessWidget {
                           padding: const EdgeInsets.only(top: 4),
                           child: Text(
                             '+ ${order.items.length - 3} sản phẩm khác',
-                            style: TextStyle(
-                              fontSize: 12,
+                            style: textTheme.bodySmall?.copyWith(
                               fontStyle: FontStyle.italic,
                               color: Colors.grey[600],
                             ),
@@ -386,21 +372,21 @@ class OrderListComponent extends StatelessWidget {
 
                 const SizedBox(height: 12),
 
-                // Footer: Tổng tiền và ngày tạo
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     if (order.createdAt != null)
                       Text(
                         DateHelper.formatDateTime(order.createdAt!),
-                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                        style: textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     Text(
                       CurrencyHelper.formatCurrency(order.total),
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: Theme.of(context).colorScheme.primary,
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: colorScheme.primary,
                       ),
                     ),
                   ],
@@ -408,30 +394,29 @@ class OrderListComponent extends StatelessWidget {
               ],
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
-  /// Tile rút gọn: chỉ Đơn hàng #, trạng thái, ngày giờ, số tiền.
   Widget _buildOrderTileCompact(Order order, ColorScheme colorScheme) {
     return Builder(
-      builder: (context) => Card(
-        elevation: 0,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(
-            color: colorScheme.outlineVariant.applyOpacity(0.5),
-            width: 1,
-          ),
-        ),
-        child: InkWell(
+      builder: (context) {
+        final theme = Theme.of(context);
+        final textTheme = theme.textTheme;
+
+        return InkWell(
           onTap: () => _onOrderTap(context, order),
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainer,
+              border: Border(
+                bottom: BorderSide(
+                  color: colorScheme.outlineVariant.applyOpacity(0.3),
+                ),
+              ),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             child: Row(
               children: [
                 Expanded(
@@ -443,9 +428,8 @@ class OrderListComponent extends StatelessWidget {
                         children: [
                           Text(
                             'Đơn hàng #${order.id}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
+                            style: textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -456,9 +440,8 @@ class OrderListComponent extends StatelessWidget {
                       if (order.createdAt != null)
                         Text(
                           DateHelper.formatDateTime(order.createdAt!),
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 12,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
                     ],
@@ -467,17 +450,16 @@ class OrderListComponent extends StatelessWidget {
                 const SizedBox(width: 12),
                 Text(
                   CurrencyHelper.formatCurrency(order.total),
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                    color: Theme.of(context).colorScheme.primary,
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.primary,
                   ),
                 ),
               ],
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

@@ -1,9 +1,11 @@
 import 'package:fcode_pos/appwrite.dart';
 import 'package:flutter/material.dart';
 
-/// Helper class để hiển thị SnackBar ở bất kỳ đâu trong app
+enum _ToastrVariant { success, error, neutral }
+
+/// Helper hiển thị SnackBar floating, đồng bộ theme M3 (surface container, không viền dày).
 class Toastr {
-  /// Hiển thị SnackBar thành công (màu xanh lá)
+  /// SnackBar thành công — dùng `primaryContainer` / `onPrimaryContainer`.
   static void success(
     String message, {
     BuildContext? context,
@@ -12,15 +14,15 @@ class Toastr {
   }) {
     _showSnackBar(
       message,
-      backgroundColor: Colors.green,
-      icon: Icons.check_circle,
+      variant: _ToastrVariant.success,
+      icon: Icons.check_circle_outline,
       duration: duration,
       action: action,
       context: context,
     );
   }
 
-  /// Hiển thị SnackBar lỗi (màu đỏ)
+  /// SnackBar lỗi — dùng `errorContainer` / `onErrorContainer`.
   static void error(
     String message, {
     BuildContext? context,
@@ -29,15 +31,15 @@ class Toastr {
   }) {
     _showSnackBar(
       message,
-      backgroundColor: Colors.red,
-      icon: Icons.error,
+      variant: _ToastrVariant.error,
+      icon: Icons.error_outline,
       duration: duration,
       action: action,
       context: context,
     );
   }
 
-  /// Hiển thị SnackBar mặc định (màu xám đen)
+  /// SnackBar thông tin — dùng `surfaceContainerHigh` / `onSurface`.
   static void show(
     String message, {
     BuildContext? context,
@@ -47,52 +49,93 @@ class Toastr {
   }) {
     _showSnackBar(
       message,
-      backgroundColor: Colors.grey[800]!,
-      icon: icon ?? Icons.info,
+      variant: _ToastrVariant.neutral,
+      icon: icon ?? Icons.info_outline,
       duration: duration,
       action: action,
       context: context,
     );
   }
 
-  /// Hàm private để hiển thị SnackBar với các tùy chọn
   static void _showSnackBar(
     String message, {
-    required Color backgroundColor,
+    required _ToastrVariant variant,
     required IconData icon,
     required Duration duration,
     SnackBarAction? action,
     BuildContext? context,
   }) {
+    // Theme: cần context dưới MaterialApp (currentContext của messenger vẫn hợp lệ).
+    final themeContext = context ?? rootScaffoldMessengerKey.currentContext;
+    if (themeContext == null) return;
+
+    final theme = Theme.of(themeContext);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
+    late final Color backgroundColor;
+    late final Color foregroundColor;
+
+    switch (variant) {
+      case _ToastrVariant.success:
+        backgroundColor = colorScheme.primaryContainer;
+        foregroundColor = colorScheme.onPrimaryContainer;
+        break;
+      case _ToastrVariant.error:
+        backgroundColor = colorScheme.errorContainer;
+        foregroundColor = colorScheme.onErrorContainer;
+        break;
+      case _ToastrVariant.neutral:
+        backgroundColor = colorScheme.surfaceContainerHigh;
+        foregroundColor = colorScheme.onSurface;
+        break;
+    }
+
+    final borderColor = colorScheme.outlineVariant.withValues(alpha: 0.45);
+
     final snackBar = SnackBar(
+      elevation: 0,
+      backgroundColor: backgroundColor,
+      behavior: SnackBarBehavior.floating,
+      dismissDirection: DismissDirection.horizontal,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: borderColor, width: 1),
+      ),
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      duration: duration,
+      action: action,
       content: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(icon, color: Colors.white, size: 24),
-          const SizedBox(width: 12),
+          Icon(icon, color: foregroundColor, size: 20),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.bodyMedium?.copyWith(
+                color: foregroundColor,
+                fontWeight: FontWeight.w600,
+                height: 1.25,
               ),
             ),
           ),
         ],
       ),
-      backgroundColor: backgroundColor,
-      duration: duration,
-      action: action,
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      margin: EdgeInsets.only(bottom: 24, left: 16, right: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
     );
 
-    (context != null
-          ? ScaffoldMessenger.of(context)
-          : rootScaffoldMessengerKey.currentState)!
+    // Không dùng ScaffoldMessenger.of(rootScaffoldMessengerKey.currentContext):
+    // context đó là của chính ScaffoldMessenger nên không có ancestor ScaffoldMessenger.
+    final ScaffoldMessengerState? messenger = context != null
+        ? (ScaffoldMessenger.maybeOf(context) ??
+            rootScaffoldMessengerKey.currentState)
+        : rootScaffoldMessengerKey.currentState;
+    if (messenger == null) return;
+
+    messenger
       ..hideCurrentSnackBar()
       ..showSnackBar(snackBar);
   }

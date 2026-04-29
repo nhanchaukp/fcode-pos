@@ -2,6 +2,7 @@ import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:fcode_pos/models/dto/customer_create_data.dart';
 import 'package:fcode_pos/services/customer_service.dart';
+import 'package:fcode_pos/ui/components/section_header.dart';
 
 class CustomerCreateScreen extends StatefulWidget {
   const CustomerCreateScreen({super.key});
@@ -66,79 +67,106 @@ class _CustomerCreateScreenState extends State<CustomerCreateScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(title: const Text('Thêm khách hàng mới')),
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
           children: [
-            TextFormField(
-              textCapitalization: TextCapitalization.words,
-              controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Tên khách hàng'),
-              validator: (v) {
-                if (v == null || v.trim().isEmpty) return 'Bắt buộc nhập tên';
-                if (v.length > 255) return 'Tối đa 255 ký tự';
-                return null;
-              },
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _emailController,
-              decoration: const InputDecoration(labelText: 'Email'),
-              keyboardType: TextInputType.emailAddress,
-              validator: (v) {
-                if (v == null || v.trim().isEmpty) return 'Bắt buộc nhập email';
-                if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+').hasMatch(v))
-                  return 'Email không hợp lệ';
-                if (v.length > 255) return 'Tối đa 255 ký tự';
-                return null;
-              },
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _passwordController,
-              decoration: const InputDecoration(
-                labelText: 'Mật khẩu (ít nhất 8 ký tự, không bắt buộc)',
+            Container(
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerLowest,
+                borderRadius: BorderRadius.circular(12),
               ),
-              obscureText: true,
-              validator: (v) {
-                if (v != null && v.isNotEmpty && v.length < 8)
-                  return 'Tối thiểu 8 ký tự';
-                return null;
-              },
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _facebookController,
-              decoration: const InputDecoration(
-                labelText: 'Facebook (không bắt buộc)',
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SectionHeader(
+                    icon: Icons.person_add_outlined,
+                    title: 'Thông tin khách hàng',
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    textCapitalization: TextCapitalization.words,
+                    controller: _nameController,
+                    decoration:
+                        const InputDecoration(labelText: 'Tên khách hàng'),
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) {
+                        return 'Bắt buộc nhập tên';
+                      }
+                      if (v.length > 255) return 'Tối đa 255 ký tự';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: _emailController,
+                    decoration: const InputDecoration(labelText: 'Email'),
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) {
+                        return 'Bắt buộc nhập email';
+                      }
+                      if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+').hasMatch(v)) {
+                        return 'Email không hợp lệ';
+                      }
+                      if (v.length > 255) return 'Tối đa 255 ký tự';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: _passwordController,
+                    decoration: const InputDecoration(
+                      labelText: 'Mật khẩu (ít nhất 8 ký tự, không bắt buộc)',
+                    ),
+                    obscureText: true,
+                    validator: (v) {
+                      if (v != null && v.isNotEmpty && v.length < 8) {
+                        return 'Tối thiểu 8 ký tự';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: _facebookController,
+                    decoration: const InputDecoration(
+                      labelText: 'Facebook (không bắt buộc)',
+                    ),
+                    validator: (v) {
+                      if (v != null && v.length > 255) {
+                        return 'Tối đa 255 ký tự';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: _phoneController,
+                    decoration: const InputDecoration(
+                      labelText: 'Số điện thoại (không bắt buộc)',
+                    ),
+                    keyboardType: TextInputType.phone,
+                    validator: (v) {
+                      if (v != null && v.length > 20) return 'Tối đa 20 ký tự';
+                      return null;
+                    },
+                  ),
+                ],
               ),
-              validator: (v) {
-                if (v != null && v.length > 255) return 'Tối đa 255 ký tự';
-                return null;
-              },
             ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _phoneController,
-              decoration: const InputDecoration(
-                labelText: 'Số điện thoại (không bắt buộc)',
-              ),
-              keyboardType: TextInputType.phone,
-              validator: (v) {
-                if (v != null && v.length > 20) return 'Tối đa 20 ký tự';
-                return null;
-              },
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
+            const SizedBox(height: 14),
+            FilledButton(
               onPressed: _isLoading ? null : _submit,
               child: _isLoading
                   ? const SizedBox(
-                      width: 20,
-                      height: 20,
+                      width: 18,
+                      height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Text('Tạo khách hàng'),
