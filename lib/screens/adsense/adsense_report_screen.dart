@@ -795,8 +795,9 @@ class _AdsenseReportScreenState extends State<AdsenseReportScreen> {
     if (number == null) return value;
     final formatter = NumberFormat('#,##0.##', 'vi_VN');
     if (metric == 'CTR') {
-      // Assume CTR may arrive as ratio (0-1); treat <= 1 as ratio, else percent.
-      final percentValue = number <= 1 ? number * 100 : number;
+      // If CTR includes %, assume percent; otherwise treat <= 1 as ratio.
+      final isRatio = !value.contains('%') && number <= 1;
+      final percentValue = isRatio ? number * 100 : number;
       return '${formatter.format(percentValue)}%';
     }
     if ((metric == 'ESTIMATED_EARNINGS' || metric == 'CPC') &&
@@ -812,20 +813,36 @@ class _AdsenseReportScreenState extends State<AdsenseReportScreen> {
     if (trimmed.isEmpty) return trimmed;
     final hasComma = trimmed.contains(',');
     final hasDot = trimmed.contains('.');
+    final commaCount = _countOccurrences(trimmed, ',');
+    final dotCount = _countOccurrences(trimmed, '.');
     if (hasComma && hasDot) {
       // Use the last separator as decimal to normalize 1.234,56 or 1,234.56.
       final decimalIsComma = trimmed.lastIndexOf(',') > trimmed.lastIndexOf('.');
       final thousandsSeparator = decimalIsComma ? '.' : ',';
       final decimalSeparator = decimalIsComma ? ',' : '.';
+      final decimalCount = decimalIsComma ? commaCount : dotCount;
+      if (decimalCount > 1) {
+        return trimmed.replaceAll(RegExp(r'[.,]'), '');
+      }
       return trimmed
           .replaceAll(thousandsSeparator, '')
           .replaceAll(decimalSeparator, '.');
     }
     if (hasComma) {
       // vi_VN often uses comma as decimal separator.
+      if (commaCount > 1) {
+        return trimmed.replaceAll(',', '');
+      }
       return trimmed.replaceAll('.', '').replaceAll(',', '.');
     }
+    if (dotCount > 1) {
+      return trimmed.replaceAll('.', '');
+    }
     return trimmed.replaceAll(',', '');
+  }
+
+  int _countOccurrences(String input, String character) {
+    return character.allMatches(input).length;
   }
 
   String _readableError(Object error) {
