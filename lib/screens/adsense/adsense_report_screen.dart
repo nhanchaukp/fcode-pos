@@ -795,7 +795,7 @@ class _AdsenseReportScreenState extends State<AdsenseReportScreen> {
     if (number == null) return value;
     final formatter = NumberFormat('#,##0.##', 'vi_VN');
     if (metric == 'CTR') {
-      // AdSense reports CTR as a ratio (0-1) per API docs; treat <= 1 as ratio.
+      // Assume CTR may arrive as ratio (0-1); treat <= 1 as ratio, else percent.
       final percentValue = number <= 1 ? number * 100 : number;
       return '${formatter.format(percentValue)}%';
     }
