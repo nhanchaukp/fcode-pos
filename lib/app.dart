@@ -86,18 +86,62 @@ class FcodePosApp extends ConsumerWidget {
     );
   }
 
+  // ColorScheme trung tính hoàn toàn (không hue) cho chế độ đen tuyệt đối.
+  // Không dùng fromSeed vì M3 tonal algorithm luôn thêm chroma tối thiểu
+  // làm primary/secondary bị tím/hồng dù seed là black.
+  static const _blackNeutralScheme = ColorScheme(
+    brightness: Brightness.dark,
+    primary: Color(0xFFDDDDDD),
+    onPrimary: Color(0xFF000000),
+    primaryContainer: Color(0xFF282828),
+    onPrimaryContainer: Color(0xFFEEEEEE),
+    secondary: Color(0xFFAAAAAA),
+    onSecondary: Color(0xFF000000),
+    secondaryContainer: Color(0xFF242424),
+    onSecondaryContainer: Color(0xFFCCCCCC),
+    tertiary: Color(0xFF888888),
+    onTertiary: Color(0xFF000000),
+    tertiaryContainer: Color(0xFF1E1E1E),
+    onTertiaryContainer: Color(0xFFBBBBBB),
+    error: Color(0xFFCF6679),
+    onError: Color(0xFF000000),
+    errorContainer: Color(0xFF8C1D18),
+    onErrorContainer: Color(0xFFFFDAD6),
+    surface: Color(0xFF000000),
+    onSurface: Color(0xFFE3E3E3),
+    surfaceDim: Color(0xFF000000),
+    surfaceBright: Color(0xFF1E1E1E),
+    surfaceContainerLowest: Color(0xFF000000),
+    surfaceContainerLow: Color(0xFF0A0A0A),
+    surfaceContainer: Color(0xFF111111),
+    surfaceContainerHigh: Color(0xFF181818),
+    surfaceContainerHighest: Color(0xFF222222),
+    onSurfaceVariant: Color(0xFFAAAAAA),
+    outline: Color(0xFF555555),
+    outlineVariant: Color(0xFF333333),
+    shadow: Color(0xFF000000),
+    scrim: Color(0xFF000000),
+    inverseSurface: Color(0xFFE3E3E3),
+    onInverseSurface: Color(0xFF1C1C1C),
+    inversePrimary: Color(0xFF333333),
+  );
+
   ThemeData _buildDarkTheme(Color seedColor) {
+    final isBlack = seedColor.toARGB32() == Colors.black.toARGB32();
+
+    // Với seed đen, dùng scheme trung tính — bỏ qua fromSeed hoàn toàn.
+    final colorScheme = isBlack
+        ? _blackNeutralScheme
+        : ColorScheme.fromSeed(seedColor: seedColor, brightness: Brightness.dark);
+
     final base = ThemeData(
       useMaterial3: true,
       fontFamily: 'MomoTrustSans',
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: seedColor,
-        brightness: Brightness.dark,
-      ),
+      colorScheme: colorScheme,
     );
 
     return base.copyWith(
-      colorScheme: base.colorScheme,
+      colorScheme: colorScheme,
       textTheme: base.textTheme
           .copyWith(
             bodyMedium: base.textTheme.bodyMedium?.copyWith(fontSize: 13),
@@ -109,36 +153,31 @@ class FcodePosApp extends ConsumerWidget {
             labelMedium: base.textTheme.labelMedium?.copyWith(fontSize: 12),
           )
           .apply(
-            bodyColor: base.colorScheme.onSurface,
-            displayColor: base.colorScheme.onSurface,
+            bodyColor: colorScheme.onSurface,
+            displayColor: colorScheme.onSurface,
           ),
-      scaffoldBackgroundColor: base.colorScheme.surface,
+      scaffoldBackgroundColor: colorScheme.surface,
       appBarTheme: base.appBarTheme.copyWith(
         elevation: 0,
         centerTitle: false,
         scrolledUnderElevation: 0,
       ),
-      cardTheme:
-          CardThemeData(
-                // Dùng màu nền sáng hơn cho dark mode để card không bị đen quá
-                color: base.colorScheme.surfaceContainer,
-                elevation: 0,
-                margin: EdgeInsets.zero,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(
-                    color: base.colorScheme.outlineVariant.applyOpacity(0.5),
-                    width: 0.5,
-                  ),
-                ),
-              )
-              as dynamic,
-      inputDecorationTheme:
-          _buildInputDecorationTheme(
-                base.inputDecorationTheme,
-                base.colorScheme,
-              )
-              as dynamic,
+      cardTheme: CardThemeData(
+            color: colorScheme.surfaceContainer,
+            elevation: 0,
+            margin: EdgeInsets.zero,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(
+                color: colorScheme.outlineVariant.applyOpacity(0.5),
+                width: 0.5,
+              ),
+            ),
+          ) as dynamic,
+      inputDecorationTheme: _buildInputDecorationTheme(
+            base.inputDecorationTheme,
+            colorScheme,
+          ) as dynamic,
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -149,9 +188,8 @@ class FcodePosApp extends ConsumerWidget {
         ),
       ),
       navigationBarTheme: base.navigationBarTheme.copyWith(
-        // height: 60,
-        backgroundColor: base.colorScheme.surface,
-        indicatorColor: base.colorScheme.secondaryContainer,
+        backgroundColor: colorScheme.surface,
+        indicatorColor: colorScheme.secondaryContainer,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
       ),

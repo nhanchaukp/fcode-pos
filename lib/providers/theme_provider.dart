@@ -19,6 +19,7 @@ const List<Color> material3SeedColors = <Color>[
   Colors.lightGreen,
   Colors.cyan,
   Colors.blueGrey,
+  Colors.black,
 ];
 
 final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>(
@@ -28,8 +29,8 @@ final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>(
 /// Provider quản lý chỉ số màu seed hiện tại trong [material3SeedColors].
 final themeSeedColorIndexProvider =
     StateNotifierProvider<ThemeSeedColorNotifier, int>(
-  (ref) => ThemeSeedColorNotifier(),
-);
+      (ref) => ThemeSeedColorNotifier(),
+    );
 
 class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   ThemeModeNotifier() : super(ThemeMode.system) {
@@ -62,8 +63,7 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   }
 
   Future<void> toggleTheme() {
-    final nextMode =
-        state == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+    final nextMode = state == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
     return setThemeMode(nextMode);
   }
 }

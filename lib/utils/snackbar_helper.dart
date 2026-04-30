@@ -78,8 +78,8 @@ class Toastr {
 
     switch (variant) {
       case _ToastrVariant.success:
-        backgroundColor = colorScheme.primaryContainer;
-        foregroundColor = colorScheme.onPrimaryContainer;
+        backgroundColor = const Color(0xFFDCF5E7);
+        foregroundColor = const Color(0xFF1A5C35);
         break;
       case _ToastrVariant.error:
         backgroundColor = colorScheme.errorContainer;

@@ -7,6 +7,7 @@ import 'package:fcode_pos/screens/supply/suppliers_screen.dart';
 import 'package:fcode_pos/screens/mail/mail_log_screen.dart';
 import 'package:fcode_pos/screens/financial/financial_transaction_screen.dart';
 import 'package:fcode_pos/screens/adsense/adsense_screen.dart';
+import 'package:fcode_pos/screens/chatgpt/chatgpt_session_screen.dart';
 import 'package:fcode_pos/screens/rating/rating_list_screen.dart';
 import 'package:fcode_pos/utils/extensions.dart';
 import 'package:flutter/material.dart';
@@ -87,8 +88,7 @@ class ProductHubScreen extends StatelessWidget {
           title: 'ChatGPT Sessions',
           icon: Icons.smart_toy_outlined,
           color: Colors.cyan,
-          builder: (context) =>
-              const _PlaceholderScreen(title: 'ChatGPT Session Manager'),
+          builder: (context) => const ChatGptSessionScreen(),
         ),
       ],
     ),
@@ -208,38 +208,6 @@ class _SectionHeader extends StatelessWidget {
               color: colorScheme.onSurfaceVariant,
               letterSpacing: 0.5,
             ),
-      ),
-    );
-  }
-}
-
-class _PlaceholderScreen extends StatelessWidget {
-  const _PlaceholderScreen({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.construction_outlined,
-              size: 56,
-              color: Theme.of(context).colorScheme.outlineVariant,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Tính năng đang phát triển',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-            ),
-          ],
-        ),
       ),
     );
   }
