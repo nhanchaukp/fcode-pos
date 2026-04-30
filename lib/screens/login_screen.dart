@@ -60,36 +60,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  // Future<void> _handlePasskeyLogin() async {
-  //   if (!mounted) return;
-  //   setState(() => _passkeyLoading = Status.loading);
-
-  //   final auth = ref.read(authProvider.notifier);
-
-  //   try {
-  //     final user = await auth.loginWithPasskey();
-
-  //     if (user != null && mounted) {
-  //       Navigator.push(
-  //         context,
-  //         MaterialPageRoute(builder: (context) => const MainShell()),
-  //       );
-  //     }
-  //   } on ApiException catch (e) {
-  //     safeSetState(() => _passkeyLoading = Status.error);
-  //     Toastr.error(e.message);
-  //   } catch (e, stack) {
-  //     debugPrintStack(
-  //       stackTrace: stack,
-  //       label: "Error during Passkey login: $e",
-  //     );
-  //     safeSetState(() => _passkeyLoading = Status.error);
-  //     Toastr.error('Đăng nhập bằng Passkey thất bại. Vui lòng thử lại.');
-  //   } finally {
-  //     safeSetState(() => _passkeyLoading = Status.idle);
-  //   }
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -151,6 +121,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       }
                       return null;
                     },
+                    textInputAction: TextInputAction.next,
                   ),
                   const SizedBox(height: 24),
                   // Password Field
@@ -189,6 +160,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       }
                       return null;
                     },
+                    onFieldSubmitted: (_) => _handleLogin(),
+                    textInputAction: TextInputAction.done,
                   ),
                   const SizedBox(height: 32),
                   // Primary Login Button
@@ -208,49 +181,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           : const Text('Đăng Nhập'),
                     ),
                   ),
-                  // const SizedBox(height: 16),
-                  // // Divider
-                  // Row(
-                  //   children: [
-                  //     Expanded(
-                  //       child: Divider(
-                  //         color: Theme.of(context).colorScheme.onSecondary,
-                  //       ),
-                  //     ),
-                  //     Padding(
-                  //       padding: const EdgeInsets.symmetric(horizontal: 16),
-                  //       child: Text(
-                  //         'or',
-                  //         style: TextStyle(
-                  //           color: Theme.of(
-                  //             context,
-                  //           ).colorScheme.onSurfaceVariant,
-                  //         ),
-                  //       ),
-                  //     ),
-                  //     Expanded(
-                  //       child: Divider(
-                  //         color: Theme.of(context).colorScheme.onSecondary,
-                  //       ),
-                  //     ),
-                  //   ],
-                  // ),
-                  // const SizedBox(height: 16),
-                  // // Secondary Passkey Button
-                  // SizedBox(
-                  //   width: double.infinity,
-                  //   height: 48,
-                  //   child: OutlinedButton.icon(
-                  //     onPressed: _passkeyLoading == Status.loading
-                  //         ? null
-                  //         : _handlePasskeyLogin,
-                  //     icon: LoadingIcon(
-                  //       icon: Icons.fingerprint,
-                  //       loading: _passkeyLoading == Status.loading,
-                  //     ),
-                  //     label: const Text('Đăng nhập bằng Passkey'),
-                  //   ),
-                  // ),
                 ],
               ),
             ),

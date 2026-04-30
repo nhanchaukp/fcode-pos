@@ -322,7 +322,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
       isLoading: false,
       currentPage: 1,
       totalPages: 1,
-      viewMode: OrderListViewMode.compact,
+      viewMode: OrderListViewMode.full,
     );
   }
 

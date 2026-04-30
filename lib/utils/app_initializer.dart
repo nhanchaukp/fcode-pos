@@ -1,8 +1,10 @@
 import 'dart:io';
 
+import 'package:fcode_pos/config/google_config.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -21,6 +23,7 @@ class AppInitializer {
     await _setupWindowDimensions();
     await _setupDeviceOrientation();
     await _setupLocaleData();
+    await _setupGoogleSignIn();
   }
 
   /// Ensures that Flutter bindings are initialized.
@@ -60,5 +63,20 @@ class AppInitializer {
   /// Loads locale data required by intl formatters.
   static Future<void> _setupLocaleData() async {
     await initializeDateFormatting('vi');
+  }
+
+  /// Khởi tạo Google Sign-In SDK một lần duy nhất khi app khởi động.
+  /// clientId được lấy từ GoogleConfig — điền vào lib/config/google_config.dart.
+  static Future<void> _setupGoogleSignIn() async {
+    try {
+      String? clientId;
+      if (!kIsWeb) {
+        if (Platform.isIOS) clientId = GoogleConfig.iosClientId;
+        if (Platform.isAndroid) clientId = GoogleConfig.androidClientId;
+      }
+      await GoogleSignIn.instance.initialize(clientId: clientId);
+    } catch (_) {
+      // Không block app startup nếu Google Sign-In chưa được cấu hình
+    }
   }
 }
