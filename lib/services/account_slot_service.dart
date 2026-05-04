@@ -51,6 +51,25 @@ class AccountSlotService {
       parser: (json) => AccountSlot.fromJson(ensureMap(json)),
     );
   }
+
+  /// Lấy lịch sử audit của một slot có phân trang.
+  Future<ApiResponse<PaginatedData<Auditable>>> audits(
+    int slotId, {
+    int page = 1,
+    int perPage = 15,
+  }) {
+    return _api.get<PaginatedData<Auditable>>(
+      '/account-slots/$slotId/audits',
+      queryParameters: {
+        'page': page,
+        'per_page': perPage,
+      },
+      parser: (json) => PaginatedData<Auditable>.fromJson(
+        ensureMap(json),
+        (item) => Auditable.fromJson(ensureMap(item)),
+      ),
+    );
+  }
 }
 
 List<AccountSlot> _parseAccountSlotList(dynamic data) {

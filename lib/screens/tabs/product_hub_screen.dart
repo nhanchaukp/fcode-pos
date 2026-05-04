@@ -118,72 +118,69 @@ class ProductHubScreen extends StatelessWidget {
     Color dividerColor,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
-    const crossAxisCount = 3;
 
     return [
-      SliverToBoxAdapter(
-        child: _SectionHeader(title: section.title),
-      ),
+      SliverToBoxAdapter(child: _SectionHeader(title: section.title)),
       SliverToBoxAdapter(
         child: Divider(height: 1, thickness: 1, color: dividerColor),
       ),
-      SliverGrid(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: crossAxisCount,
-          childAspectRatio: 1,
-        ),
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            final item = section.items[index];
-            final itemColor = item.color ?? colorScheme.primary;
-            final col = index % crossAxisCount;
+      SliverPadding(
+        padding: const EdgeInsets.all(8),
+        sliver: SliverGrid(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            childAspectRatio: 1,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+          ),
+          delegate: SliverChildBuilderDelegate(
+            (context, index) {
+              final item = section.items[index];
+              final itemColor = item.color ?? colorScheme.primary;
 
-            return Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  right: col < crossAxisCount - 1
-                      ? BorderSide(color: dividerColor)
-                      : BorderSide.none,
-                  bottom: BorderSide(color: dividerColor),
-                ),
-              ),
-              child: InkWell(
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: item.builder),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 52,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        color: itemColor.applyOpacity(0.12),
-                        borderRadius: BorderRadius.circular(16),
+              return Card(
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: item.builder),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: itemColor.applyOpacity(0.12),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(item.icon, size: 24, color: itemColor),
                       ),
-                      child: Icon(item.icon, size: 26, color: itemColor),
-                    ),
-                    const SizedBox(height: 8),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Text(
-                        item.title,
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: colorScheme.onSurface,
-                            ),
+                      const SizedBox(height: 8),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Text(
+                          item.title,
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: colorScheme.onSurface,
+                              ),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            );
-          },
-          childCount: section.items.length,
+              );
+            },
+            childCount: section.items.length,
+          ),
         ),
       ),
     ];

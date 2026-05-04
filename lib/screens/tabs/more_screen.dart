@@ -1,3 +1,4 @@
+import 'package:fcode_pos/config/theme_colors.dart';
 import 'package:fcode_pos/providers/auth_provider.dart';
 import 'package:fcode_pos/providers/theme_provider.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
@@ -13,8 +14,8 @@ class MoreScreen extends ConsumerWidget {
     final authState = ref.watch(authProvider);
     final themeMode = ref.watch(themeModeProvider);
     final themeNotifier = ref.read(themeModeProvider.notifier);
-    final seedColorIndex = ref.watch(themeSeedColorIndexProvider);
-    final seedColorNotifier = ref.read(themeSeedColorIndexProvider.notifier);
+    final paletteIndex = ref.watch(themePaletteIndexProvider);
+    final paletteNotifier = ref.read(themePaletteIndexProvider.notifier);
 
     final user = authState.asData?.value;
     final isLoading = authState.isLoading;
@@ -163,14 +164,14 @@ class MoreScreen extends ConsumerWidget {
                       ),
                       const SizedBox(width: 8),
                       const Text(
-                        'Màu chủ đạo',
+                        'Giao diện',
                         style: TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Chọn màu chính cho ứng dụng (Material 3)',
+                    'Chọn bộ màu cho ứng dụng',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -179,47 +180,60 @@ class MoreScreen extends ConsumerWidget {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: List.generate(material3SeedColors.length, (
-                      index,
-                    ) {
-                      final color = material3SeedColors[index];
-                      final isSelected = index == seedColorIndex;
+                    children: List.generate(themePalettes.length, (index) {
+                      final palette = themePalettes[index];
+                      final isSelected = index == paletteIndex;
+                      final dot = palette.previewColor;
                       return InkWell(
-                        onTap: () {
-                          seedColorNotifier.setSeedColorIndex(index);
-                        },
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          width: 32,
-                          height: 32,
+                        onTap: () => paletteNotifier.setPaletteIndex(index),
+                        borderRadius: BorderRadius.circular(8),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
-                            color: color,
-                            shape: BoxShape.circle,
+                            color: isSelected
+                                ? colorScheme.primaryContainer
+                                : colorScheme.surfaceContainerHigh,
+                            borderRadius: BorderRadius.circular(8),
                             border: Border.all(
                               color: isSelected
-                                  ? Colors.white
-                                  : colorScheme.surface,
-                              width: 2,
+                                  ? colorScheme.primary
+                                  : colorScheme.outlineVariant
+                                      .withValues(alpha: 0.5),
+                              width: isSelected ? 1.5 : 1,
                             ),
-                            boxShadow: isSelected
-                                ? [
-                                    BoxShadow(
-                                      color: colorScheme.primary.withValues(
-                                        alpha: 0.5,
-                                      ),
-                                      blurRadius: 6,
-                                      spreadRadius: 1,
-                                    ),
-                                  ]
-                                : null,
                           ),
-                          child: isSelected
-                              ? Icon(
-                                  Icons.check,
-                                  size: 18,
-                                  color: colorScheme.onPrimary,
-                                )
-                              : null,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 10,
+                                height: 10,
+                                decoration: BoxDecoration(
+                                  color: dot,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                palette.name,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelMedium
+                                    ?.copyWith(
+                                      color: isSelected
+                                          ? colorScheme.onPrimaryContainer
+                                          : colorScheme.onSurface,
+                                      fontWeight: isSelected
+                                          ? FontWeight.w600
+                                          : FontWeight.normal,
+                                    ),
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     }),

@@ -1,35 +1,16 @@
-import 'package:flutter/material.dart';
+import 'package:fcode_pos/config/theme_colors.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-/// Danh sách màu seed dùng cho Material 3 ColorScheme.
-/// Có thể mở rộng thêm nếu cần.
-const List<Color> material3SeedColors = <Color>[
-  Colors.teal,
-  Colors.blue,
-  Colors.indigo,
-  Colors.deepPurple,
-  Colors.purple,
-  Colors.pink,
-  Colors.red,
-  Colors.orange,
-  Colors.deepOrange,
-  Colors.amber,
-  Colors.green,
-  Colors.lightGreen,
-  Colors.cyan,
-  Colors.blueGrey,
-  Colors.black,
-];
+import 'package:flutter/material.dart';
 
 final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>(
   (ref) => ThemeModeNotifier(),
 );
 
-/// Provider quản lý chỉ số màu seed hiện tại trong [material3SeedColors].
-final themeSeedColorIndexProvider =
-    StateNotifierProvider<ThemeSeedColorNotifier, int>(
-      (ref) => ThemeSeedColorNotifier(),
+/// Provider quản lý chỉ số palette hiện tại trong [themePalettes].
+final themePaletteIndexProvider =
+    StateNotifierProvider<ThemePaletteNotifier, int>(
+      (ref) => ThemePaletteNotifier(),
     );
 
 class ThemeModeNotifier extends StateNotifier<ThemeMode> {
@@ -68,30 +49,28 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   }
 }
 
-class ThemeSeedColorNotifier extends StateNotifier<int> {
-  ThemeSeedColorNotifier() : super(0) {
-    _loadSeedColor();
+class ThemePaletteNotifier extends StateNotifier<int> {
+  ThemePaletteNotifier() : super(0) {
+    _load();
   }
 
-  static const _seedKey = 'theme_seed_color_index';
+  // Dùng cùng key cũ để không mất lựa chọn đã lưu.
+  static const _key = 'theme_seed_color_index';
 
-  Future<void> _loadSeedColor() async {
+  Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
-    final storedIndex = prefs.getInt(_seedKey);
-    if (storedIndex == null) return;
-
-    if (storedIndex >= 0 && storedIndex < material3SeedColors.length) {
-      state = storedIndex;
+    final stored = prefs.getInt(_key);
+    if (stored == null) return;
+    if (stored >= 0 && stored < themePalettes.length) {
+      state = stored;
     }
   }
 
-  Future<void> setSeedColorIndex(int index) async {
+  Future<void> setPaletteIndex(int index) async {
     if (index == state) return;
-    if (index < 0 || index >= material3SeedColors.length) return;
-
+    if (index < 0 || index >= themePalettes.length) return;
     state = index;
-
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_seedKey, index);
+    await prefs.setInt(_key, index);
   }
 }

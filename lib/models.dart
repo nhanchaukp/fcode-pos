@@ -23,3 +23,4 @@ part 'models/refund.dart';
 part 'models/mail_log.dart';
 part 'models/customer_stats.dart';
 part 'models/rating.dart';
+part 'models/auditable.dart';

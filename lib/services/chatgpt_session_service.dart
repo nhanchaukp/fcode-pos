@@ -9,61 +9,69 @@ import 'package:http/http.dart' as http;
 class ChatGptSessionService {
   static const _sessionUrl = 'https://chatgpt.com/api/auth/session';
   static const _chatgptHost = 'https://chatgpt.com';
+  static const _meUrl = 'https://api.openai.com/v1/me';
 
-  /// Đọc cookies từ InAppWebView CookieManager và fetch session từ ChatGPT.
-  /// Trả về [ChatGptSession] đã parse, hoặc ném exception nếu chưa đăng nhập.
+  // ── Public API ──────────────────────────────────────────────────────────────
+
+  /// Capture session từ InAppWebView sau khi user đã đăng nhập.
+  /// Reads cookies → fetches session JSON → extracts access_token → calls /v1/me.
   Future<ChatGptSession> captureSession() async {
     final cookieManager = CookieManager.instance();
-    final cookies = await cookieManager.getCookies(
-      url: WebUri(_chatgptHost),
-    );
+    final cookies = await cookieManager.getCookies(url: WebUri(_chatgptHost));
 
     if (cookies.isEmpty) {
       throw Exception('Không tìm thấy cookies. Vui lòng đăng nhập trước.');
     }
 
-    final cookiesJson = _serializeCookiesToJson(cookies);
-    final cookieHeader = _buildCookieHeader(cookies);
-
-    final sessionData = await _fetchSessionWithHeader(cookieHeader);
-    return ChatGptSession.fromSessionApiJson(
-      json: sessionData,
-      cookiesJson: cookiesJson,
-    );
+    final cookieHeader = cookies.map((c) => '${c.name}=${c.value}').join('; ');
+    final rawSessionJson = await _fetchSessionJson(cookieHeader);
+    return _buildSession(rawSessionJson);
   }
 
-  /// Fetch lại session ngầm sử dụng cookies đã lưu trong [session].
-  /// Trả về session mới nhất với dữ liệu cập nhật.
-  Future<ChatGptSession> refreshSession(ChatGptSession session) async {
-    final cookieHeader = buildCookieHeaderFromJson(session.cookiesJson);
-    final sessionData = await _fetchSessionWithHeader(cookieHeader);
-    return ChatGptSession.fromSessionApiJson(
-      json: sessionData,
-      cookiesJson: session.cookiesJson,
-    );
-  }
-
-  /// Inject cookies đã lưu từ [session] vào CookieManager để mở browser.
-  Future<void> injectCookies(ChatGptSession session) async {
-    final cookieManager = CookieManager.instance();
-    final cookies = _deserializeCookiesFromJson(session.cookiesJson);
-
-    for (final cookie in cookies) {
-      await cookieManager.setCookie(
-        url: WebUri(_chatgptHost),
-        name: cookie['name'] as String,
-        value: cookie['value'] as String,
-        domain: cookie['domain'] as String?,
-        path: cookie['path'] as String? ?? '/',
-        isSecure: cookie['isSecure'] as bool? ?? true,
-        isHttpOnly: cookie['isHttpOnly'] as bool? ?? false,
-      );
+  /// Tạo session từ raw JSON string do user paste vào thủ công.
+  /// JSON phải chứa `accessToken` để gọi /v1/me.
+  Future<ChatGptSession> createFromJson(String rawJson) async {
+    // Validate JSON
+    final Map<String, dynamic> parsed;
+    try {
+      parsed = jsonDecode(rawJson) as Map<String, dynamic>;
+    } catch (_) {
+      throw Exception('JSON không hợp lệ.');
     }
+
+    final token = parsed['accessToken'] as String?;
+    if (token == null || token.isEmpty) {
+      throw Exception('Không tìm thấy trường "accessToken" trong JSON.');
+    }
+
+    final userInfo = await fetchUserInfo(token);
+    return ChatGptSession.fromSessionAndUser(
+      rawSessionJson: rawJson,
+      userInfo: userInfo,
+    );
   }
 
-  /// Xóa toàn bộ cookies và web storage của WebView để đảm bảo browser sạch.
-  /// Dùng deleteAllCookies() vì ChatGPT lưu cookies trên nhiều domain
-  /// (chatgpt.com, openai.com, auth0.openai.com, ...).
+  /// Gọi GET https://api.openai.com/v1/me với access token.
+  Future<Map<String, dynamic>> fetchUserInfo(String accessToken) async {
+    debugPrint('[ChatGptService] fetching /v1/me ...');
+    final response = await http.get(
+      Uri.parse(_meUrl),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    debugPrint('[ChatGptService] /v1/me status=${response.statusCode}');
+    if (response.statusCode != 200) {
+      throw Exception(
+          'Không thể lấy thông tin người dùng (HTTP ${response.statusCode})');
+    }
+
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
+  /// Xóa toàn bộ cookies và web storage để đảm bảo browser sạch khi thêm mới.
   Future<void> clearAllWebViewData() async {
     final cookieManager = CookieManager.instance();
     await cookieManager.deleteAllCookies();
@@ -86,15 +94,9 @@ class ChatGptSessionService {
     debugPrint('[ChatGptService] cleared all WebView data');
   }
 
-  String buildCookieHeaderFromJson(String cookiesJson) {
-    final cookies = _deserializeCookiesFromJson(cookiesJson);
-    return cookies
-        .map((c) => '${c['name']}=${c['value']}')
-        .join('; ');
-  }
+  // ── Private helpers ─────────────────────────────────────────────────────────
 
-  Future<Map<String, dynamic>> _fetchSessionWithHeader(
-      String cookieHeader) async {
+  Future<String> _fetchSessionJson(String cookieHeader) async {
     debugPrint('[ChatGptService] fetching session...');
     final response = await http.get(
       Uri.parse(_sessionUrl),
@@ -109,43 +111,26 @@ class ChatGptSessionService {
     );
 
     debugPrint('[ChatGptService] session status=${response.statusCode}');
-
     if (response.statusCode != 200) {
       throw Exception(
-          'Không thể lấy thông tin session (HTTP ${response.statusCode})');
+          'Không thể lấy session (HTTP ${response.statusCode})');
     }
 
     final json = jsonDecode(response.body) as Map<String, dynamic>;
-    final user = json['user'];
-    if (user == null) {
+    if (json['accessToken'] == null) {
       throw Exception('Chưa đăng nhập hoặc session đã hết hạn.');
     }
 
-    return json;
+    return response.body;
   }
 
-  String _buildCookieHeader(List<Cookie> cookies) {
-    return cookies.map((c) => '${c.name}=${c.value}').join('; ');
-  }
-
-  String _serializeCookiesToJson(List<Cookie> cookies) {
-    return jsonEncode(cookies.map((c) => {
-          'name': c.name,
-          'value': c.value,
-          'domain': c.domain,
-          'path': c.path,
-          'isSecure': c.isSecure,
-          'isHttpOnly': c.isHttpOnly,
-          'expiresDate': c.expiresDate,
-        }).toList());
-  }
-
-  List<Map<String, dynamic>> _deserializeCookiesFromJson(String cookiesJson) {
-    try {
-      final list = jsonDecode(cookiesJson) as List<dynamic>;
-      return list.cast<Map<String, dynamic>>();
-    } catch (_) {
-      return [];
-    }
+  Future<ChatGptSession> _buildSession(String rawSessionJson) async {
+    final sessionMap = jsonDecode(rawSessionJson) as Map<String, dynamic>;
+    final token = sessionMap['accessToken'] as String;
+    final userInfo = await fetchUserInfo(token);
+    return ChatGptSession.fromSessionAndUser(
+      rawSessionJson: rawSessionJson,
+      userInfo: userInfo,
+    );
   }
 }

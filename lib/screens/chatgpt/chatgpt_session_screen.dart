@@ -1,11 +1,14 @@
+import 'dart:convert';
+
 import 'package:fcode_pos/models/chatgpt_models.dart';
-import 'package:fcode_pos/screens/chatgpt/chatgpt_add_session_screen.dart';
-import 'package:fcode_pos/screens/chatgpt/chatgpt_browser_screen.dart';
+import 'package:fcode_pos/screens/chatgpt/chatgpt_add_session_screen.dart'
+    show ChatGptBrowserLoginScreen, ChatGptManualJsonScreen;
 import 'package:fcode_pos/screens/chatgpt/chatgpt_session_detail_screen.dart';
 import 'package:fcode_pos/services/chatgpt_session_service.dart';
 import 'package:fcode_pos/storage/chatgpt_session_storage.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 class ChatGptSessionScreen extends StatefulWidget {
@@ -22,7 +25,7 @@ class _ChatGptSessionScreenState extends State<ChatGptSessionScreen> {
   List<ChatGptSession> _sessions = [];
   List<ChatGptSession> _filtered = [];
   bool _isLoading = true;
-  final Set<String> _refreshing = {};
+  bool _fabOpen = false;
 
   @override
   void initState() {
@@ -48,23 +51,34 @@ class _ChatGptSessionScreenState extends State<ChatGptSessionScreen> {
     });
   }
 
-  void _onSearch() {
-    setState(() => _filtered = _applySearch(_sessions));
-  }
+  void _onSearch() => setState(() => _filtered = _applySearch(_sessions));
 
   List<ChatGptSession> _applySearch(List<ChatGptSession> all) {
     final q = _searchController.text.trim().toLowerCase();
     if (q.isEmpty) return List.of(all);
     return all
-        .where((s) =>
-            s.email.toLowerCase().contains(q) ||
-            s.name.toLowerCase().contains(q))
+        .where(
+          (s) =>
+              s.email.toLowerCase().contains(q) ||
+              s.name.toLowerCase().contains(q),
+        )
         .toList();
   }
 
-  Future<void> _addSession() async {
+  void _toggleFab() => setState(() => _fabOpen = !_fabOpen);
+
+  Future<void> _openBrowserLogin() async {
+    setState(() => _fabOpen = false);
     final added = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (_) => const ChatGptAddSessionScreen()),
+      MaterialPageRoute(builder: (_) => const ChatGptBrowserLoginScreen()),
+    );
+    if (added == true) _loadSessions();
+  }
+
+  Future<void> _openManualJson() async {
+    setState(() => _fabOpen = false);
+    final added = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => const ChatGptManualJsonScreen()),
     );
     if (added == true) _loadSessions();
   }
@@ -74,8 +88,7 @@ class _ChatGptSessionScreenState extends State<ChatGptSessionScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Xóa session'),
-        content:
-            Text('Bạn có chắc muốn xóa session của ${session.email} không?'),
+        content: Text('Bạn có chắc muốn xóa session của ${session.email}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -89,51 +102,59 @@ class _ChatGptSessionScreenState extends State<ChatGptSessionScreen> {
         ],
       ),
     );
-
     if (confirm != true) return;
     await ChatGptSessionStorage.delete(session.email);
     _loadSessions();
   }
 
-  Future<void> _refreshSession(ChatGptSession session) async {
-    setState(() => _refreshing.add(session.email));
-    try {
-      final updated = await _service.refreshSession(session);
-      await ChatGptSessionStorage.save(updated);
-      _loadSessions();
-      if (!mounted) return;
-      Toastr.success('Đã làm mới thông tin session', context: context);
-    } catch (e) {
-      if (!mounted) return;
-      Toastr.error('Lỗi làm mới: $e', context: context);
-    } finally {
-      if (mounted) setState(() => _refreshing.remove(session.email));
-    }
-  }
-
-  Future<void> _openBrowser(ChatGptSession session) async {
-    await Navigator.of(context).push(
+  void _viewJson(ChatGptSession session) {
+    Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => ChatGptBrowserScreen(session: session),
+        builder: (_) => ChatGptSessionDetailScreen(session: session),
       ),
     );
   }
 
-  Future<void> _viewSessionJson(ChatGptSession session) async {
-    // Fetch latest session JSON ngầm trước khi hiển thị
-    ChatGptSession display = session;
+  Future<void> _copyJson(ChatGptSession session) async {
+    final pretty = const JsonEncoder.withIndent('  ')
+        .convert(jsonDecode(session.sessionJson));
+    await Clipboard.setData(ClipboardData(text: pretty));
+    if (!mounted) return;
+    Toastr.success('Đã copy session JSON', context: context);
+  }
+
+  Future<void> _fetchInfo(ChatGptSession session) async {
+    final token = session.accessToken;
+    if (token == null || token.isEmpty) {
+      Toastr.warning('Không tìm thấy access token', context: context);
+      return;
+    }
+
+    // Hiển thị dialog loading trước
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const _FetchInfoDialog(isLoading: true),
+    );
+
+    Map<String, dynamic>? info;
+    String? errorMsg;
     try {
-      display = await _service.refreshSession(session);
-      await ChatGptSessionStorage.save(display);
-      _loadSessions();
-    } catch (_) {
-      // Dùng cached session nếu fetch thất bại
+      info = await _service.fetchUserInfo(token);
+    } catch (e) {
+      errorMsg = e.toString().replaceFirst('Exception: ', '');
     }
 
     if (!mounted) return;
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => ChatGptSessionDetailScreen(session: display),
+    Navigator.of(context).pop(); // đóng loading dialog
+
+    showDialog(
+      context: context,
+      builder: (_) => _FetchInfoDialog(
+        isLoading: false,
+        info: info,
+        errorMsg: errorMsg,
       ),
     );
   }
@@ -143,18 +164,17 @@ class _ChatGptSessionScreenState extends State<ChatGptSessionScreen> {
       context: context,
       builder: (ctx) => _SessionActionsSheet(
         session: session,
-        isRefreshing: _refreshing.contains(session.email),
-        onOpenBrowser: () {
-          Navigator.pop(ctx);
-          _openBrowser(session);
-        },
         onViewJson: () {
           Navigator.pop(ctx);
-          _viewSessionJson(session);
+          _viewJson(session);
         },
-        onRefresh: () {
+        onCopyJson: () {
           Navigator.pop(ctx);
-          _refreshSession(session);
+          _copyJson(session);
+        },
+        onFetchInfo: () {
+          Navigator.pop(ctx);
+          _fetchInfo(session);
         },
         onDelete: () {
           Navigator.pop(ctx);
@@ -181,9 +201,7 @@ class _ChatGptSessionScreenState extends State<ChatGptSessionScreen> {
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear, size: 18),
-                        onPressed: () {
-                          _searchController.clear();
-                        },
+                        onPressed: _searchController.clear,
                       )
                     : null,
                 isDense: true,
@@ -208,30 +226,41 @@ class _ChatGptSessionScreenState extends State<ChatGptSessionScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _filtered.isEmpty
-              ? _EmptyState(
-                  hasSearch: _searchController.text.isNotEmpty,
-                  onAdd: _addSession,
-                )
-              : RefreshIndicator(
-                  onRefresh: _loadSessions,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    itemCount: _filtered.length,
-                    itemBuilder: (context, index) {
-                      final session = _filtered[index];
-                      return _SessionCard(
-                        session: session,
-                        isRefreshing: _refreshing.contains(session.email),
-                        onTap: () => _showActions(session),
-                        onDismiss: () => _deleteSession(session),
-                      );
-                    },
-                  ),
-                ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addSession,
-        tooltip: 'Thêm tài khoản',
-        child: const Icon(Icons.add),
+          ? _EmptyState(
+              hasSearch: _searchController.text.isNotEmpty,
+              onBrowserLogin: _openBrowserLogin,
+              onManualJson: _openManualJson,
+            )
+          : RefreshIndicator(
+              onRefresh: _loadSessions,
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                itemCount: _filtered.length,
+                itemBuilder: (context, index) {
+                  final session = _filtered[index];
+                  return _SessionCard(
+                    session: session,
+                    onTap: () => _showActions(session),
+                    onDismiss: () => _deleteSession(session),
+                  );
+                },
+              ),
+            ),
+      floatingActionButton: _SpeedDial(
+        isOpen: _fabOpen,
+        onToggle: _toggleFab,
+        items: [
+          _SpeedDialItem(
+            icon: Icons.code,
+            label: 'Nhập JSON',
+            onTap: _openManualJson,
+          ),
+          _SpeedDialItem(
+            icon: Icons.language,
+            label: 'Đăng nhập',
+            onTap: _openBrowserLogin,
+          ),
+        ],
       ),
     );
   }
@@ -242,13 +271,11 @@ class _ChatGptSessionScreenState extends State<ChatGptSessionScreen> {
 class _SessionCard extends StatelessWidget {
   const _SessionCard({
     required this.session,
-    required this.isRefreshing,
     required this.onTap,
     required this.onDismiss,
   });
 
   final ChatGptSession session;
-  final bool isRefreshing;
   final VoidCallback onTap;
   final VoidCallback onDismiss;
 
@@ -273,7 +300,6 @@ class _SessionCard extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Row(
@@ -284,31 +310,24 @@ class _SessionCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              session.name,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
-                                  ?.copyWith(fontWeight: FontWeight.bold),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          _PlanChip(session: session),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
                       Text(
-                        session.email,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
+                        session.name.isNotEmpty ? session.name : session.email,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
+                      if (session.name.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          session.email,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: colorScheme.onSurfaceVariant),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                       const SizedBox(height: 4),
                       Row(
                         children: [
@@ -323,22 +342,18 @@ class _SessionCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            session.isExpired
-                                ? 'Đã hết hạn'
-                                : 'Còn hiệu lực',
-                            style:
-                                Theme.of(context).textTheme.labelSmall?.copyWith(
-                                      color: session.isExpired
-                                          ? Colors.red
-                                          : Colors.green,
-                                    ),
+                            session.isExpired ? 'Đã hết hạn' : 'Còn hiệu lực',
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(
+                                  color: session.isExpired
+                                      ? Colors.red
+                                      : Colors.green,
+                                ),
                           ),
                           const Spacer(),
                           Text(
                             'Lưu ${_formatDate(session.savedAt)}',
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelSmall
+                            style: Theme.of(context).textTheme.labelSmall
                                 ?.copyWith(color: colorScheme.onSurfaceVariant),
                           ),
                         ],
@@ -347,14 +362,7 @@ class _SessionCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                if (isRefreshing)
-                  const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                else
-                  Icon(Icons.more_vert, color: colorScheme.onSurfaceVariant),
+                Icon(Icons.more_vert, color: colorScheme.onSurfaceVariant),
               ],
             ),
           ),
@@ -363,9 +371,7 @@ class _SessionCard extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime dt) {
-    return DateFormat('dd/MM/yy HH:mm').format(dt);
-  }
+  String _formatDate(DateTime dt) => DateFormat('dd/MM/yy HH:mm').format(dt);
 }
 
 class _Avatar extends StatelessWidget {
@@ -379,11 +385,16 @@ class _Avatar extends StatelessWidget {
     return CircleAvatar(
       radius: 24,
       backgroundColor: colorScheme.primaryContainer,
-      backgroundImage:
-          session.image != null ? NetworkImage(session.image!) : null,
+      backgroundImage: session.image != null
+          ? NetworkImage(session.image!)
+          : null,
       child: session.image == null
           ? Text(
-              session.name.isNotEmpty ? session.name[0].toUpperCase() : '?',
+              session.name.isNotEmpty
+                  ? session.name[0].toUpperCase()
+                  : session.email.isNotEmpty
+                  ? session.email[0].toUpperCase()
+                  : '?',
               style: TextStyle(
                 fontSize: 18,
                 color: colorScheme.onPrimaryContainer,
@@ -395,55 +406,21 @@ class _Avatar extends StatelessWidget {
   }
 }
 
-class _PlanChip extends StatelessWidget {
-  const _PlanChip({required this.session});
-
-  final ChatGptSession session;
-
-  @override
-  Widget build(BuildContext context) {
-    final isPro = session.isPro;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: isPro
-            ? Colors.amber.withValues(alpha: 0.15)
-            : Colors.grey.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: isPro ? Colors.amber : Colors.grey,
-          width: 0.8,
-        ),
-      ),
-      child: Text(
-        session.planType?.toUpperCase() ?? 'FREE',
-        style: TextStyle(
-          fontSize: 9,
-          fontWeight: FontWeight.bold,
-          color: isPro ? Colors.amber.shade700 : Colors.grey.shade600,
-        ),
-      ),
-    );
-  }
-}
-
 // ── Actions Bottom Sheet ──────────────────────────────────────────────────────
 
 class _SessionActionsSheet extends StatelessWidget {
   const _SessionActionsSheet({
     required this.session,
-    required this.isRefreshing,
-    required this.onOpenBrowser,
     required this.onViewJson,
-    required this.onRefresh,
+    required this.onCopyJson,
+    required this.onFetchInfo,
     required this.onDelete,
   });
 
   final ChatGptSession session;
-  final bool isRefreshing;
-  final VoidCallback onOpenBrowser;
   final VoidCallback onViewJson;
-  final VoidCallback onRefresh;
+  final VoidCallback onCopyJson;
+  final VoidCallback onFetchInfo;
   final VoidCallback onDelete;
 
   @override
@@ -467,19 +444,20 @@ class _SessionActionsSheet extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          session.name,
+                          session.name.isNotEmpty ? session.name : session.email,
                           style: Theme.of(context)
                               .textTheme
                               .titleSmall
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
-                        Text(
-                          session.email,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(color: colorScheme.onSurfaceVariant),
-                        ),
+                        if (session.name.isNotEmpty)
+                          Text(
+                            session.email,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(color: colorScheme.onSurfaceVariant),
+                          ),
                       ],
                     ),
                   ),
@@ -488,29 +466,21 @@ class _SessionActionsSheet extends StatelessWidget {
             ),
             const Divider(height: 1),
             ListTile(
-              leading: const Icon(Icons.open_in_browser),
-              title: const Text('Mở ChatGPT'),
-              subtitle: const Text('Mở với cookie đã lưu'),
-              onTap: onOpenBrowser,
+              leading: const Icon(Icons.manage_accounts_outlined),
+              title: const Text('Fetch Info'),
+              subtitle: const Text('Kiểm tra token & lấy thông tin tài khoản'),
+              onTap: onFetchInfo,
             ),
             ListTile(
               leading: const Icon(Icons.data_object),
               title: const Text('Xem Session JSON'),
-              subtitle: const Text('Fetch & hiển thị dữ liệu session'),
               onTap: onViewJson,
             ),
             ListTile(
-              leading: isRefreshing
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.refresh),
-              title: const Text('Làm mới thông tin'),
-              subtitle: const Text('Fetch ngầm và cập nhật dữ liệu'),
-              enabled: !isRefreshing,
-              onTap: isRefreshing ? null : onRefresh,
+              leading: const Icon(Icons.copy),
+              title: const Text('Copy JSON'),
+              subtitle: const Text('Copy toàn bộ session JSON'),
+              onTap: onCopyJson,
             ),
             ListTile(
               leading: const Icon(Icons.delete, color: Colors.red),
@@ -525,13 +495,275 @@ class _SessionActionsSheet extends StatelessWidget {
   }
 }
 
+// ── Fetch Info Dialog ─────────────────────────────────────────────────────────
+
+class _FetchInfoDialog extends StatelessWidget {
+  const _FetchInfoDialog({
+    required this.isLoading,
+    this.info,
+    this.errorMsg,
+  });
+
+  final bool isLoading;
+  final Map<String, dynamic>? info;
+  final String? errorMsg;
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading) {
+      return const AlertDialog(
+        content: Padding(
+          padding: EdgeInsets.symmetric(vertical: 16),
+          child: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 20),
+              Expanded(child: Text('Đang kiểm tra token...')),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (errorMsg != null) {
+      return AlertDialog(
+        icon: const Icon(Icons.error_outline, color: Colors.red, size: 36),
+        title: const Text('Token không hợp lệ'),
+        content: Text(
+          errorMsg!,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Đóng'),
+          ),
+        ],
+      );
+    }
+
+    // Success — hiển thị user info
+    final orgs = (info?['orgs']?['data'] as List<dynamic>? ?? [])
+        .cast<Map<String, dynamic>>();
+    final orgName = orgs.isNotEmpty
+        ? (orgs.first['title'] as String? ?? orgs.first['name'] as String?)
+        : null;
+
+    return AlertDialog(
+      icon: const Icon(Icons.check_circle_outline, color: Colors.green, size: 36),
+      title: const Text('Token hợp lệ'),
+      contentPadding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _InfoRow2('Tên', info?['name'] as String?),
+          _InfoRow2('Email', info?['email'] as String?),
+          _InfoRow2('User ID', info?['id'] as String?),
+          _InfoRow2('Tổ chức', orgName),
+          _InfoRow2(
+            'MFA',
+            info?['mfa_flag_enabled'] == true ? 'Bật' : 'Tắt',
+          ),
+          if (info?['phone_number'] != null)
+            _InfoRow2('SĐT', info!['phone_number'] as String?),
+          const SizedBox(height: 4),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Container(
+              margin: const EdgeInsets.only(top: 4, bottom: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: Colors.green.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                'Token còn hiệu lực',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.green.shade700,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Đóng'),
+        ),
+        TextButton(
+          onPressed: () {
+            final jsonStr = const JsonEncoder.withIndent('  ').convert(info);
+            Clipboard.setData(ClipboardData(text: jsonStr));
+            Navigator.pop(context);
+            Toastr.success('Đã copy thông tin tài khoản',
+                context: context);
+          },
+          child: const Text('Copy JSON'),
+        ),
+      ],
+    );
+  }
+}
+
+class _InfoRow2 extends StatelessWidget {
+  const _InfoRow2(this.label, this.value);
+
+  final String label;
+  final String? value;
+
+  @override
+  Widget build(BuildContext context) {
+    if (value == null || value!.isEmpty) return const SizedBox.shrink();
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 72,
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value!,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Speed Dial FAB ────────────────────────────────────────────────────────────
+
+class _SpeedDialItem {
+  const _SpeedDialItem({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+}
+
+class _SpeedDial extends StatelessWidget {
+  const _SpeedDial({
+    required this.isOpen,
+    required this.onToggle,
+    required this.items,
+  });
+
+  final bool isOpen;
+  final VoidCallback onToggle;
+  final List<_SpeedDialItem> items;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        // Mini items (top → bottom order = items list order)
+        for (final item in items) ...[
+          AnimatedSlide(
+            offset: isOpen ? Offset.zero : const Offset(0, 0.3),
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+            child: AnimatedOpacity(
+              opacity: isOpen ? 1 : 0,
+              duration: const Duration(milliseconds: 150),
+              child: IgnorePointer(
+                ignoring: !isOpen,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Label chip
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.12),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          item.label,
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: colorScheme.onSurface,
+                                  ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      // Mini FAB
+                      FloatingActionButton.small(
+                        heroTag: item.label,
+                        onPressed: item.onTap,
+                        backgroundColor: colorScheme.secondaryContainer,
+                        foregroundColor: colorScheme.onSecondaryContainer,
+                        elevation: 2,
+                        child: Icon(item.icon, size: 20),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+        // Main FAB
+        FloatingActionButton(
+          heroTag: 'main_fab',
+          onPressed: onToggle,
+          child: AnimatedRotation(
+            turns: isOpen ? 0.125 : 0,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
+            child: const Icon(Icons.add),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 // ── Empty State ───────────────────────────────────────────────────────────────
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.hasSearch, required this.onAdd});
+  const _EmptyState({
+    required this.hasSearch,
+    required this.onBrowserLogin,
+    required this.onManualJson,
+  });
 
   final bool hasSearch;
-  final VoidCallback onAdd;
+  final VoidCallback onBrowserLogin;
+  final VoidCallback onManualJson;
 
   @override
   Widget build(BuildContext context) {
@@ -550,9 +782,7 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              hasSearch
-                  ? 'Không tìm thấy kết quả'
-                  : 'Chưa có session nào',
+              hasSearch ? 'Không tìm thấy kết quả' : 'Chưa có session nào',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -560,17 +790,28 @@ class _EmptyState extends StatelessWidget {
             if (!hasSearch) ...[
               const SizedBox(height: 8),
               Text(
-                'Tap nút + để thêm tài khoản ChatGPT',
+                'Thêm tài khoản ChatGPT bằng cách đăng nhập hoặc nhập JSON',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
-              FilledButton.icon(
-                onPressed: onAdd,
-                icon: const Icon(Icons.add),
-                label: const Text('Thêm tài khoản'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  FilledButton.icon(
+                    onPressed: onBrowserLogin,
+                    icon: const Icon(Icons.language, size: 18),
+                    label: const Text('Đăng nhập'),
+                  ),
+                  const SizedBox(width: 12),
+                  OutlinedButton.icon(
+                    onPressed: onManualJson,
+                    icon: const Icon(Icons.code, size: 18),
+                    label: const Text('Nhập JSON'),
+                  ),
+                ],
               ),
             ],
           ],

@@ -5,10 +5,11 @@ class ChatGptSession {
   final String userId;
   final String name;
   final String? image;
-  final String? planType;
-  final String? expires;
+
+  /// Raw JSON string từ chatgpt.com/api/auth/session.
+  /// Chứa access_token, expires, user, v.v.
   final String sessionJson;
-  final String cookiesJson;
+
   final DateTime savedAt;
 
   const ChatGptSession({
@@ -16,88 +17,88 @@ class ChatGptSession {
     required this.userId,
     required this.name,
     this.image,
-    this.planType,
-    this.expires,
     required this.sessionJson,
-    required this.cookiesJson,
     required this.savedAt,
   });
 
-  factory ChatGptSession.fromSessionApiJson({
-    required Map<String, dynamic> json,
-    required String cookiesJson,
+  // ── Computed từ sessionJson ─────────────────────────────────────────────────
+
+  String? get accessToken {
+    try {
+      final m = jsonDecode(sessionJson) as Map<String, dynamic>;
+      return m['accessToken'] as String?;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String? get expires {
+    try {
+      final m = jsonDecode(sessionJson) as Map<String, dynamic>;
+      return m['expires'] as String?;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  bool get isExpired {
+    final exp = expires;
+    if (exp == null) return false;
+    final date = DateTime.tryParse(exp);
+    if (date == null) return false;
+    return DateTime.now().isAfter(date);
+  }
+
+  // ── Factories ───────────────────────────────────────────────────────────────
+
+  /// Tạo từ raw session JSON string + user info từ /v1/me.
+  factory ChatGptSession.fromSessionAndUser({
+    required String rawSessionJson,
+    required Map<String, dynamic> userInfo,
   }) {
-    final user = json['user'] as Map<String, dynamic>? ?? {};
-    final account = json['account'] as Map<String, dynamic>? ?? {};
     return ChatGptSession(
-      email: user['email'] as String? ?? '',
-      userId: user['id'] as String? ?? '',
-      name: user['name'] as String? ?? '',
-      image: (user['picture'] ?? user['image']) as String?,
-      planType: account['planType'] as String?,
-      expires: json['expires'] as String?,
-      sessionJson: jsonEncode(json),
-      cookiesJson: cookiesJson,
+      email: userInfo['email'] as String? ?? '',
+      userId: userInfo['id'] as String? ?? '',
+      name: userInfo['name'] as String? ?? '',
+      image: userInfo['picture'] as String?,
+      sessionJson: rawSessionJson,
       savedAt: DateTime.now(),
     );
   }
 
   factory ChatGptSession.fromStorageJson(Map<String, dynamic> json) {
     return ChatGptSession(
-      email: json['email'] as String,
+      email: json['email'] as String? ?? '',
       userId: json['userId'] as String? ?? '',
       name: json['name'] as String? ?? '',
       image: json['image'] as String?,
-      planType: json['planType'] as String?,
-      expires: json['expires'] as String?,
       sessionJson: json['sessionJson'] as String? ?? '{}',
-      cookiesJson: json['cookiesJson'] as String? ?? '[]',
-      savedAt: DateTime.tryParse(json['savedAt'] as String? ?? '') ?? DateTime.now(),
+      savedAt:
+          DateTime.tryParse(json['savedAt'] as String? ?? '') ?? DateTime.now(),
     );
   }
 
-  Map<String, dynamic> toStorageJson() {
-    return {
-      'email': email,
-      'userId': userId,
-      'name': name,
-      'image': image,
-      'planType': planType,
-      'expires': expires,
-      'sessionJson': sessionJson,
-      'cookiesJson': cookiesJson,
-      'savedAt': savedAt.toIso8601String(),
-    };
-  }
+  Map<String, dynamic> toStorageJson() => {
+        'email': email,
+        'userId': userId,
+        'name': name,
+        'image': image,
+        'sessionJson': sessionJson,
+        'savedAt': savedAt.toIso8601String(),
+      };
 
   ChatGptSession copyWith({
     String? name,
     String? image,
-    String? planType,
-    String? expires,
     String? sessionJson,
-    String? cookiesJson,
     DateTime? savedAt,
-  }) {
-    return ChatGptSession(
-      email: email,
-      userId: userId,
-      name: name ?? this.name,
-      image: image ?? this.image,
-      planType: planType ?? this.planType,
-      expires: expires ?? this.expires,
-      sessionJson: sessionJson ?? this.sessionJson,
-      cookiesJson: cookiesJson ?? this.cookiesJson,
-      savedAt: savedAt ?? this.savedAt,
-    );
-  }
-
-  bool get isExpired {
-    if (expires == null) return false;
-    final expireDate = DateTime.tryParse(expires!);
-    if (expireDate == null) return false;
-    return DateTime.now().isAfter(expireDate);
-  }
-
-  bool get isPro => planType != null && planType != 'free';
+  }) =>
+      ChatGptSession(
+        email: email,
+        userId: userId,
+        name: name ?? this.name,
+        image: image ?? this.image,
+        sessionJson: sessionJson ?? this.sessionJson,
+        savedAt: savedAt ?? this.savedAt,
+      );
 }

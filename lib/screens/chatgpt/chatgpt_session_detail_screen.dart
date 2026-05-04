@@ -136,7 +136,7 @@ class _SessionHeader extends StatelessWidget {
                       ),
                 ),
                 const SizedBox(height: 6),
-                _PlanBadge(session: session, colorScheme: colorScheme),
+                _ExpiryBadge(session: session, colorScheme: colorScheme),
               ],
             ),
           ),
@@ -146,32 +146,41 @@ class _SessionHeader extends StatelessWidget {
   }
 }
 
-class _PlanBadge extends StatelessWidget {
-  const _PlanBadge({required this.session, required this.colorScheme});
+class _ExpiryBadge extends StatelessWidget {
+  const _ExpiryBadge({required this.session, required this.colorScheme});
 
   final ChatGptSession session;
   final ColorScheme colorScheme;
 
   @override
   Widget build(BuildContext context) {
-    final isPro = session.isPro;
+    final expired = session.isExpired;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: isPro ? Colors.amber.withValues(alpha: 0.2) : colorScheme.surfaceContainerHighest,
+        color: expired
+            ? Colors.red.withValues(alpha: 0.12)
+            : Colors.green.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isPro ? Colors.amber : colorScheme.outline,
-          width: 1,
-        ),
       ),
-      child: Text(
-        session.planType?.toUpperCase() ?? 'FREE',
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-          color: isPro ? Colors.amber.shade700 : colorScheme.onSurfaceVariant,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            expired ? Icons.error_outline : Icons.check_circle_outline,
+            size: 11,
+            color: expired ? Colors.red : Colors.green,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            expired ? 'Đã hết hạn' : 'Còn hiệu lực',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: expired ? Colors.red : Colors.green,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -187,38 +196,23 @@ class _InfoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = parsedJson['user'] as Map<String, dynamic>? ?? {};
-    final account = parsedJson['account'] as Map<String, dynamic>? ?? {};
     final expires = parsedJson['expires'] as String?;
-    final authProvider = parsedJson['authProvider'] as String?;
+    final token = parsedJson['accessToken'] as String?;
+    final tokenPreview = token != null && token.length > 20
+        ? '${token.substring(0, 20)}...'
+        : token;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _SectionTitle(title: 'Thông tin tài khoản', colorScheme: colorScheme),
+          _SectionTitle(title: 'Thông tin session', colorScheme: colorScheme),
           _InfoCard(
             colorScheme: colorScheme,
             entries: [
-              _InfoEntry('ID người dùng', user['id']?.toString()),
-              _InfoEntry('Nhà cung cấp xác thực', authProvider),
-              _InfoEntry('IDP', user['idp']?.toString()),
-              _InfoEntry('MFA', user['mfa'] == true ? 'Bật' : 'Tắt'),
               _InfoEntry('Hết hạn', expires),
-            ],
-          ),
-          const SizedBox(height: 12),
-          _SectionTitle(title: 'Gói dịch vụ', colorScheme: colorScheme),
-          _InfoCard(
-            colorScheme: colorScheme,
-            entries: [
-              _InfoEntry('ID tài khoản', account['id']?.toString()),
-              _InfoEntry('Loại gói', account['planType']?.toString()),
-              _InfoEntry('Cấu trúc', account['structure']?.toString()),
-              _InfoEntry('Khu vực', account['residencyRegion']?.toString()),
-              _InfoEntry('Quá hạn thanh toán',
-                  account['isDelinquent'] == true ? 'Có' : 'Không'),
+              _InfoEntry('Access Token', tokenPreview),
             ],
           ),
           const SizedBox(height: 12),

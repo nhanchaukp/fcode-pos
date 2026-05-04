@@ -77,7 +77,8 @@ class _AccountMasterDropdownState extends State<AccountMasterDropdown> {
   }
 
   String _buildAccountMasterDisplayName(AccountMaster accountMaster) {
-    return '${accountMaster.serviceType}: ${accountMaster.username}';
+    final free = accountMaster.maxSlots - (accountMaster.slotsCount ?? 0);
+    return '${accountMaster.serviceType}: ${accountMaster.username}  ($free trống)';
   }
 
   @override
@@ -195,12 +196,10 @@ class _AccountMasterSelectSheetState extends State<_AccountMasterSelectSheet> {
     super.dispose();
   }
 
-  String _buildAccountMasterDisplayName(AccountMaster accountMaster) {
-    return '${accountMaster.serviceType}: ${accountMaster.username}';
-  }
-
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return SafeArea(
       child: Padding(
         padding: EdgeInsets.only(
@@ -210,7 +209,7 @@ class _AccountMasterSelectSheetState extends State<_AccountMasterSelectSheet> {
           top: 16,
         ),
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 400),
+          constraints: const BoxConstraints(maxHeight: 480),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -233,39 +232,131 @@ class _AccountMasterSelectSheetState extends State<_AccountMasterSelectSheet> {
                   });
                 },
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Flexible(
                 child: _filtered.isEmpty
                     ? const Center(
-                        child: Text('Không có account master phù hợp'),
+                        child: Padding(
+                          padding: EdgeInsets.all(24),
+                          child: Text('Không có account master phù hợp'),
+                        ),
                       )
                     : ListView.builder(
                         itemCount: _filtered.length,
                         itemBuilder: (context, index) {
-                          final accountMaster = _filtered[index];
+                          final am = _filtered[index];
+                          final free = am.maxSlots - (am.slotsCount ?? 0);
+                          final isFull = free <= 0;
+                          final isLow = free == 1;
+                          final slotColor = isFull
+                              ? Colors.red
+                              : isLow
+                              ? Colors.orange
+                              : Colors.green;
+                          final isSelected = widget.selected?.id == am.id;
+
                           return ListTile(
+                            selected: isSelected,
+                            selectedTileColor: colorScheme.primaryContainer
+                                .withValues(alpha: 0.3),
+                            leading: _ServiceBadge(
+                              serviceType: am.serviceType,
+                              colorScheme: colorScheme,
+                            ),
                             title: Text(
-                              _buildAccountMasterDisplayName(accountMaster),
-                            ),
-                            subtitle: Text(
-                              accountMaster.name,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey.shade700,
+                              am.username,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            trailing: widget.selected?.id == accountMaster.id
-                                ? const Icon(Icons.check, color: Colors.green)
-                                : null,
-                            onTap: () {
-                              Navigator.of(context).pop(accountMaster);
-                            },
+                            subtitle: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    am.serviceType,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Slot availability badge
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: slotColor.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: slotColor.withValues(alpha: 0.4),
+                                      width: 0.8,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    isFull
+                                        ? 'Full'
+                                        : '$free/${am.maxSlots} trống',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: slotColor,
+                                    ),
+                                  ),
+                                ),
+                                if (isSelected) ...[
+                                  const SizedBox(width: 6),
+                                  Icon(
+                                    Icons.check_circle,
+                                    size: 18,
+                                    color: colorScheme.primary,
+                                  ),
+                                ],
+                              ],
+                            ),
+                            onTap: () => Navigator.of(context).pop(am),
                           );
                         },
                       ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ServiceBadge extends StatelessWidget {
+  const _ServiceBadge({required this.serviceType, required this.colorScheme});
+
+  final String serviceType;
+  final ColorScheme colorScheme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        serviceType.isNotEmpty ? serviceType[0].toUpperCase() : '?',
+        style: TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.bold,
+          color: colorScheme.onPrimaryContainer,
         ),
       ),
     );

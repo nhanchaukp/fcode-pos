@@ -1,5 +1,6 @@
 import 'package:fcode_pos/enums.dart' as enums;
 import 'package:fcode_pos/models.dart';
+import 'package:fcode_pos/screens/audit/audit_log_screen.dart';
 import 'package:fcode_pos/screens/customer/customer_detail_screen.dart';
 import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/screens/account-master/account_master_detail_screen.dart';
@@ -467,13 +468,11 @@ class _AccountSlotManagementScreenState
 
     return RefreshIndicator(
       onRefresh: _loadAccountMasters,
-      child: ListView.separated(
-        padding: const EdgeInsets.all(16),
+      child: ListView.builder(
+        padding: const EdgeInsets.only(bottom: 24),
         itemCount: filteredAccounts.length,
-        separatorBuilder: (context, index) => const SizedBox(height: 16),
         itemBuilder: (context, index) {
-          final accountMaster = filteredAccounts[index];
-          return _buildAccountMasterCard(accountMaster);
+          return _buildAccountMasterCard(filteredAccounts[index]);
         },
       ),
     );
@@ -482,185 +481,160 @@ class _AccountSlotManagementScreenState
   Widget _buildAccountMasterCard(AccountMaster accountMaster) {
     final hasSlots =
         accountMaster.slots != null && accountMaster.slots!.isNotEmpty;
+    final hasNotes =
+        accountMaster.notes != null && accountMaster.notes!.isNotEmpty;
 
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                AccountMasterDetailScreen(accountMaster: accountMaster),
+    return Card(
+      margin: const EdgeInsets.only(top: 8),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Account header ────────────────────────────────────────────────
+          ListTile(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) =>
+                    AccountMasterDetailScreen(accountMaster: accountMaster),
+              ),
+            ),
+            contentPadding:
+                const EdgeInsets.only(left: 16, right: 4, top: 4, bottom: 4),
+            leading: _ServiceBadge(serviceType: accountMaster.serviceType),
+            title: Text(
+              accountMaster.username,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            subtitle: Row(
+              children: [
+                _StatusDot(isActive: accountMaster.isActive),
+                const SizedBox(width: 4),
+                Text(
+                  accountMaster.isActive ? 'Active' : 'Inactive',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color:
+                        accountMaster.isActive ? Colors.green : Colors.red,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                if (accountMaster.paymentDate != null) ...[
+                  Text(
+                    '  ·  ',
+                    style: TextStyle(color: colorScheme.outlineVariant),
+                  ),
+                  Icon(
+                    Icons.calendar_today,
+                    size: 11,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 3),
+                  Text(
+                    DateHelper.formatDateShort(accountMaster.paymentDate!),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            trailing: PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert),
+              onSelected: (value) {
+                if (value == 'create_expense') {
+                  _showCreateExpenseSheet(accountMaster);
+                } else if (value == 'edit_account') {
+                  _showEditAccountScreen(accountMaster);
+                }
+              },
+              itemBuilder: (_) => const [
+                PopupMenuItem(
+                  value: 'create_expense',
+                  child: ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(Icons.add_card, size: 18),
+                    title: Text('Tạo chi phí'),
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'edit_account',
+                  child: ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(Icons.edit, size: 18),
+                    title: Text('Chỉnh sửa tài khoản'),
+                  ),
+                ),
+              ],
+            ),
           ),
-        );
-      },
-      child: Card(
-        elevation: 2,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Line 1: Username (left) and PopupMenuButton (right)
-              Row(
+
+          // ── Notes ─────────────────────────────────────────────────────────
+          if (hasNotes)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Icon(Icons.notes, size: 14, color: colorScheme.onSurfaceVariant),
+                  const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      accountMaster.username,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  PopupMenuButton<String>(
-                    icon: const Icon(Icons.more_vert),
-                    onSelected: (value) {
-                      if (value == 'create_expense') {
-                        _showCreateExpenseSheet(accountMaster);
-                      }
-                      if (value == 'edit_account') {
-                        _showEditAccountScreen(accountMaster);
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'create_expense',
-                        child: Row(
-                          children: [
-                            Icon(Icons.add_card, size: 16),
-                            SizedBox(width: 8),
-                            Text('Tạo chi phí'),
-                          ],
-                        ),
-                      ),
-                      const PopupMenuItem(
-                        value: 'edit_account',
-                        child: Row(
-                          children: [
-                            Icon(Icons.edit, size: 16),
-                            SizedBox(width: 8),
-                            Text('Chỉnh sửa tài khoản'),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              // const SizedBox(height: 8),
-              // Line 2: Service Type | Active Status | Payment Date
-              Row(
-                children: [
-                  // Service Type
-                  Text(
-                    accountMaster.serviceType,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Text(
-                      '|',
-                      style: TextStyle(color: colorScheme.outlineVariant),
-                    ),
-                  ),
-                  // Active Status with color
-                  Text(
-                    accountMaster.isActive ? 'Active' : 'Inactive',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: accountMaster.isActive ? Colors.green : Colors.red,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Text(
-                      '|',
-                      style: TextStyle(color: colorScheme.outlineVariant),
-                    ),
-                  ),
-                  // Payment Date
-                  Text(
-                    accountMaster.paymentDate != null
-                        ? DateHelper.formatDateShort(accountMaster.paymentDate!)
-                        : 'N/A',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-
-              // Notes (if available)
-              if (accountMaster.notes != null &&
-                  accountMaster.notes!.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.note,
-                      size: 16,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        accountMaster.notes!,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-
-              // Slots section
-              if (hasSlots) ...[
-                // const SizedBox(height: 16),
-                const Divider(),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Icon(Icons.dns, size: 16, color: colorScheme.primary),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Slots (${accountMaster.slots!.length}/${accountMaster.maxSlots})',
+                      accountMaster.notes!,
                       style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.primary,
+                        fontSize: 12,
+                        color: colorScheme.onSurfaceVariant,
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                ...accountMaster.slots!.map(
-                  (slot) => _buildSlotItem(slot, accountMaster),
-                ),
-              ] else ...[
-                const SizedBox(height: 12),
+                  ),
+                ],
+              ),
+            ),
+
+          // ── Slots ─────────────────────────────────────────────────────────
+          Divider(height: 1, color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                Icon(Icons.dns_outlined, size: 14, color: colorScheme.primary),
+                const SizedBox(width: 6),
                 Text(
-                  'Không có slot nào',
+                  'Slots  ${accountMaster.slots?.length ?? 0}/${accountMaster.maxSlots}',
                   style: TextStyle(
-                    fontSize: 13,
-                    color: colorScheme.onSurfaceVariant,
-                    fontStyle: FontStyle.italic,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.primary,
                   ),
                 ),
               ],
-            ],
+            ),
           ),
-        ),
+
+          if (!hasSlots)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: Text(
+                'Không có slot nào',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: colorScheme.onSurfaceVariant,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            )
+          else
+            ...accountMaster.slots!.asMap().entries.map((e) {
+              final isLast = e.key == accountMaster.slots!.length - 1;
+              return _buildSlotItem(e.value, accountMaster, isLast: isLast);
+            }),
+        ],
       ),
     );
   }
@@ -719,6 +693,25 @@ class _AccountSlotManagementScreenState
                   );
                 },
               ),
+            ListTile(
+              leading: const Icon(Icons.history),
+              title: const Text('Lịch sử thay đổi'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AuditLogScreen(
+                      title: slot.name,
+                      fetcher: (page) => _accountSlotService.audits(
+                        slot.id,
+                        page: page,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -795,164 +788,237 @@ class _AccountSlotManagementScreenState
     }
   }
 
-  Widget _buildSlotItem(AccountSlot slot, AccountMaster accountMaster) {
+  Widget _buildSlotItem(
+    AccountSlot slot,
+    AccountMaster accountMaster, {
+    bool isLast = false,
+  }) {
     final hasOrder = slot.shopOrderItem?.order != null;
-    final customerName = hasOrder
-        ? slot.shopOrderItem?.order?.user?.name
-        : null;
+    final customerName = hasOrder ? slot.shopOrderItem?.order?.user?.name : null;
+    final days = slot.daysUntilExpiry;
+    final expiryColor = days <= 0
+        ? Colors.red
+        : days <= 3
+            ? Colors.orange
+            : days <= 7
+                ? Colors.amber.shade700
+                : Colors.green;
 
-    return InkWell(
-      onLongPress: () => _showSlotItemMenu(context, slot, accountMaster),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: colorScheme.outlineVariant),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Slot name and order button
-            Row(
+    final startStr = slot.startDate != null
+        ? DateHelper.formatDateShort(slot.startDate!)
+        : 'N/A';
+    final endStr = slot.expiryDate != null
+        ? DateHelper.formatDateShort(slot.expiryDate!)
+        : 'N/A';
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        InkWell(
+          onLongPress: () => _showSlotItemMenu(context, slot, accountMaster),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.label, size: 14, color: colorScheme.primary),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    slot.name,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                // Expiry dot
+                Padding(
+                  padding: const EdgeInsets.only(top: 3),
+                  child: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: expiryColor,
+                      shape: BoxShape.circle,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                Text(
-                  slot.daysUntilExpiry <= 0
-                      ? 'Hết hạn'
-                      : 'Còn ${slot.daysUntilExpiry} ngày',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: slot.daysUntilExpiry <= 3
-                        ? Colors.red
-                        : slot.daysUntilExpiry <= 0
-                        ? Colors.red
-                        : colorScheme.primary,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-
-            // Date information
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                if (slot.pin.isNotEmpty) ...[
-                  Expanded(
-                    child: _buildSlotInfo(Icons.vpn_key, 'PIN', slot.pin),
-                  ),
-                ],
+                const SizedBox(width: 12),
+                // Slot details
                 Expanded(
-                  child: _buildSlotInfo(
-                    Icons.calendar_today,
-                    'Từ',
-                    slot.startDate != null
-                        ? DateHelper.formatDateShort(slot.startDate!)
-                        : 'N/A',
-                  ),
-                ),
-                Expanded(
-                  child: _buildSlotInfo(
-                    Icons.event_busy,
-                    'Đến',
-                    slot.expiryDate != null
-                        ? DateHelper.formatDateShort(slot.expiryDate!)
-                        : 'N/A',
-                  ),
-                ),
-              ],
-            ),
-
-            // Customer name (if available)
-            if (customerName != null && customerName.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: InkWell(
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CustomerDetailScreen(
-                            user: slot.shopOrderItem!.order!.user!,
-                          ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Name row
+                      Text(
+                        slot.name,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      child: _buildSlotInfo(Icons.person, '', customerName),
-                    ),
-                  ),
-                  if (hasOrder)
-                    TextButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => OrderDetailScreen(
-                              orderId: slot.shopOrderItem!.orderId.toString(),
-                            ),
-                          ),
-                        );
-                      },
-                      label: Text(
-                        'Xem đơn hàng',
+                      const SizedBox(height: 3),
+                      // Date + PIN row
+                      DefaultTextStyle(
                         style: TextStyle(
-                          fontSize: 12,
-                          color: colorScheme.primary,
+                          fontSize: 11,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        child: Wrap(
+                          spacing: 10,
+                          children: [
+                            if (slot.pin.isNotEmpty)
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.vpn_key,
+                                      size: 11,
+                                      color: colorScheme.onSurfaceVariant),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    slot.pin,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w600),
+                                  ),
+                                ],
+                              ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.date_range,
+                                    size: 11,
+                                    color: colorScheme.onSurfaceVariant),
+                                const SizedBox(width: 3),
+                                Text('$startStr → $endStr'),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
-                      icon: const Icon(Icons.receipt_long, size: 14),
-                      style: TextButton.styleFrom(
-                        minimumSize: Size.zero,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
+                      // Customer row
+                      if (customerName != null && customerName.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(Icons.person,
+                                size: 11, color: colorScheme.onSurfaceVariant),
+                            const SizedBox(width: 3),
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => CustomerDetailScreen(
+                                      user: slot
+                                          .shopOrderItem!.order!.user!,
+                                    ),
+                                  ),
+                                ),
+                                child: Text(
+                                  customerName,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: colorScheme.primary,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ),
+                            if (hasOrder)
+                              GestureDetector(
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => OrderDetailScreen(
+                                      orderId: slot.shopOrderItem!.orderId
+                                          .toString(),
+                                    ),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Đơn hàng →',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: colorScheme.primary,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Expiry badge
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: expiryColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    days <= 0 ? 'Hết hạn' : '$days ngày',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: expiryColor,
                     ),
-                ],
-              ),
-            ],
-          ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (!isLast)
+          Divider(
+            height: 1,
+            indent: 38,
+            color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+          ),
+      ],
+    );
+  }
+}
+
+// ── Helper widgets ────────────────────────────────────────────────────────────
+
+class _ServiceBadge extends StatelessWidget {
+  const _ServiceBadge({required this.serviceType});
+  final String serviceType;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        serviceType.isNotEmpty ? serviceType[0].toUpperCase() : '?',
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: colorScheme.onPrimaryContainer,
         ),
       ),
     );
   }
+}
 
-  Widget _buildSlotInfo(IconData icon, String label, String value) {
-    return Row(
-      children: [
-        Icon(icon, size: 12, color: colorScheme.onSurfaceVariant),
-        const SizedBox(width: 4),
-        if (label.isNotEmpty) ...[
-          Text(
-            '$label: ',
-            style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
-          ),
-        ],
-        Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
+class _StatusDot extends StatelessWidget {
+  const _StatusDot({required this.isActive});
+  final bool isActive;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 8,
+      height: 8,
+      decoration: BoxDecoration(
+        color: isActive ? Colors.green : Colors.red,
+        shape: BoxShape.circle,
+      ),
     );
   }
 }

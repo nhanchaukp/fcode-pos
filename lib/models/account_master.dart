@@ -49,6 +49,8 @@ class AccountMaster {
 
   final List<AccountSlot>? slots;
 
+  final int? slotsCount;
+
   AccountMaster({
     required this.id,
     required this.name,
@@ -66,6 +68,7 @@ class AccountMaster {
     this.cookies,
     this.details,
     this.slots,
+    this.slotsCount,
   });
 
   factory AccountMaster.fromJson(Map<String, dynamic> map) {
@@ -96,6 +99,7 @@ class AccountMaster {
                 .map((item) => AccountSlot.fromJson(ensureMap(item)))
                 .toList(growable: false)
           : null,
+      slotsCount: asInt(map['slots_count']),
     );
   }
 
@@ -117,6 +121,7 @@ class AccountMaster {
       'cookies': cookies,
       'details': details,
       'slots': slots?.map((slot) => slot.toMap()).toList(),
+      'slots_count': slotsCount,
     };
   }
 }

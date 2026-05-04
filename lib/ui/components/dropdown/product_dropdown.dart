@@ -247,20 +247,38 @@ class _ProductSelectSheetState extends State<_ProductSelectSheet> {
                         itemCount: _filtered.length,
                         itemBuilder: (context, index) {
                           final product = _filtered[index];
+                          final primary =
+                              Theme.of(context).colorScheme.primary;
                           return ListTile(
                             title: Text(product.name),
-                            subtitle: Text(
-                              [
-                                if (product.sku != null &&
-                                    product.sku!.isNotEmpty)
-                                  'SKU: ${product.sku}',
-                                CurrencyHelper.formatCurrency(
-                                  product.bestPrice ?? 0,
+                            subtitle: Row(
+                              children: [
+                                Text(
+                                  CurrencyHelper.formatCurrency(
+                                      product.bestPrice ?? 0),
+                                  style: TextStyle(
+                                    color: primary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
                                 ),
-                              ].join(' · '),
+                                if (product.sku != null &&
+                                    product.sku!.isNotEmpty) ...[
+                                  Text(
+                                    '  ·  SKU: ${product.sku}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
                             trailing: widget.selected?.id == product.id
-                                ? const Icon(Icons.check, color: Colors.green)
+                                ? Icon(Icons.check_circle,
+                                    size: 18, color: primary)
                                 : null,
                             onTap: () {
                               Navigator.of(context).pop(product);
