@@ -82,6 +82,24 @@ class User implements Model {
   /// Profile photo URL.
   final String? profilePhotoUrl;
 
+  /// Buyer type: 'personal' | 'company'.
+  final String? buyerType;
+
+  /// Legal name (company name).
+  final String? legalName;
+
+  /// Tax code.
+  final String? taxCode;
+
+  /// Buyer code (internal code).
+  final String? buyerCode;
+
+  /// National ID (CMND/CCCD).
+  final String? nationalId;
+
+  /// Invoice email.
+  final String? invoiceEmail;
+
   User({
     required this.id,
     required this.username,
@@ -109,6 +127,12 @@ class User implements Model {
     this.provinceId,
     this.facebookUrl,
     this.profilePhotoUrl,
+    this.buyerType,
+    this.legalName,
+    this.taxCode,
+    this.buyerCode,
+    this.nationalId,
+    this.invoiceEmail,
   });
 
   factory User.fromJson(Map<String, dynamic> map) {
@@ -139,6 +163,12 @@ class User implements Model {
       provinceId: asIntOrNull(map['province_id']),
       facebookUrl: map['facebook_url']?.toString(),
       profilePhotoUrl: map['profile_photo_url']?.toString(),
+      buyerType: map['buyer_type']?.toString(),
+      legalName: map['legal_name']?.toString(),
+      taxCode: map['tax_code']?.toString(),
+      buyerCode: map['buyer_code']?.toString(),
+      nationalId: map['national_id']?.toString(),
+      invoiceEmail: map['invoice_email']?.toString(),
     );
   }
   @override
@@ -170,6 +200,12 @@ class User implements Model {
       'province_id': provinceId,
       'facebook_url': facebookUrl,
       'profile_photo_url': profilePhotoUrl,
+      'buyer_type': buyerType,
+      'legal_name': legalName,
+      'tax_code': taxCode,
+      'buyer_code': buyerCode,
+      'national_id': nationalId,
+      'invoice_email': invoiceEmail,
     };
   }
 }

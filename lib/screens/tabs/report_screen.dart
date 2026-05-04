@@ -1,5 +1,5 @@
 import 'package:fcode_pos/models.dart';
-import 'package:fcode_pos/screens/financial_report_screen.dart';
+import 'package:fcode_pos/screens/financial/financial_report_screen.dart';
 import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/services/order_service.dart';
 import 'package:fcode_pos/ui/dashboard/dashboard_components.dart';
@@ -144,7 +144,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       body: SafeArea(
         child: _isLoading && _stats == null
             ? const Center(child: CircularProgressIndicator())
-            : _error != null && _stats == null
+            : Column(
+                children: [
+                  if (_isLoading) const LinearProgressIndicator(minHeight: 2),
+                  Expanded(
+                    child: _error != null && _stats == null
             ? Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -531,6 +535,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ],
                   ),
                 ),
+              ),
+                  ),
+                ],
               ),
       ),
     );

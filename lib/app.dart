@@ -30,7 +30,10 @@ class FcodePosApp extends ConsumerWidget {
     final br = BorderRadius.circular(borderRadius);
     final cardBorder = colorScheme.outlineVariant.alpha == 0
         ? BorderSide.none
-        : BorderSide(color: colorScheme.outlineVariant.applyOpacity(0.5), width: 0.5);
+        : BorderSide(
+            color: colorScheme.outlineVariant.applyOpacity(0.5),
+            width: 0.5,
+          );
 
     final base = ThemeData(
       useMaterial3: true,
@@ -60,20 +63,24 @@ class FcodePosApp extends ConsumerWidget {
         centerTitle: false,
         scrolledUnderElevation: 0,
       ),
-      cardTheme: CardThemeData(
-            color: cardColor,
-            elevation: 0,
-            margin: EdgeInsets.zero,
-            shape: RoundedRectangleBorder(
-              borderRadius: br,
-              side: cardBorder,
-            ),
-          ) as dynamic,
-      inputDecorationTheme: _buildInputDecorationTheme(
-            base.inputDecorationTheme,
-            colorScheme,
-            borderRadius: borderRadius,
-          ) as dynamic,
+      cardTheme:
+          CardThemeData(
+                color: cardColor,
+                elevation: 0,
+                margin: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: br,
+                  side: cardBorder,
+                ),
+              )
+              as dynamic,
+      inputDecorationTheme:
+          _buildInputDecorationTheme(
+                base.inputDecorationTheme,
+                colorScheme,
+                borderRadius: borderRadius,
+              )
+              as dynamic,
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -96,7 +103,9 @@ class FcodePosApp extends ConsumerWidget {
     ColorScheme colorScheme, {
     double borderRadius = 12,
   }) {
-    final inputBr = BorderRadius.circular(borderRadius > 0 ? borderRadius - 2 : 0);
+    final inputBr = BorderRadius.circular(
+      borderRadius > 0 ? borderRadius - 2 : 0,
+    );
     OutlineInputBorder outline(Color color, [double width = 1]) =>
         OutlineInputBorder(
           borderRadius: inputBr,
@@ -106,7 +115,7 @@ class FcodePosApp extends ConsumerWidget {
     return baseTheme.copyWith(
       isDense: true,
       filled: true,
-      fillColor: colorScheme.surfaceContainerHigh,
+      fillColor: colorScheme.surfaceContainerLowest,
       contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
       border: outline(colorScheme.outlineVariant.withValues(alpha: 0.5)),
       enabledBorder: outline(colorScheme.outlineVariant.withValues(alpha: 0.5)),

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:fcode_pos/api/api_exception.dart';
 import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/models.dart';
+import 'package:fcode_pos/screens/customer/customer_create_screen.dart';
 import 'package:fcode_pos/screens/customer/customer_detail_screen.dart';
 import 'package:fcode_pos/screens/customer/customer_stats_screen.dart';
 import 'package:fcode_pos/services/customer_service.dart';
@@ -123,6 +124,16 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
     );
   }
 
+  Future<void> _navigateToCreate() async {
+    final result = await Navigator.push<User>(
+      context,
+      MaterialPageRoute(builder: (context) => const CustomerCreateScreen()),
+    );
+    if (result != null) {
+      _loadCustomers(page: 1);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final customers = _page?.items ?? const <User>[];
@@ -141,14 +152,20 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
             onPressed: () => Navigator.of(context).pop(),
           ),
           trailing: [
-            if (_searchController.text.isEmpty)
+            if (_searchController.text.isEmpty) ...[
               IconButton(
                 tooltip: 'Thống kê',
                 visualDensity: VisualDensity.compact,
                 icon: const Icon(Icons.assessment),
                 onPressed: _navigateToStats,
-              )
-            else
+              ),
+              IconButton(
+                tooltip: 'Thêm khách hàng',
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(Icons.person_add_outlined),
+                onPressed: _navigateToCreate,
+              ),
+            ] else
               IconButton(
                 tooltip: 'Xóa',
                 visualDensity: VisualDensity.compact,
