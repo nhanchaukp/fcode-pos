@@ -8,6 +8,7 @@ import 'package:fcode_pos/screens/mail/mail_log_screen.dart';
 import 'package:fcode_pos/screens/financial/financial_transaction_screen.dart';
 import 'package:fcode_pos/screens/adsense/adsense_screen.dart';
 import 'package:fcode_pos/screens/chatgpt/chatgpt_session_screen.dart';
+import 'package:fcode_pos/screens/icallme/icallme_voucher_screen.dart';
 import 'package:fcode_pos/screens/rating/rating_list_screen.dart';
 import 'package:fcode_pos/utils/extensions.dart';
 import 'package:flutter/material.dart';
@@ -89,6 +90,12 @@ class ProductHubScreen extends StatelessWidget {
           icon: Icons.smart_toy_outlined,
           color: Colors.cyan,
           builder: (context) => const ChatGptSessionScreen(),
+        ),
+        _ProductHubItem(
+          title: 'Icallme Voucher',
+          icon: Icons.confirmation_number_outlined,
+          color: Colors.deepPurple,
+          builder: (context) => const IcallmeVoucherScreen(),
         ),
       ],
     ),
