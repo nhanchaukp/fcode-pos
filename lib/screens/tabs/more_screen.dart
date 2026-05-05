@@ -202,8 +202,9 @@ class MoreScreen extends ConsumerWidget {
                             border: Border.all(
                               color: isSelected
                                   ? colorScheme.primary
-                                  : colorScheme.outlineVariant
-                                      .withValues(alpha: 0.5),
+                                  : colorScheme.outlineVariant.withValues(
+                                      alpha: 0.5,
+                                    ),
                               width: isSelected ? 1.5 : 1,
                             ),
                           ),
@@ -221,9 +222,7 @@ class MoreScreen extends ConsumerWidget {
                               const SizedBox(width: 6),
                               Text(
                                 palette.name,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelMedium
+                                style: Theme.of(context).textTheme.labelMedium
                                     ?.copyWith(
                                       color: isSelected
                                           ? colorScheme.onPrimaryContainer

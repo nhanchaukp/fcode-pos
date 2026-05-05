@@ -50,8 +50,9 @@ class _DeveloperScreenState extends State<DeveloperScreen> {
           Card(
             elevation: 0,
             color: colorScheme.surfaceContainerLowest,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Column(
               children: [
                 _toastTile(
@@ -99,7 +100,8 @@ class _DeveloperScreenState extends State<DeveloperScreen> {
                   icon: Icons.text_fields,
                   label: 'Blank',
                   color: colorScheme.onSurfaceVariant,
-                  onTap: () => ToastrHelper.blank('Đây là toast không có icon.'),
+                  onTap: () =>
+                      ToastrHelper.blank('Đây là toast không có icon.'),
                 ),
               ],
             ),
@@ -110,8 +112,9 @@ class _DeveloperScreenState extends State<DeveloperScreen> {
           Card(
             elevation: 0,
             color: colorScheme.surfaceContainerLowest,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Column(
               children: [
                 _dropdownTile<ToastrPosition>(
@@ -214,8 +217,9 @@ class _DeveloperScreenState extends State<DeveloperScreen> {
           Card(
             elevation: 0,
             color: colorScheme.surfaceContainerLowest,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Column(
               children: [
                 _actionTile(
@@ -243,10 +247,10 @@ class _DeveloperScreenState extends State<DeveloperScreen> {
       child: Text(
         label.toUpperCase(),
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.8,
-            ),
+          color: colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.8,
+        ),
       ),
     );
   }
