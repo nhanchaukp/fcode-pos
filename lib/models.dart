@@ -2,6 +2,7 @@
 library;
 
 import 'dart:convert';
+import 'package:fcode_pos/enums.dart' as enums;
 import 'utils/extensions.dart';
 
 part 'models/model.dart';
@@ -24,3 +25,5 @@ part 'models/mail_log.dart';
 part 'models/customer_stats.dart';
 part 'models/rating.dart';
 part 'models/auditable.dart';
+part 'models/invoice.dart';
+part 'models/invoice_provider.dart';

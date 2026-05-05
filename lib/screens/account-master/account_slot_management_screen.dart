@@ -14,6 +14,7 @@ import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:fcode_pos/ui/components/loading_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fcode_pos/ui/components/service_badge.dart';
 
 class AccountSlotManagementScreen extends StatefulWidget {
   const AccountSlotManagementScreen({super.key});
@@ -502,7 +503,7 @@ class _AccountSlotManagementScreenState
             ),
             contentPadding:
                 const EdgeInsets.only(left: 16, right: 4, top: 4, bottom: 4),
-            leading: _ServiceBadge(serviceType: accountMaster.serviceType),
+            leading: ServiceBadge(serviceType: accountMaster.serviceType),
             title: Text(
               accountMaster.username,
               style: const TextStyle(fontWeight: FontWeight.bold),
@@ -979,32 +980,6 @@ class _AccountSlotManagementScreenState
 
 // ── Helper widgets ────────────────────────────────────────────────────────────
 
-class _ServiceBadge extends StatelessWidget {
-  const _ServiceBadge({required this.serviceType});
-  final String serviceType;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        color: colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        serviceType.isNotEmpty ? serviceType[0].toUpperCase() : '?',
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: colorScheme.onPrimaryContainer,
-        ),
-      ),
-    );
-  }
-}
 
 class _StatusDot extends StatelessWidget {
   const _StatusDot({required this.isActive});

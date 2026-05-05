@@ -1,4 +1,5 @@
 import 'package:fcode_pos/config/environment.dart';
+import 'package:fcode_pos/enums.dart' as enums;
 import 'package:fcode_pos/ui/components/loading_icon.dart';
 import 'package:fcode_pos/ui/components/quantity_input.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
@@ -9,7 +10,6 @@ import 'package:fcode_pos/services/product_service.dart';
 import 'package:fcode_pos/api/api_exception.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:markdown_editor_plus/markdown_editor_plus.dart';
-import 'package:fcode_pos/ui/components/section_header.dart';
 import 'package:fcode_pos/ui/components/money_form_field.dart';
 
 class ProductEditScreen extends StatefulWidget {
@@ -33,6 +33,8 @@ class _ProductEditScreenState extends State<ProductEditScreen> {
   late TextEditingController _expiryMonthController;
   late TextEditingController _warningController;
   late TextEditingController _upgradeMethodController;
+  late TextEditingController _invoiceDisplayNameController;
+  enums.InvoiceUnit? _selectedInvoiceUnit;
   bool _isActive = false;
   bool _allowBuyMulti = false;
   bool _requireAccount = false;
@@ -55,6 +57,10 @@ class _ProductEditScreenState extends State<ProductEditScreen> {
     _upgradeMethodController = TextEditingController(
       text: p.upgradeMethod ?? '',
     );
+    _invoiceDisplayNameController = TextEditingController(
+      text: p.invoiceDisplayName ?? '',
+    );
+    _selectedInvoiceUnit = p.invoiceUnit;
     _isActive = p.isActive;
     _allowBuyMulti = p.allowBuyMulti;
     _requireAccount = p.requireAccount;
@@ -70,6 +76,7 @@ class _ProductEditScreenState extends State<ProductEditScreen> {
     _expiryMonthController.dispose();
     _warningController.dispose();
     _upgradeMethodController.dispose();
+    _invoiceDisplayNameController.dispose();
     super.dispose();
   }
 
@@ -105,6 +112,10 @@ class _ProductEditScreenState extends State<ProductEditScreen> {
       upgradeMethod: _upgradeMethodController.text.trim().isEmpty
           ? null
           : _upgradeMethodController.text.trim(),
+      invoiceDisplayName: _invoiceDisplayNameController.text.trim().isEmpty
+          ? null
+          : _invoiceDisplayNameController.text.trim(),
+      invoiceUnit: _selectedInvoiceUnit,
     );
     try {
       await _service.update(data, widget.product.id);
@@ -337,6 +348,44 @@ class _ProductEditScreenState extends State<ProductEditScreen> {
                       'Ví dụ: Đổi email, gia hạn thủ công, upgrade tại web…',
                 ),
                 textInputAction: TextInputAction.done,
+              ),
+            ),
+            const SizedBox(height: 10),
+            _Section(
+              title: 'Thông tin hoá đơn',
+              icon: Icons.receipt_long_outlined,
+              child: Column(
+                children: [
+                  TextFormField(
+                    controller: _invoiceDisplayNameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Tên hiển thị trên hoá đơn',
+                      hintText: 'Để trống sẽ dùng tên sản phẩm',
+                    ),
+                    textInputAction: TextInputAction.next,
+                    validator: (v) =>
+                        v != null && v.length > 255 ? 'Tối đa 255 ký tự' : null,
+                  ),
+                  const SizedBox(height: 10),
+                  DropdownButtonFormField<enums.InvoiceUnit>(
+                    value: _selectedInvoiceUnit,
+                    decoration: const InputDecoration(labelText: 'Đơn vị tính'),
+                    isExpanded: true,
+                    items: [
+                      const DropdownMenuItem(
+                        value: null,
+                        child: Text('— Không chọn —'),
+                      ),
+                      ...enums.InvoiceUnit.values.map(
+                        (u) => DropdownMenuItem(
+                          value: u,
+                          child: Text(u.label),
+                        ),
+                      ),
+                    ],
+                    onChanged: (v) => setState(() => _selectedInvoiceUnit = v),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 14),

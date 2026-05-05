@@ -77,6 +77,12 @@ class Product {
   /// Best price.
   final int? bestPrice;
 
+  /// Invoice display name.
+  final String? invoiceDisplayName;
+
+  /// Invoice unit.
+  final enums.InvoiceUnit? invoiceUnit;
+
   Product({
     required this.id,
     required this.name,
@@ -103,7 +109,10 @@ class Product {
     this.pageId,
     this.tags = const [],
     this.bestPrice,
+    this.invoiceDisplayName,
+    this.invoiceUnit,
   });
+
 
   factory Product.fromJson(Map<String, dynamic> map) {
     return Product(
@@ -139,6 +148,8 @@ class Product {
       pageId: asIntOrNull(map['page_id']),
       tags: (map['tags'] as List?) ?? [],
       bestPrice: asIntOrNull(map['best_price']),
+      invoiceDisplayName: map['invoice_display_name']?.toString(),
+      invoiceUnit: enums.InvoiceUnit.fromValue(map['invoice_unit']?.toString()),
     );
   }
 
@@ -169,6 +180,8 @@ class Product {
       'page_id': pageId,
       'tags': tags,
       'best_price': bestPrice,
+      'invoice_display_name': invoiceDisplayName,
+      'invoice_unit': invoiceUnit?.value,
     };
   }
 }

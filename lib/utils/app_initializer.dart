@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:toastr_flutter/toastr.dart'
+    show ToastrHelper, ToastrPosition, ToastrShowMethod, ToastrHideMethod;
 import 'package:window_manager/window_manager.dart';
 
 /// A utility class for initializing the Flutter application.
@@ -20,10 +22,19 @@ class AppInitializer {
   /// and configures device orientation settings.
   static Future<void> initialize() async {
     _ensureInitialized();
+    _setupToastr();
     await _setupWindowDimensions();
     await _setupDeviceOrientation();
     await _setupLocaleData();
     await _setupGoogleSignIn();
+  }
+
+  static void _setupToastr() {
+    ToastrHelper.configure(
+      position: ToastrPosition.topCenter,
+      showMethod: ToastrShowMethod.slideDown,
+      hideMethod: ToastrHideMethod.slideUp,
+    );
   }
 
   /// Ensures that Flutter bindings are initialized.

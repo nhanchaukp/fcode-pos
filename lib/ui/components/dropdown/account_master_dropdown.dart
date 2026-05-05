@@ -1,6 +1,7 @@
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/account_master_service.dart';
 import 'package:fcode_pos/ui/components/debounced_search_input.dart';
+import 'package:fcode_pos/ui/components/service_badge.dart';
 import 'package:flutter/material.dart';
 
 class AccountMasterDropdown extends StatefulWidget {
@@ -259,9 +260,10 @@ class _AccountMasterSelectSheetState extends State<_AccountMasterSelectSheet> {
                             selected: isSelected,
                             selectedTileColor: colorScheme.primaryContainer
                                 .withValues(alpha: 0.3),
-                            leading: _ServiceBadge(
+                            leading: ServiceBadge(
                               serviceType: am.serviceType,
-                              colorScheme: colorScheme,
+                              size: 38,
+                              iconSize: 18,
                             ),
                             title: Text(
                               am.username,
@@ -335,30 +337,3 @@ class _AccountMasterSelectSheetState extends State<_AccountMasterSelectSheet> {
   }
 }
 
-class _ServiceBadge extends StatelessWidget {
-  const _ServiceBadge({required this.serviceType, required this.colorScheme});
-
-  final String serviceType;
-  final ColorScheme colorScheme;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 38,
-      height: 38,
-      decoration: BoxDecoration(
-        color: colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        serviceType.isNotEmpty ? serviceType[0].toUpperCase() : '?',
-        style: TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.bold,
-          color: colorScheme.onPrimaryContainer,
-        ),
-      ),
-    );
-  }
-}

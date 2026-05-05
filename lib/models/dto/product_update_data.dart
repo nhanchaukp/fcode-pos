@@ -1,3 +1,5 @@
+import 'package:fcode_pos/enums.dart' as enums;
+
 class ProductUpdateData {
   String? name;
   double? price;
@@ -10,6 +12,8 @@ class ProductUpdateData {
   int? expiryMonth;
   String? warning;
   String? upgradeMethod;
+  String? invoiceDisplayName;
+  enums.InvoiceUnit? invoiceUnit;
 
   ProductUpdateData({
     this.name,
@@ -23,6 +27,8 @@ class ProductUpdateData {
     this.expiryMonth,
     this.warning,
     this.upgradeMethod,
+    this.invoiceDisplayName,
+    this.invoiceUnit,
   });
 
   factory ProductUpdateData.fromJson(Map<String, dynamic> json) {
@@ -40,6 +46,10 @@ class ProductUpdateData {
       expiryMonth: json['expiry_month'] as int?,
       warning: json['warning'] as String?,
       upgradeMethod: json['upgrade_method'] as String?,
+      invoiceDisplayName: json['invoice_display_name'] as String?,
+      invoiceUnit: enums.InvoiceUnit.fromValue(
+        json['invoice_unit'] as String?,
+      ),
     );
   }
 
@@ -56,6 +66,9 @@ class ProductUpdateData {
       if (expiryMonth != null) 'expiry_month': expiryMonth,
       if (warning != null) 'warning': warning,
       if (upgradeMethod != null) 'upgrade_method': upgradeMethod,
+      if (invoiceDisplayName != null)
+        'invoice_display_name': invoiceDisplayName,
+      if (invoiceUnit != null) 'invoice_unit': invoiceUnit!.value,
     };
   }
 }

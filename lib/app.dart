@@ -117,6 +117,15 @@ class FcodePosApp extends ConsumerWidget {
       filled: true,
       fillColor: colorScheme.surfaceContainerLowest,
       contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+      hintStyle: TextStyle(
+        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.45),
+        fontSize: 13,
+      ),
+      labelStyle: TextStyle(
+        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.9),
+        fontSize: 13,
+      ),
+      floatingLabelStyle: TextStyle(color: colorScheme.primary, fontSize: 13),
       border: outline(colorScheme.outlineVariant.withValues(alpha: 0.5)),
       enabledBorder: outline(colorScheme.outlineVariant.withValues(alpha: 0.5)),
       disabledBorder: outline(
