@@ -1,3 +1,5 @@
+part of '../enums.dart';
+
 enum BuyerType {
   personal('personal', 'Cá nhân'),
   company('company', 'Công ty');

@@ -1,0 +1,229 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1777998062005,
+  "projectRoot": "/Users/nhanchaukp/Documents/flutter-dev/starter-for-flutter",
+  "techStack": {
+    "languages": [],
+    "frameworks": [],
+    "packageManager": null,
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "assets",
+      "lib"
+    ],
+    "gitBranches": {
+      "defaultBranch": "main",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "android": {
+      "path": "android",
+      "purpose": null,
+      "fileCount": 5,
+      "lastAccessed": 1777998061948,
+      "keyFiles": [
+        "build.gradle",
+        "gradle.properties",
+        "local.properties",
+        "settings.gradle"
+      ]
+    },
+    "assets": {
+      "path": "assets",
+      "purpose": "Static assets",
+      "fileCount": 6,
+      "lastAccessed": 1777998061956,
+      "keyFiles": [
+        "app-icon-mac.png",
+        "app-icon.png",
+        "branding-dark.png",
+        "branding-light.png",
+        "splash-logo.png"
+      ]
+    },
+    "build": {
+      "path": "build",
+      "purpose": "Build output",
+      "fileCount": 1,
+      "lastAccessed": 1777998061972,
+      "keyFiles": [
+        "b70f9274ac3b5ec9754be8774a3c9a1c.cache.dill.track.dill"
+      ]
+    },
+    "ios": {
+      "path": "ios",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1777998061975,
+      "keyFiles": [
+        "Podfile",
+        "Podfile.lock"
+      ]
+    },
+    "lib": {
+      "path": "lib",
+      "purpose": "Library code",
+      "fileCount": 7,
+      "lastAccessed": 1777998061983,
+      "keyFiles": [
+        "app.dart",
+        "appwrite.dart",
+        "enums.dart",
+        "main.dart",
+        "models.dart"
+      ]
+    },
+    "linux": {
+      "path": "linux",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1777998061995,
+      "keyFiles": [
+        "CMakeLists.txt"
+      ]
+    },
+    "macos": {
+      "path": "macos",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1777998061996,
+      "keyFiles": [
+        "Podfile",
+        "Podfile.lock"
+      ]
+    },
+    "web": {
+      "path": "web",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1777998061996,
+      "keyFiles": [
+        "favicon.png",
+        "favicon.svg",
+        "index.html",
+        "manifest.json"
+      ]
+    },
+    "windows": {
+      "path": "windows",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1777998061997,
+      "keyFiles": [
+        "CMakeLists.txt"
+      ]
+    },
+    "android/app": {
+      "path": "android/app",
+      "purpose": "Application code",
+      "fileCount": 1,
+      "lastAccessed": 1777998062000,
+      "keyFiles": [
+        "build.gradle"
+      ]
+    },
+    "lib/api": {
+      "path": "lib/api",
+      "purpose": "API routes",
+      "fileCount": 2,
+      "lastAccessed": 1777998062004,
+      "keyFiles": [
+        "api_exception.dart",
+        "api_response.dart"
+      ]
+    },
+    "lib/config": {
+      "path": "lib/config",
+      "purpose": "Configuration files",
+      "fileCount": 3,
+      "lastAccessed": 1777998062004,
+      "keyFiles": [
+        "environment.dart",
+        "google_config.dart",
+        "theme_colors.dart"
+      ]
+    },
+    "lib/data": {
+      "path": "lib/data",
+      "purpose": "Data files",
+      "fileCount": 0,
+      "lastAccessed": 1777998062004,
+      "keyFiles": []
+    },
+    "lib/models": {
+      "path": "lib/models",
+      "purpose": "Data models",
+      "fileCount": 27,
+      "lastAccessed": 1777998062005,
+      "keyFiles": [
+        "account_master.dart",
+        "account_slot.dart",
+        "adsense_models.dart"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "lib/screens/order/order_invoice_preview_screen.dart",
+      "accessCount": 14,
+      "lastAccessed": 1778002197131,
+      "type": "file"
+    },
+    {
+      "path": "lib/screens/order/order_create_invoice_screen.dart",
+      "accessCount": 5,
+      "lastAccessed": 1778002179218,
+      "type": "file"
+    },
+    {
+      "path": "lib/screens/order/order_detail_screen.dart",
+      "accessCount": 4,
+      "lastAccessed": 1778002185444,
+      "type": "file"
+    },
+    {
+      "path": "lib/models/order_invoice_preview.dart",
+      "accessCount": 1,
+      "lastAccessed": 1777998137337,
+      "type": "file"
+    },
+    {
+      "path": "lib/screens/customer/customer_detail_screen.dart",
+      "accessCount": 1,
+      "lastAccessed": 1777998142777,
+      "type": "file"
+    },
+    {
+      "path": "lib/ui/components/dropdown/invoice_template_dropdown.dart",
+      "accessCount": 1,
+      "lastAccessed": 1777999186322,
+      "type": "file"
+    },
+    {
+      "path": "lib/ui/components/dropdown/invoice_provider_account_dropdown.dart",
+      "accessCount": 1,
+      "lastAccessed": 1777999190749,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

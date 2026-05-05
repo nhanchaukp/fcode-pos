@@ -3,31 +3,49 @@ part of '../models.dart';
 /// Buyer information on an invoice.
 class InvoiceBuyer {
   const InvoiceBuyer({
+    this.id,
     required this.name,
+    this.legalName,
     this.taxCode,
     this.address,
     this.email,
     this.phone,
+    this.buyerCode,
+    this.nationalId,
+    this.buyerType,
   });
 
+  final int? id;
   final String name;
+  final String? legalName;
+  final String? buyerCode;
+  final String? nationalId;
   final String? taxCode;
   final String? address;
   final String? email;
   final String? phone;
+  final BuyerType? buyerType;
 
   factory InvoiceBuyer.fromJson(Map<String, dynamic> map) {
     return InvoiceBuyer(
+      id: asIntOrNull(map['id']),
       name: map['name']?.toString() ?? '',
+      legalName: map['legal_name']?.toString(),
+      buyerCode: map['buyer_code']?.toString(),
+      nationalId: map['national_id']?.toString(),
       taxCode: map['tax_code']?.toString(),
       address: map['address']?.toString(),
       email: map['email']?.toString(),
       phone: map['phone']?.toString(),
+      buyerType: BuyerType.fromValue(map['type']?.toString()),
     );
   }
 
   Map<String, dynamic> toMap() => {
     'name': name,
+    'legal_name': legalName,
+    'buyer_code': buyerCode,
+    'national_id': nationalId,
     'tax_code': taxCode,
     'address': address,
     'email': email,
@@ -147,17 +165,15 @@ class Invoice {
       pdfUrl: map['pdf_url']?.toString(),
       xmlUrl: map['xml_url']?.toString(),
       status: map['status']?.toString() ?? '',
-      buyer: InvoiceBuyer.fromJson(
-        ensureMap(map['buyer']),
-      ),
+      buyer: InvoiceBuyer.fromJson(ensureMap(map['buyer'])),
       totalBeforeTax: asInt(map['total_before_tax']),
       taxAmount: asInt(map['tax_amount']),
       totalAmount: asInt(map['total_amount']),
       notes: map['notes']?.toString(),
       items: rawItems is List
           ? rawItems
-              .map((e) => InvoiceItem.fromJson(ensureMap(e)))
-              .toList(growable: false)
+                .map((e) => InvoiceItem.fromJson(ensureMap(e)))
+                .toList(growable: false)
           : null,
     );
   }

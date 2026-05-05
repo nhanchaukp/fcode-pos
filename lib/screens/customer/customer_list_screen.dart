@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:fcode_pos/api/api_exception.dart';
 import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/models.dart';
-import 'package:fcode_pos/screens/customer/customer_create_screen.dart';
+import 'package:fcode_pos/screens/customer/customer_upsert_screen.dart';
 import 'package:fcode_pos/screens/customer/customer_detail_screen.dart';
 import 'package:fcode_pos/screens/customer/customer_stats_screen.dart';
 import 'package:fcode_pos/services/customer_service.dart';
@@ -127,7 +127,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
   Future<void> _navigateToCreate() async {
     final result = await Navigator.push<User>(
       context,
-      MaterialPageRoute(builder: (context) => const CustomerCreateScreen()),
+      MaterialPageRoute(builder: (context) => const CustomerUpsertScreen()),
     );
     if (result != null) {
       _loadCustomers(page: 1);

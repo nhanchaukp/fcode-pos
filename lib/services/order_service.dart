@@ -1,5 +1,7 @@
 import 'package:fcode_pos/api/api_response.dart';
+import 'package:fcode_pos/enums.dart';
 import 'package:fcode_pos/models.dart';
+import 'package:fcode_pos/models/dto/create_order_invoice_data.dart';
 import 'package:fcode_pos/services/api_service.dart';
 import 'package:fcode_pos/utils/extensions.dart';
 import 'package:intl/intl.dart';
@@ -121,6 +123,29 @@ class OrderService {
     return _api.get<Order>(
       '/order/$id',
       parser: (json) => Order.fromJson(ensureMap(json)),
+    );
+  }
+
+  Future<ApiResponse<OrderInvoicePreview>> invoicePreview(
+    Object orderId, {
+    TaxRate taxRate = TaxRate.noDeclaration,
+  }) {
+    return _api.get<OrderInvoicePreview>(
+      '/order/$orderId/invoice/preview',
+      queryParameters: {'tax_rate': taxRate.value},
+      parser: (json) =>
+          OrderInvoicePreview.fromJson(ensureMap(json)),
+    );
+  }
+
+  Future<ApiResponse<Invoice>> createInvoice(
+    Object orderId,
+    CreateOrderInvoiceData data,
+  ) {
+    return _api.post<Invoice>(
+      '/order/$orderId/invoice',
+      data: data.toJson(),
+      parser: (json) => Invoice.fromJson(ensureMap(json)),
     );
   }
 

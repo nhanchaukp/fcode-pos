@@ -1,6 +1,6 @@
 import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/models.dart';
-import 'package:fcode_pos/screens/customer/customer_create_screen.dart';
+import 'package:fcode_pos/screens/customer/customer_upsert_screen.dart';
 import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/services/customer_service.dart';
 import 'package:fcode_pos/services/order_service.dart';
@@ -63,7 +63,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen>
     final updated = await Navigator.push<User>(
       context,
       MaterialPageRoute(
-        builder: (context) => CustomerCreateScreen(user: _user),
+        builder: (context) => CustomerUpsertScreen(userId: _user?.id),
       ),
     );
     if (updated != null) {

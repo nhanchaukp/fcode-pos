@@ -1,4 +1,4 @@
-import 'package:fcode_pos/enums/buyer_type.dart';
+import 'package:fcode_pos/enums.dart';
 
 class CustomerCreateData {
   final String name;

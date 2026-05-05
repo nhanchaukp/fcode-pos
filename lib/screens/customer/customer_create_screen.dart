@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:fcode_pos/enums/buyer_type.dart';
+import 'package:fcode_pos/enums.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/models/viet_qr_business_info.dart';
 import 'package:fcode_pos/services/viet_qr_service.dart';
@@ -10,20 +10,21 @@ import 'package:fcode_pos/models/dto/customer_create_data.dart';
 import 'package:fcode_pos/services/customer_service.dart';
 import 'package:fcode_pos/ui/components/section_header.dart';
 
-class CustomerCreateScreen extends StatefulWidget {
-  /// Khi [user] được cung cấp, màn hình chạy ở chế độ chỉnh sửa.
-  const CustomerCreateScreen({super.key, this.user});
+class CustomerUpsertScreen extends StatefulWidget {
+  /// Truyền [userId] để chạy mode update; null thì là create.
+  const CustomerUpsertScreen({super.key, this.userId});
 
-  final User? user;
+  final int? userId;
 
-  bool get isEditing => user != null;
+  bool get isEditing => userId != null;
 
   @override
-  State<CustomerCreateScreen> createState() => _CustomerCreateScreenState();
+  State<CustomerUpsertScreen> createState() => _CustomerUpsertScreenState();
 }
 
-class _CustomerCreateScreenState extends State<CustomerCreateScreen> {
+class _CustomerUpsertScreenState extends State<CustomerUpsertScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _customerService = CustomerService();
 
   // --- Thông tin cơ bản ---
   final _nameController = TextEditingController();
@@ -53,6 +54,7 @@ class _CustomerCreateScreenState extends State<CustomerCreateScreen> {
   Timer? _taxDebounce;
 
   bool _isLoading = false;
+  bool _isPrefillLoading = false;
 
   bool get _isCompany => _buyerType == BuyerType.company;
   bool get _isEditing => widget.isEditing;
@@ -61,7 +63,28 @@ class _CustomerCreateScreenState extends State<CustomerCreateScreen> {
   void initState() {
     super.initState();
     _taxCodeController.addListener(_onTaxCodeChanged);
-    if (_isEditing) _prefillFromUser(widget.user!);
+    if (_isEditing) _loadUserDetail();
+  }
+
+  Future<void> _loadUserDetail() async {
+    if (widget.userId == null) return;
+    setState(() => _isPrefillLoading = true);
+    try {
+      final response = await _customerService.detail(widget.userId!);
+      if (!mounted) return;
+      final user = response.data;
+      if (user == null) {
+        Toastr.error('Không tìm thấy dữ liệu khách hàng để cập nhật.');
+        Navigator.of(context).pop(false);
+        return;
+      }
+      _prefillFromUser(user);
+    } catch (e) {
+      if (!mounted) return;
+      Toastr.error('Không tải được thông tin khách hàng: $e');
+    } finally {
+      if (mounted) setState(() => _isPrefillLoading = false);
+    }
   }
 
   void _prefillFromUser(User u) {
@@ -175,10 +198,9 @@ class _CustomerCreateScreenState extends State<CustomerCreateScreen> {
     );
 
     try {
-      final service = CustomerService();
       final response = _isEditing
-          ? await service.update(widget.user!.id, data)
-          : await service.create(data);
+          ? await _customerService.update(widget.userId!, data)
+          : await _customerService.create(data);
       if (!mounted) return;
       if (response.data != null) {
         Navigator.of(context).pop(response.data);
@@ -199,9 +221,14 @@ class _CustomerCreateScreenState extends State<CustomerCreateScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    if (_isPrefillLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? 'Chỉnh sửa khách hàng' : 'Thêm khách hàng mới'),
+        title: Text(
+          _isEditing ? 'Chỉnh sửa khách hàng' : 'Thêm khách hàng mới',
+        ),
       ),
       body: Form(
         key: _formKey,
@@ -602,5 +629,17 @@ class _CustomerCreateScreenState extends State<CustomerCreateScreen> {
         ),
       ),
     );
+  }
+}
+
+/// Backward-compat wrapper: giữ API cũ để tránh vỡ import/chỗ gọi cũ.
+class CustomerCreateScreen extends StatelessWidget {
+  const CustomerCreateScreen({super.key, this.user});
+
+  final User? user;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomerUpsertScreen(userId: user?.id);
   }
 }

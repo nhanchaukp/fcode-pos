@@ -1,5 +1,5 @@
 import 'package:fcode_pos/models.dart';
-import 'package:fcode_pos/screens/customer/customer_create_screen.dart';
+import 'package:fcode_pos/screens/customer/customer_upsert_screen.dart';
 import 'package:fcode_pos/services/customer_service.dart';
 import 'package:flutter/material.dart';
 import 'package:fcode_pos/ui/components/debounced_search_input.dart';
@@ -93,7 +93,7 @@ class _CustomerSearchDropdownState extends State<CustomerSearchDropdown> {
                 onPressed: () async {
                   final newCustomer = await Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) => const CustomerCreateScreen(),
+                      builder: (context) => const CustomerUpsertScreen(),
                     ),
                   );
                   if (newCustomer is User) {

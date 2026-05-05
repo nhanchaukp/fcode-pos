@@ -19,8 +19,11 @@ import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:http/http.dart' as http;
 import 'package:fcode_pos/utils/extensions/colors.dart';
 import 'package:fcode_pos/screens/order/order_create_screen.dart';
+import 'package:fcode_pos/screens/order/order_invoice_preview_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fcode_pos/providers/order/order_list_provider.dart';
+
+enum _OrderDetailMenuAction { createInvoice, editOrder }
 
 class OrderDetailScreen extends ConsumerStatefulWidget {
   final String orderId;
@@ -97,6 +100,17 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
     }
   }
 
+  Future<void> _openCreateInvoice() async {
+    final ok = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => OrderInvoicePreviewScreen(orderId: widget.orderId),
+      ),
+    );
+    if (ok == true && mounted) {
+      await _loadOrderDetail(syncList: true);
+    }
+  }
+
   Future<void> _showUpdateDialog() async {
     if (_order == null) return;
 
@@ -115,6 +129,17 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
 
     if (result == true && mounted) {
       debugPrint('Order updated successfully');
+    }
+  }
+
+  Future<void> _onMenuActionSelected(_OrderDetailMenuAction action) async {
+    switch (action) {
+      case _OrderDetailMenuAction.createInvoice:
+        await _openCreateInvoice();
+        break;
+      case _OrderDetailMenuAction.editOrder:
+        await _showUpdateDialog();
+        break;
     }
   }
 
@@ -184,7 +209,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
                     if (loadingProgress == null) return child;
                     final progress = loadingProgress.expectedTotalBytes != null
                         ? loadingProgress.cumulativeBytesLoaded /
-                            loadingProgress.expectedTotalBytes!
+                              loadingProgress.expectedTotalBytes!
                         : null;
                     return Container(
                       width: 260,
@@ -398,15 +423,35 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
           ),
           IconButton(
             visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.edit),
-            onPressed: _order != null ? () => _showUpdateDialog() : null,
-            tooltip: 'Chỉnh sửa',
-          ),
-          IconButton(
-            visualDensity: VisualDensity.compact,
             icon: const Icon(Icons.copy),
             onPressed: _order != null ? () => _handleCloneOrder() : null,
             tooltip: 'Clone đơn hàng',
+          ),
+          PopupMenuButton<_OrderDetailMenuAction>(
+            enabled: _order != null,
+            icon: const Icon(Icons.more_vert),
+            tooltip: 'Tùy chọn khác',
+            onSelected: _onMenuActionSelected,
+            itemBuilder: (context) => const [
+              PopupMenuItem(
+                value: _OrderDetailMenuAction.createInvoice,
+                child: ListTile(
+                  leading: Icon(Icons.receipt_long_outlined),
+                  title: Text('Tạo hóa đơn'),
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                ),
+              ),
+              PopupMenuItem(
+                value: _OrderDetailMenuAction.editOrder,
+                child: ListTile(
+                  leading: Icon(Icons.edit),
+                  title: Text('Chỉnh sửa'),
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                ),
+              ),
+            ],
           ),
         ],
       ),

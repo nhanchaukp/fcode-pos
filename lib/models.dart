@@ -3,12 +3,14 @@ library;
 
 import 'dart:convert';
 import 'package:fcode_pos/enums.dart' as enums;
+import 'package:fcode_pos/enums.dart';
 import 'utils/extensions.dart';
 
 part 'models/model.dart';
 part 'models/user.dart';
 part 'models/order.dart';
 part 'models/order_item.dart';
+part 'models/order_invoice_preview.dart';
 part 'models/order_stats.dart';
 part 'models/payment_history.dart';
 part 'models/product.dart';
