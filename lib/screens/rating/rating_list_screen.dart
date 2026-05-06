@@ -3,7 +3,7 @@ import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/rating_service.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
-import 'package:fcode_pos/utils/extensions.dart';
+import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 
 class RatingListScreen extends StatefulWidget {
@@ -91,32 +91,15 @@ class _RatingListScreenState extends State<RatingListScreen> {
       await _loadRatings(page: _currentPage);
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            rating.approved ? 'Đã hủy duyệt đánh giá' : 'Đã duyệt đánh giá',
-          ),
-          behavior: SnackBarBehavior.floating,
-        ),
+      Toastr.success(
+        rating.approved ? 'Đã hủy duyệt đánh giá' : 'Đã duyệt đánh giá',
       );
     } on ApiException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.message),
-          backgroundColor: Theme.of(context).colorScheme.error,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      Toastr.error(e.message);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Có lỗi xảy ra: $e'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      Toastr.error('Có lỗi xảy ra: $e');
     } finally {
       if (mounted) {
         setState(() {
@@ -164,30 +147,13 @@ class _RatingListScreenState extends State<RatingListScreen> {
       await _loadRatings(page: _currentPage);
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Đã xóa đánh giá'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      Toastr.success('Đã xóa đánh giá');
     } on ApiException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.message),
-          backgroundColor: Theme.of(context).colorScheme.error,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      Toastr.error(e.message);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Có lỗi xảy ra: $e'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      Toastr.error('Có lỗi xảy ra: $e');
     } finally {
       if (mounted) {
         setState(() {
@@ -393,16 +359,7 @@ class _RatingCard extends StatelessWidget {
     final rateable = rating.rateable;
 
     return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: rating.approved
-              ? colorScheme.primary.withValues(alpha: 0.3)
-              : colorScheme.outline.withValues(alpha: 0.2),
-          width: rating.approved ? 1.5 : 1,
-        ),
-      ),
+      clipBehavior: Clip.antiAlias,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -476,7 +433,7 @@ class _RatingCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest.applyOpacity(0.5),
+                  color: colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -553,9 +510,11 @@ class _RatingCard extends StatelessWidget {
   Widget _buildApprovalBadge(BuildContext context, bool approved) {
     final colorScheme = Theme.of(context).colorScheme;
     final backgroundColor = approved
-        ? colorScheme.primary.withValues(alpha: 0.15)
-        : Colors.grey.shade200;
-    final textColor = approved ? colorScheme.primary : Colors.grey.shade700;
+        ? colorScheme.primaryContainer
+        : colorScheme.surfaceContainerHighest;
+    final textColor = approved
+        ? colorScheme.onPrimaryContainer
+        : colorScheme.onSurfaceVariant;
     final icon = approved ? Icons.check_circle_outline : Icons.pending_outlined;
     final label = approved ? 'Đã duyệt' : 'Chưa duyệt';
 

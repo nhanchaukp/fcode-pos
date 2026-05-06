@@ -2,7 +2,6 @@ import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/mail/mail_log_detail_screen.dart';
 import 'package:fcode_pos/services/mail_log_service.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
-import 'package:fcode_pos/utils/extensions/colors.dart';
 import 'package:flutter/material.dart';
 
 class MailLogScreen extends StatefulWidget {
@@ -156,171 +155,29 @@ class _MailLogScreenState extends State<MailLogScreen> {
     return Column(
       children: [
         Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 12),
+          child: ListView.separated(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
             physics: const AlwaysScrollableScrollPhysics(),
             itemCount: _mailLogs.length,
+            separatorBuilder: (context, _) => const SizedBox(height: 8),
             itemBuilder: (context, index) {
-              final mailLog = _mailLogs[index];
-              return _buildMailLogCard(mailLog, colorScheme);
+              return _MailLogCard(
+                mailLog: _mailLogs[index],
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => MailLogDetailScreen(
+                        mailLogId: _mailLogs[index].id,
+                      ),
+                    ),
+                  );
+                },
+              );
             },
           ),
         ),
         _buildPaginationControls(context, colorScheme),
       ],
-    );
-  }
-
-  Widget _buildMailLogCard(MailLog mailLog, ColorScheme colorScheme) {
-    final sentAtLabel = mailLog.sentAt != null
-        ? DateHelper.formatDateTime(mailLog.sentAt!)
-        : (mailLog.createdAt != null
-              ? DateHelper.formatDateTime(mailLog.createdAt!)
-              : '—');
-
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: colorScheme.surface,
-      elevation: 0,
-      shadowColor: Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: colorScheme.outlineVariant.applyOpacity(0.5),
-          width: 1,
-        ),
-      ),
-      child: InkWell(
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => MailLogDetailScreen(mailLogId: mailLog.id),
-            ),
-          );
-        },
-        borderRadius: BorderRadius.circular(16),
-        splashColor: colorScheme.primary.applyOpacity(0.08),
-        highlightColor: Colors.transparent,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Row 1: Status badge and recipient
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          mailLog.subject,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: colorScheme.onSurface,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Gửi đến: ${mailLog.firstRecipient}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: colorScheme.onSurfaceVariant.applyOpacity(
-                              0.7,
-                            ),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  _buildStatusBadge(mailLog.status, colorScheme),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Divider(
-                height: 1,
-                thickness: 0.7,
-                color: colorScheme.outlineVariant.applyOpacity(0.6),
-              ),
-              const SizedBox(height: 12),
-              // Row 2: Date sent
-              Row(
-                children: [
-                  Icon(
-                    Icons.schedule_outlined,
-                    size: 16,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      sentAtLabel,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w500,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusBadge(String status, ColorScheme colorScheme) {
-    Color backgroundColor;
-    Color textColor;
-    String label;
-
-    switch (status.toLowerCase()) {
-      case 'sent':
-        backgroundColor = Colors.green.shade100;
-        textColor = Colors.green.shade800;
-        label = 'Đã gửi';
-        break;
-      case 'pending':
-        backgroundColor = Colors.orange.shade100;
-        textColor = Colors.orange.shade800;
-        label = 'Đang chờ';
-        break;
-      case 'failed':
-        backgroundColor = Colors.red.shade100;
-        textColor = Colors.red.shade800;
-        label = 'Thất bại';
-        break;
-      default:
-        backgroundColor = Colors.grey.shade100;
-        textColor = Colors.grey.shade800;
-        label = status;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: textColor,
-        ),
-      ),
     );
   }
 
@@ -471,6 +328,141 @@ class _MailLogScreenState extends State<MailLogScreen> {
           ),
           const SizedBox(height: 16),
         ],
+      ),
+    );
+  }
+}
+
+class _MailLogCard extends StatelessWidget {
+  const _MailLogCard({required this.mailLog, this.onTap});
+
+  final MailLog mailLog;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final sentAtLabel = mailLog.sentAt != null
+        ? DateHelper.formatDateTime(mailLog.sentAt!)
+        : (mailLog.createdAt != null
+              ? DateHelper.formatDateTime(mailLog.createdAt!)
+              : '—');
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          mailLog.subject,
+                          style: textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Gửi đến: ${mailLog.firstRecipient}',
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  _MailStatusBadge(status: mailLog.status),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Icon(
+                    Icons.schedule_outlined,
+                    size: 16,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      sentAtLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MailStatusBadge extends StatelessWidget {
+  const _MailStatusBadge({required this.status});
+
+  final String status;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    final (Color bg, Color fg, String label) = switch (status.toLowerCase()) {
+      'sent' => (
+        colorScheme.primaryContainer,
+        colorScheme.onPrimaryContainer,
+        'Đã gửi',
+      ),
+      'pending' => (
+        colorScheme.tertiaryContainer,
+        colorScheme.onTertiaryContainer,
+        'Đang chờ',
+      ),
+      'failed' => (
+        colorScheme.errorContainer,
+        colorScheme.onErrorContainer,
+        'Thất bại',
+      ),
+      _ => (
+        colorScheme.surfaceContainerHighest,
+        colorScheme.onSurfaceVariant,
+        status,
+      ),
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        label,
+        style: textTheme.labelSmall?.copyWith(
+          fontWeight: FontWeight.w600,
+          color: fg,
+        ),
       ),
     );
   }

@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1777998062005,
+  "lastScanned": 1778086802324,
   "projectRoot": "/Users/nhanchaukp/Documents/flutter-dev/starter-for-flutter",
   "techStack": {
     "languages": [],
@@ -39,7 +39,7 @@
       "path": "android",
       "purpose": null,
       "fileCount": 5,
-      "lastAccessed": 1777998061948,
+      "lastAccessed": 1778086802293,
       "keyFiles": [
         "build.gradle",
         "gradle.properties",
@@ -51,7 +51,7 @@
       "path": "assets",
       "purpose": "Static assets",
       "fileCount": 6,
-      "lastAccessed": 1777998061956,
+      "lastAccessed": 1778086802296,
       "keyFiles": [
         "app-icon-mac.png",
         "app-icon.png",
@@ -64,7 +64,7 @@
       "path": "build",
       "purpose": "Build output",
       "fileCount": 1,
-      "lastAccessed": 1777998061972,
+      "lastAccessed": 1778086802299,
       "keyFiles": [
         "b70f9274ac3b5ec9754be8774a3c9a1c.cache.dill.track.dill"
       ]
@@ -73,7 +73,7 @@
       "path": "ios",
       "purpose": null,
       "fileCount": 4,
-      "lastAccessed": 1777998061975,
+      "lastAccessed": 1778086802300,
       "keyFiles": [
         "Podfile",
         "Podfile.lock"
@@ -83,7 +83,7 @@
       "path": "lib",
       "purpose": "Library code",
       "fileCount": 7,
-      "lastAccessed": 1777998061983,
+      "lastAccessed": 1778086802301,
       "keyFiles": [
         "app.dart",
         "appwrite.dart",
@@ -96,7 +96,7 @@
       "path": "linux",
       "purpose": null,
       "fileCount": 2,
-      "lastAccessed": 1777998061995,
+      "lastAccessed": 1778086802302,
       "keyFiles": [
         "CMakeLists.txt"
       ]
@@ -105,7 +105,7 @@
       "path": "macos",
       "purpose": null,
       "fileCount": 4,
-      "lastAccessed": 1777998061996,
+      "lastAccessed": 1778086802303,
       "keyFiles": [
         "Podfile",
         "Podfile.lock"
@@ -115,7 +115,7 @@
       "path": "web",
       "purpose": null,
       "fileCount": 4,
-      "lastAccessed": 1777998061996,
+      "lastAccessed": 1778086802304,
       "keyFiles": [
         "favicon.png",
         "favicon.svg",
@@ -127,7 +127,7 @@
       "path": "windows",
       "purpose": null,
       "fileCount": 2,
-      "lastAccessed": 1777998061997,
+      "lastAccessed": 1778086802305,
       "keyFiles": [
         "CMakeLists.txt"
       ]
@@ -136,7 +136,7 @@
       "path": "android/app",
       "purpose": "Application code",
       "fileCount": 1,
-      "lastAccessed": 1777998062000,
+      "lastAccessed": 1778086802306,
       "keyFiles": [
         "build.gradle"
       ]
@@ -145,7 +145,7 @@
       "path": "lib/api",
       "purpose": "API routes",
       "fileCount": 2,
-      "lastAccessed": 1777998062004,
+      "lastAccessed": 1778086802307,
       "keyFiles": [
         "api_exception.dart",
         "api_response.dart"
@@ -155,7 +155,7 @@
       "path": "lib/config",
       "purpose": "Configuration files",
       "fileCount": 3,
-      "lastAccessed": 1777998062004,
+      "lastAccessed": 1778086802308,
       "keyFiles": [
         "environment.dart",
         "google_config.dart",
@@ -166,14 +166,14 @@
       "path": "lib/data",
       "purpose": "Data files",
       "fileCount": 0,
-      "lastAccessed": 1777998062004,
+      "lastAccessed": 1778086802308,
       "keyFiles": []
     },
     "lib/models": {
       "path": "lib/models",
       "purpose": "Data models",
-      "fileCount": 27,
-      "lastAccessed": 1777998062005,
+      "fileCount": 28,
+      "lastAccessed": 1778086802308,
       "keyFiles": [
         "account_master.dart",
         "account_slot.dart",
@@ -183,93 +183,243 @@
   },
   "hotPaths": [
     {
-      "path": "lib/screens/order/order_invoice_preview_screen.dart",
-      "accessCount": 27,
-      "lastAccessed": 1778040015636,
+      "path": "lib/screens/refund/refund_request_screen.dart",
+      "accessCount": 8,
+      "lastAccessed": 1778087723966,
       "type": "file"
     },
     {
-      "path": "lib/screens/order/order_detail_screen.dart",
+      "path": "lib/screens/financial/financial_report_screen.dart",
+      "accessCount": 8,
+      "lastAccessed": 1778087815433,
+      "type": "file"
+    },
+    {
+      "path": "lib/screens/rating/rating_list_screen.dart",
+      "accessCount": 8,
+      "lastAccessed": 1778087835576,
+      "type": "file"
+    },
+    {
+      "path": "lib/screens/mail/mail_log_screen.dart",
+      "accessCount": 7,
+      "lastAccessed": 1778087652526,
+      "type": "file"
+    },
+    {
+      "path": "lib/screens/products/product_list_screen.dart",
       "accessCount": 6,
-      "lastAccessed": 1778037759270,
+      "lastAccessed": 1778087555878,
       "type": "file"
     },
     {
-      "path": "lib/screens/order/order_create_invoice_screen.dart",
+      "path": "lib/screens/global_search_screen.dart",
       "accessCount": 5,
-      "lastAccessed": 1778002179218,
+      "lastAccessed": 1778087587851,
+      "type": "file"
+    },
+    {
+      "path": "lib/app.dart",
+      "accessCount": 4,
+      "lastAccessed": 1778087023314,
+      "type": "file"
+    },
+    {
+      "path": "lib/screens/customer/customer_list_screen.dart",
+      "accessCount": 4,
+      "lastAccessed": 1778087521830,
+      "type": "file"
+    },
+    {
+      "path": "lib/screens/mail/mail_log_detail_screen.dart",
+      "accessCount": 4,
+      "lastAccessed": 1778088226746,
+      "type": "file"
+    },
+    {
+      "path": "lib/ui/theme/tokens.dart",
+      "accessCount": 3,
+      "lastAccessed": 1778086978695,
+      "type": "file"
+    },
+    {
+      "path": "lib/ui/dashboard/dashboard_components.dart",
+      "accessCount": 2,
+      "lastAccessed": 1778086861304,
+      "type": "file"
+    },
+    {
+      "path": "lib/screens/tabs/orders_screen.dart",
+      "accessCount": 2,
+      "lastAccessed": 1778086893023,
+      "type": "file"
+    },
+    {
+      "path": "lib/ui/components/order_list_component.dart",
+      "accessCount": 2,
+      "lastAccessed": 1778086978005,
+      "type": "file"
+    },
+    {
+      "path": "lib/utils/extensions/colors.dart",
+      "accessCount": 2,
+      "lastAccessed": 1778086998457,
+      "type": "file"
+    },
+    {
+      "path": "lib/utils/snackbar_helper.dart",
+      "accessCount": 2,
+      "lastAccessed": 1778086998477,
+      "type": "file"
+    },
+    {
+      "path": "lib/ui/components/icon_text.dart",
+      "accessCount": 2,
+      "lastAccessed": 1778087010238,
+      "type": "file"
+    },
+    {
+      "path": "lib/ui/components/copyable_icon_text.dart",
+      "accessCount": 2,
+      "lastAccessed": 1778087011291,
+      "type": "file"
+    },
+    {
+      "path": "lib/ui/components/order_status_badge.dart",
+      "accessCount": 2,
+      "lastAccessed": 1778087011720,
+      "type": "file"
+    },
+    {
+      "path": "lib/models/user.dart",
+      "accessCount": 2,
+      "lastAccessed": 1778087028788,
       "type": "file"
     },
     {
       "path": "lib/models/product.dart",
-      "accessCount": 5,
-      "lastAccessed": 1778036003019,
-      "type": "file"
-    },
-    {
-      "path": "lib/screens/products/product_edit_screen.dart",
-      "accessCount": 4,
-      "lastAccessed": 1778036017968,
-      "type": "file"
-    },
-    {
-      "path": "lib/screens/invoice/invoice_detail_screen.dart",
-      "accessCount": 4,
-      "lastAccessed": 1778049238748,
-      "type": "file"
-    },
-    {
-      "path": "lib/screens/tabs/product_hub_screen.dart",
-      "accessCount": 3,
-      "lastAccessed": 1778034566135,
-      "type": "file"
-    },
-    {
-      "path": "lib/enums.dart",
       "accessCount": 2,
-      "lastAccessed": 1778035794664,
-      "type": "file"
-    },
-    {
-      "path": "lib/models/order_invoice_preview.dart",
-      "accessCount": 1,
-      "lastAccessed": 1777998137337,
+      "lastAccessed": 1778087029305,
       "type": "file"
     },
     {
       "path": "lib/screens/customer/customer_detail_screen.dart",
-      "accessCount": 1,
-      "lastAccessed": 1777998142777,
+      "accessCount": 2,
+      "lastAccessed": 1778087040686,
       "type": "file"
     },
     {
-      "path": "lib/ui/components/dropdown/invoice_template_dropdown.dart",
+      "path": "lib/models.dart",
       "accessCount": 1,
-      "lastAccessed": 1777999186322,
+      "lastAccessed": 1778086837018,
       "type": "file"
     },
     {
-      "path": "lib/ui/components/dropdown/invoice_provider_account_dropdown.dart",
+      "path": "lib/config/theme_colors.dart",
       "accessCount": 1,
-      "lastAccessed": 1777999190749,
+      "lastAccessed": 1778086848035,
       "type": "file"
     },
     {
-      "path": "lib/enums/buyer_type.dart",
+      "path": "lib/utils/currency_helper.dart",
       "accessCount": 1,
-      "lastAccessed": 1778035783644,
+      "lastAccessed": 1778086848672,
       "type": "file"
     },
     {
-      "path": "lib/enums/invoice_unit.dart",
+      "path": "lib/providers/theme_provider.dart",
       "accessCount": 1,
-      "lastAccessed": 1778035787108,
+      "lastAccessed": 1778086848802,
       "type": "file"
     },
     {
-      "path": "lib/enums/line_type.dart",
+      "path": "lib/utils/date_helper.dart",
       "accessCount": 1,
-      "lastAccessed": 1778035793714,
+      "lastAccessed": 1778086849463,
+      "type": "file"
+    },
+    {
+      "path": "lib/ui/components/global_order_search.dart",
+      "accessCount": 1,
+      "lastAccessed": 1778086851787,
+      "type": "file"
+    },
+    {
+      "path": "lib/ui/components/debounced_search_input.dart",
+      "accessCount": 1,
+      "lastAccessed": 1778086858845,
+      "type": "file"
+    },
+    {
+      "path": "lib/ui/components/loading_icon.dart",
+      "accessCount": 1,
+      "lastAccessed": 1778086861162,
+      "type": "file"
+    },
+    {
+      "path": "lib/ui/components/money_form_field.dart",
+      "accessCount": 1,
+      "lastAccessed": 1778086861681,
+      "type": "file"
+    },
+    {
+      "path": "lib/screens/tabs/more_screen.dart",
+      "accessCount": 1,
+      "lastAccessed": 1778086861770,
+      "type": "file"
+    },
+    {
+      "path": "lib/ui/components/link_button.dart",
+      "accessCount": 1,
+      "lastAccessed": 1778086862566,
+      "type": "file"
+    },
+    {
+      "path": "lib/ui/components/order_status_split_button.dart",
+      "accessCount": 1,
+      "lastAccessed": 1778086877563,
+      "type": "file"
+    },
+    {
+      "path": "lib/ui/components/app_version_text.dart",
+      "accessCount": 1,
+      "lastAccessed": 1778086878225,
+      "type": "file"
+    },
+    {
+      "path": "lib/ui/components/account_form_input.dart",
+      "accessCount": 1,
+      "lastAccessed": 1778086878828,
+      "type": "file"
+    },
+    {
+      "path": "lib/ui/components/refund_status_badge.dart",
+      "accessCount": 1,
+      "lastAccessed": 1778087012068,
+      "type": "file"
+    },
+    {
+      "path": "lib/models/rating.dart",
+      "accessCount": 1,
+      "lastAccessed": 1778087029833,
+      "type": "file"
+    },
+    {
+      "path": "lib/models/mail_log.dart",
+      "accessCount": 1,
+      "lastAccessed": 1778087035837,
+      "type": "file"
+    },
+    {
+      "path": "lib/ui/components/customer_list_item.dart",
+      "accessCount": 1,
+      "lastAccessed": 1778087487603,
+      "type": "file"
+    },
+    {
+      "path": "lib/ui/components/product_list_item.dart",
+      "accessCount": 1,
+      "lastAccessed": 1778087496187,
       "type": "file"
     }
   ],

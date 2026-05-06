@@ -6,8 +6,9 @@ import 'package:fcode_pos/screens/products/product_edit_screen.dart';
 import 'package:fcode_pos/services/customer_service.dart';
 import 'package:fcode_pos/services/order_service.dart';
 import 'package:fcode_pos/services/product_service.dart';
+import 'package:fcode_pos/ui/components/customer_list_item.dart';
 import 'package:fcode_pos/ui/components/order_list_component.dart';
-import 'package:fcode_pos/utils/currency_helper.dart';
+import 'package:fcode_pos/ui/components/product_list_item.dart';
 import 'package:fcode_pos/utils/extensions.dart';
 import 'package:flutter/material.dart';
 
@@ -331,93 +332,22 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
   Widget _buildProductResults() {
     if (_products.isEmpty) return _buildEmptyState('sản phẩm');
 
-    return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 8),
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
       itemCount: _products.length,
-      itemBuilder: (context, index) => _buildProductTile(_products[index]),
-    );
-  }
-
-  Widget _buildProductTile(Product product) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final colorScheme = theme.colorScheme;
-    final bestPrice = product.bestPrice ?? product.price;
-
-    return InkWell(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => ProductEditScreen(product: product)),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: colorScheme.outlineVariant.applyOpacity(0.3),
+      separatorBuilder: (context, _) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        final product = _products[index];
+        return ProductListItem(
+          product: product,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ProductEditScreen(product: product),
             ),
           ),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          children: [
-            Icon(
-              product.isActive
-                  ? Icons.check_circle_outline
-                  : Icons.cancel_outlined,
-              color: product.isActive
-                  ? colorScheme.primary
-                  : colorScheme.onSurfaceVariant,
-              size: 18,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.name,
-                    style: textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (product.sku != null) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      product.sku!,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  bestPrice > 0
-                      ? CurrencyHelper.formatCurrency(bestPrice)
-                      : '—',
-                  style: textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Kho: ${product.instock}',
-                  style: textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -426,82 +356,22 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
   Widget _buildCustomerResults() {
     if (_customers.isEmpty) return _buildEmptyState('khách hàng');
 
-    return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 8),
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
       itemCount: _customers.length,
-      itemBuilder: (context, index) => _buildCustomerTile(_customers[index]),
-    );
-  }
-
-  Widget _buildCustomerTile(User customer) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final colorScheme = theme.colorScheme;
-
-    return InkWell(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => CustomerDetailScreen(userId: customer.id),
-        ),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: colorScheme.outlineVariant.applyOpacity(0.3),
+      separatorBuilder: (context, _) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        final customer = _customers[index];
+        return CustomerListItem(
+          user: customer,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => CustomerDetailScreen(userId: customer.id),
             ),
           ),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundColor: colorScheme.primaryContainer,
-              child: Text(
-                customer.name.isNotEmpty ? customer.name[0].toUpperCase() : '?',
-                style: textTheme.titleSmall?.copyWith(
-                  color: colorScheme.onPrimaryContainer,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    customer.name,
-                    style: textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  if (customer.email.isNotEmpty) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      customer.email,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            if (customer.phone != null && customer.phone!.isNotEmpty)
-              Text(
-                customer.phone!,
-                style: textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-          ],
-        ),
-      ),
+        );
+      },
     );
   }
 

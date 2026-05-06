@@ -5,7 +5,7 @@ import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/providers/product/product_filter_provider.dart';
 import 'package:fcode_pos/providers/product/product_list_provider.dart';
 import 'package:fcode_pos/screens/products/product_edit_screen.dart';
-import 'package:fcode_pos/utils/currency_helper.dart';
+import 'package:fcode_pos/ui/components/product_list_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -185,8 +185,8 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
         separatorBuilder: (context, _) => const SizedBox(height: 8),
         itemBuilder: (context, index) {
           final product = products[index];
-          return InkWell(
-            borderRadius: BorderRadius.circular(12),
+          return ProductListItem(
+            product: product,
             onTap: () async {
               final updated = await Navigator.of(context).push<bool>(
                 MaterialPageRoute(
@@ -197,7 +197,6 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                 ref.invalidate(productListProvider);
               }
             },
-            child: _ProductCard(product: product),
           );
         },
       ),
@@ -250,115 +249,3 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
   }
 }
 
-class _ProductCard extends StatelessWidget {
-  const _ProductCard({required this.product});
-
-  final Product product;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final bestPrice = product.bestPrice ?? product.price;
-    final bestPriceLabel = bestPrice > 0
-        ? CurrencyHelper.formatCurrency(bestPrice)
-        : '—';
-    final instockLabel = product.instock.toString();
-
-    return Card(
-      elevation: 0,
-      margin: EdgeInsets.zero,
-      clipBehavior: Clip.antiAlias,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    product.name,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            if (product.sku != null) ...[
-              Row(
-                children: [
-                  _IconValue(
-                    icon: Icons.qr_code_2_outlined,
-                    value: product.sku!,
-                    color: colorScheme.primary,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-            ],
-
-            Row(
-              children: [
-                Tooltip(
-                  message: product.isActive ? 'Đang hoạt động' : 'Đã tạm dừng',
-                  child: Icon(
-                    product.isActive
-                        ? Icons.check_circle_outline
-                        : Icons.cancel_outlined,
-                    color: product.isActive
-                        ? colorScheme.primary
-                        : colorScheme.onSurfaceVariant,
-                    size: 18,
-                  ),
-                ),
-                const SizedBox(width: 16),
-
-                _IconValue(
-                  icon: Icons.price_change_outlined,
-                  value: bestPriceLabel,
-                  color: colorScheme.primary,
-                ),
-                const SizedBox(width: 16),
-                _IconValue(
-                  icon: Icons.inventory_2_outlined,
-                  value: instockLabel,
-                  color: colorScheme.tertiary,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _IconValue extends StatelessWidget {
-  const _IconValue({
-    required this.icon,
-    required this.value,
-    required this.color,
-  });
-
-  final IconData icon;
-  final String value;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 18, color: color),
-        const SizedBox(width: 6),
-        Text(
-          value,
-          style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-        ),
-      ],
-    );
-  }
-}

@@ -6,7 +6,6 @@ import 'package:fcode_pos/ui/components/refund_status_badge.dart';
 import 'package:fcode_pos/ui/components/refund_type_badge.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
-import 'package:fcode_pos/utils/extensions/colors.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -167,211 +166,33 @@ class _RefundRequestScreenState extends ConsumerState<RefundRequestScreen> {
     return Column(
       children: [
         Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 12),
+          child: ListView.separated(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
             physics: const AlwaysScrollableScrollPhysics(),
             itemCount: _refunds.length,
+            separatorBuilder: (context, _) => const SizedBox(height: 8),
             itemBuilder: (context, index) {
               final refund = _refunds[index];
-              return _buildRefundCard(refund, colorScheme);
+              return _RefundCard(
+                refund: refund,
+                isActioning: _actioningIds.contains(refund.id),
+                onTap: () async {
+                  final updated = await Navigator.of(context).push<bool>(
+                    MaterialPageRoute(
+                      builder: (_) => RefundDetailScreen(refund: refund),
+                    ),
+                  );
+                  if (updated == true && mounted) {
+                    _loadRefunds(page: _currentPage);
+                  }
+                },
+                onApprove: () => _onApprove(refund),
+                onReject: () => _onReject(refund),
+              );
             },
           ),
         ),
         _buildPaginationControls(context, colorScheme),
-      ],
-    );
-  }
-
-  Widget _buildRefundCard(Refund refund, ColorScheme colorScheme) {
-    final customerName = refund.user?.name ?? 'Khách hàng';
-    final createdAtLabel = refund.createdAt != null
-        ? DateHelper.formatDateTime(refund.createdAt!)
-        : '—';
-    final amountFormatted = CurrencyHelper.formatCurrency(
-      refund.finalAmount.round(),
-    );
-
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: colorScheme.outlineVariant.applyOpacity(0.5),
-          width: 1,
-        ),
-      ),
-      child: InkWell(
-        onTap: () async {
-          final updated = await Navigator.of(context).push<bool>(
-            MaterialPageRoute(
-              builder: (_) => RefundDetailScreen(refund: refund),
-            ),
-          );
-          if (updated == true && mounted) {
-            _loadRefunds(page: _currentPage);
-          }
-        },
-        borderRadius: BorderRadius.circular(12),
-        splashColor: colorScheme.primary.applyOpacity(0.06),
-        highlightColor: Colors.transparent,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Row 1: Mã đơn hàng | Tên khách hàng | Trạng thái
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Đơn hàng #${refund.shopOrderId}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: colorScheme.onSurfaceVariant.applyOpacity(
-                              0.7,
-                            ),
-                            letterSpacing: 0.2,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          customerName,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  RefundStatusBadge(status: refund.status),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Divider(
-                height: 1,
-                thickness: 0.7,
-                color: colorScheme.outlineVariant.applyOpacity(0.6),
-              ),
-              const SizedBox(height: 12),
-              // Row 2: Loại | Lý do (same line)
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  RefundTypeBadge(type: refund.type),
-                  RefundReasonBadge(reason: refund.reason),
-                ],
-              ),
-              const SizedBox(height: 12),
-              // Row 3: Ngày tạo yêu cầu
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildInfoRow(
-                      Icons.schedule_outlined,
-                      createdAtLabel,
-                      colorScheme.onSurfaceVariant,
-                      context,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              // Row 3: Số tiền hoàn
-              Align(
-                alignment: Alignment.centerRight,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      'Số tiền hoàn',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant.applyOpacity(0.7),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      amountFormatted,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: colorScheme.primary,
-                        fontSize: 18,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Actions: Approve | Reject when pending
-              if (refund.status.toLowerCase() == 'pending') ...[
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: _actioningIds.contains(refund.id)
-                            ? null
-                            : () => _onReject(refund),
-                        icon: const Icon(Icons.close),
-                        label: _actioningIds.contains(refund.id)
-                            ? const Text('Đang xử lý...')
-                            : const Text('Từ chối'),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: _actioningIds.contains(refund.id)
-                            ? null
-                            : () => _onApprove(refund),
-                        icon: const Icon(Icons.check),
-                        label: _actioningIds.contains(refund.id)
-                            ? const Text('Đang xử lý...')
-                            : const Text('Duyệt'),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(
-    IconData icon,
-    String text,
-    Color iconColor,
-    BuildContext context,
-  ) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: iconColor),
-        const SizedBox(width: 6),
-        Expanded(
-          child: Text(
-            text,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w500,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
-          ),
-        ),
       ],
     );
   }
@@ -665,6 +486,151 @@ class _RefundRequestScreenState extends ConsumerState<RefundRequestScreen> {
           ],
         );
       },
+    );
+  }
+}
+
+class _RefundCard extends StatelessWidget {
+  const _RefundCard({
+    required this.refund,
+    required this.isActioning,
+    this.onTap,
+    this.onApprove,
+    this.onReject,
+  });
+
+  final Refund refund;
+  final bool isActioning;
+  final VoidCallback? onTap;
+  final VoidCallback? onApprove;
+  final VoidCallback? onReject;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final customerName = refund.user?.name ?? 'Khách hàng';
+    final createdAtLabel = refund.createdAt != null
+        ? DateHelper.formatDateTime(refund.createdAt!)
+        : '—';
+    final amountFormatted = CurrencyHelper.formatCurrency(
+      refund.finalAmount.round(),
+    );
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Đơn hàng #${refund.shopOrderId}',
+                          style: textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: colorScheme.onSurfaceVariant,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          customerName,
+                          style: textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  RefundStatusBadge(status: refund.status),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  RefundTypeBadge(type: refund.type),
+                  RefundReasonBadge(reason: refund.reason),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Icon(
+                    Icons.schedule_outlined,
+                    size: 16,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      createdAtLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        'Số tiền hoàn',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        amountFormatted,
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              if (refund.status.toLowerCase() == 'pending') ...[
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: isActioning ? null : onReject,
+                        icon: const Icon(Icons.close),
+                        label: Text(isActioning ? 'Đang xử lý...' : 'Từ chối'),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: isActioning ? null : onApprove,
+                        icon: const Icon(Icons.check),
+                        label: Text(isActioning ? 'Đang xử lý...' : 'Duyệt'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

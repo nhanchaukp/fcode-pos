@@ -21,31 +21,11 @@ class _MailLogDetailScreenState extends State<MailLogDetailScreen> {
   bool _isHtmlContent = false;
 
   bool _isHtmlString(String text) {
-    // Kiểm tra xem text có chứa các thẻ HTML cơ bản không
     final htmlTags = [
-      '<html',
-      '<head',
-      '<body',
-      '<div',
-      '<span',
-      '<p',
-      '<br',
-      '<img',
-      '<a',
-      '<table',
-      '<tr',
-      '<td',
-      '<th',
-      '<ul',
-      '<li',
-      '<h1',
-      '<h2',
-      '<h3',
-      '<h4',
-      '<h5',
-      '<h6',
+      '<html', '<head', '<body', '<div', '<span', '<p', '<br', '<img',
+      '<a', '<table', '<tr', '<td', '<th', '<ul', '<li',
+      '<h1', '<h2', '<h3', '<h4', '<h5', '<h6',
     ];
-
     return htmlTags.any((tag) => text.toLowerCase().contains(tag));
   }
 
@@ -66,7 +46,6 @@ class _MailLogDetailScreenState extends State<MailLogDetailScreen> {
 
     try {
       final response = await _mailLogService.show(widget.mailLogId);
-
       setState(() {
         _mailLog = response.data;
         _isLoading = false;
@@ -92,6 +71,9 @@ class _MailLogDetailScreenState extends State<MailLogDetailScreen> {
   }
 
   Widget _buildBody(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -99,18 +81,23 @@ class _MailLogDetailScreenState extends State<MailLogDetailScreen> {
     if (_error != null) {
       return Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.red),
-            const SizedBox(height: 16),
-            Text(
-              'Lỗi: $_error',
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.red),
+            Icon(Icons.error_outline, size: 48, color: colorScheme.error),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                _error!,
+                textAlign: TextAlign.center,
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.error,
+                ),
+              ),
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => _loadMailLog(),
+            FilledButton(
+              onPressed: _loadMailLog,
               child: const Text('Thử lại'),
             ),
           ],
@@ -119,228 +106,284 @@ class _MailLogDetailScreenState extends State<MailLogDetailScreen> {
     }
 
     if (_mailLog == null) {
-      return const Center(child: Text('Không tìm thấy email'));
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.inbox_outlined, size: 48, color: colorScheme.outline),
+            const SizedBox(height: 12),
+            Text('Không tìm thấy email', style: textTheme.bodyMedium),
+          ],
+        ),
+      );
     }
 
-    final colorScheme = Theme.of(context).colorScheme;
-    final hasHtmlContent = _mailLog!.html?.isNotEmpty == true;
-    final infoSection = _buildMailInfo(context, colorScheme);
+    final mail = _mailLog!;
+    final hasHtmlContent = mail.html?.isNotEmpty == true;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          infoSection,
-          const SizedBox(height: 24),
-          if (hasHtmlContent)
-            _isHtmlContent
-                ? Html(
-                    data: _mailLog!.html!,
-                    onLinkTap: (url, attributes, element) {
-                      if (url == null) {
-                        return;
-                      }
-                      launchUrlString(url, mode: LaunchMode.inAppBrowserView);
-                    },
-                    style: {
-                      'body': Style(
-                        margin: Margins.zero,
-                        padding: HtmlPaddings.zero,
-                        fontSize: FontSize(16),
-                        color: Theme.of(context).textTheme.bodyMedium?.color,
-                      ),
-                    },
-                  )
-                : SelectableText(
-                    _mailLog!.html!,
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  )
-          else
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(32.0),
-                child: Text(
-                  'Không có nội dung',
-                  style: TextStyle(color: Colors.grey),
-                ),
+    return RefreshIndicator(
+      onRefresh: _loadMailLog,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _MailStatusBadge(status: mail.status),
+            const SizedBox(height: 12),
+            Text(
+              mail.subject,
+              style: textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
               ),
             ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMailInfo(BuildContext context, ColorScheme colorScheme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildStatusBadge(_mailLog!.status, colorScheme),
-        const SizedBox(height: 16),
-        Text(
-          _mailLog!.subject,
-          style: Theme.of(context)
-              .textTheme
-              .headlineSmall
-              ?.copyWith(fontWeight: FontWeight.bold),
+            const SizedBox(height: 16),
+            _MailInfoCard(mailLog: mail),
+            const SizedBox(height: 16),
+            if (hasHtmlContent)
+              Card(
+                clipBehavior: Clip.antiAlias,
+                color: Colors.white,
+                child: _isHtmlContent
+                    ? Html(
+                        data: mail.html!,
+                        onLinkTap: (url, attributes, element) {
+                          if (url == null) return;
+                          launchUrlString(
+                            url,
+                            mode: LaunchMode.inAppBrowserView,
+                          );
+                        },
+                        style: {
+                          'body': Style(
+                            margin: Margins.zero,
+                            padding: HtmlPaddings.all(12),
+                            fontSize: FontSize(15),
+                            color: Colors.black87,
+                            backgroundColor: Colors.white,
+                          ),
+                        },
+                      )
+                    : Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: SelectableText(
+                          mail.html!,
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+              )
+            else
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Center(
+                    child: Text(
+                      'Không có nội dung',
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
-        const SizedBox(height: 24),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildInfoRow(
-                  'Từ',
-                  _mailLog!.from ?? 'N/A',
-                  icon: Icons.person_outline,
-                ),
-                const SizedBox(height: 12),
-                _buildInfoRow(
-                  'Gửi đến',
-                  _mailLog!.recipientsString,
-                  icon: Icons.email_outlined,
-                ),
-                if (_mailLog!.cc != null && _mailLog!.cc!.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  _buildInfoRow(
-                    'CC',
-                    _mailLog!.cc!.keys.join(', '),
-                    icon: Icons.copy_outlined,
-                  ),
-                ],
-                if (_mailLog!.bcc != null && _mailLog!.bcc!.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  _buildInfoRow(
-                    'BCC',
-                    _mailLog!.bcc!.keys.join(', '),
-                    icon: Icons.shield_outlined,
-                  ),
-                ],
-                const SizedBox(height: 12),
-                _buildInfoRow(
-                  'Ngày tạo',
-                  _mailLog!.createdAt != null
-                      ? DateHelper.formatDateTime(_mailLog!.createdAt!)
-                      : 'N/A',
-                  icon: Icons.calendar_today_outlined,
-                ),
-                if (_mailLog!.sentAt != null) ...[
-                  const SizedBox(height: 12),
-                  _buildInfoRow(
-                    'Ngày gửi',
-                    DateHelper.formatDateTime(_mailLog!.sentAt!),
-                    icon: Icons.send_outlined,
-                  ),
-                ],
-                if (_mailLog!.error != null && _mailLog!.error!.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  _buildInfoRow(
-                    'Lỗi',
-                    _mailLog!.error!,
-                    icon: Icons.error_outline,
-                    isError: true,
-                  ),
-                ],
-              ],
+      ),
+    );
+  }
+}
+
+class _MailInfoCard extends StatelessWidget {
+  const _MailInfoCard({required this.mailLog});
+
+  final MailLog mailLog;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _InfoRow(
+              icon: Icons.person_outline,
+              label: 'Từ',
+              value: mailLog.from ?? 'N/A',
             ),
-          ),
+            _divider(colorScheme),
+            _InfoRow(
+              icon: Icons.email_outlined,
+              label: 'Gửi đến',
+              value: mailLog.recipientsString,
+            ),
+            if (mailLog.cc != null && mailLog.cc!.isNotEmpty) ...[
+              _divider(colorScheme),
+              _InfoRow(
+                icon: Icons.copy_outlined,
+                label: 'CC',
+                value: mailLog.cc!.keys.join(', '),
+              ),
+            ],
+            if (mailLog.bcc != null && mailLog.bcc!.isNotEmpty) ...[
+              _divider(colorScheme),
+              _InfoRow(
+                icon: Icons.shield_outlined,
+                label: 'BCC',
+                value: mailLog.bcc!.keys.join(', '),
+              ),
+            ],
+            _divider(colorScheme),
+            _InfoRow(
+              icon: Icons.calendar_today_outlined,
+              label: 'Ngày tạo',
+              value: mailLog.createdAt != null
+                  ? DateHelper.formatDateTime(mailLog.createdAt!)
+                  : 'N/A',
+            ),
+            if (mailLog.sentAt != null) ...[
+              _divider(colorScheme),
+              _InfoRow(
+                icon: Icons.send_outlined,
+                label: 'Ngày gửi',
+                value: DateHelper.formatDateTime(mailLog.sentAt!),
+              ),
+            ],
+            if (mailLog.error != null && mailLog.error!.isNotEmpty) ...[
+              _divider(colorScheme),
+              _InfoRow(
+                icon: Icons.error_outline,
+                label: 'Lỗi',
+                value: mailLog.error!,
+                isError: true,
+              ),
+            ],
+          ],
         ),
-      ],
-    );
-  }
-
-  Widget _buildStatusBadge(String status, ColorScheme colorScheme) {
-    Color backgroundColor;
-    Color textColor;
-    IconData icon;
-    String label;
-
-    switch (status.toLowerCase()) {
-      case 'sent':
-        backgroundColor = Colors.green.shade100;
-        textColor = Colors.green.shade800;
-        icon = Icons.check_circle_outline;
-        label = 'Đã gửi';
-        break;
-      case 'pending':
-        backgroundColor = Colors.orange.shade100;
-        textColor = Colors.orange.shade800;
-        icon = Icons.hourglass_empty;
-        label = 'Đang chờ';
-        break;
-      case 'failed':
-        backgroundColor = Colors.red.shade100;
-        textColor = Colors.red.shade800;
-        icon = Icons.error_outline;
-        label = 'Thất bại';
-        break;
-      default:
-        backgroundColor = Colors.grey.shade100;
-        textColor = Colors.grey.shade800;
-        icon = Icons.help_outline;
-        label = status;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 20, color: textColor),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: textColor,
-            ),
-          ),
-        ],
       ),
     );
   }
 
-  Widget _buildInfoRow(
-    String label,
-    String value, {
-    IconData? icon,
-    bool isError = false,
-  }) {
+  Widget _divider(ColorScheme colorScheme) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Divider(height: 1, thickness: 0.5, color: colorScheme.outlineVariant),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.isError = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final bool isError;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final iconColor = isError ? colorScheme.error : colorScheme.onSurfaceVariant;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (icon != null) ...[
-          Icon(
-            icon,
-            size: 20,
-            color: isError ? Colors.red : Colors.grey.shade600,
-          ),
-          const SizedBox(width: 12),
-        ],
+        Icon(icon, size: 20, color: iconColor),
+        const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 label,
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                style: textTheme.labelSmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
               Text(
                 value,
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                style: textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                  color: isError ? colorScheme.error : null,
+                ),
               ),
             ],
           ),
         ),
       ],
+    );
+  }
+}
+
+class _MailStatusBadge extends StatelessWidget {
+  const _MailStatusBadge({required this.status});
+
+  final String status;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    final (Color bg, Color fg, IconData icon, String label) =
+        switch (status.toLowerCase()) {
+      'sent' => (
+        colorScheme.primaryContainer,
+        colorScheme.onPrimaryContainer,
+        Icons.check_circle_outline,
+        'Đã gửi',
+      ),
+      'pending' => (
+        colorScheme.tertiaryContainer,
+        colorScheme.onTertiaryContainer,
+        Icons.hourglass_empty,
+        'Đang chờ',
+      ),
+      'failed' => (
+        colorScheme.errorContainer,
+        colorScheme.onErrorContainer,
+        Icons.error_outline,
+        'Thất bại',
+      ),
+      _ => (
+        colorScheme.surfaceContainerHighest,
+        colorScheme.onSurfaceVariant,
+        Icons.help_outline,
+        status,
+      ),
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18, color: fg),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: fg,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

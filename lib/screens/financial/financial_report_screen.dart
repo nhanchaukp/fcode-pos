@@ -4,6 +4,7 @@ import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/finacial_service.dart';
 import 'package:fcode_pos/ui/dashboard/dashboard_components.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
+import 'package:fcode_pos/utils/extensions/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -486,7 +487,7 @@ class _OrderStatisticsCard extends StatelessWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.teal.withValues(alpha: 0.12),
+                    color: Colors.teal.applyOpacity(0.12),
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Row(
@@ -577,8 +578,8 @@ class _OrderStatTile extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withValues(alpha: 0.2)),
-          color: color.withValues(alpha: 0.06),
+          border: Border.all(color: color.applyOpacity(0.2)),
+          color: color.applyOpacity(0.06),
         ),
         child: Row(
           children: [
@@ -587,7 +588,7 @@ class _OrderStatTile extends StatelessWidget {
               height: 40,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
-                color: color.withValues(alpha: 0.2),
+                color: color.applyOpacity(0.2),
               ),
               child: Icon(icon, color: color, size: 22),
             ),
@@ -657,7 +658,7 @@ class _AccountRenewalCostTile extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: theme.colorScheme.secondary.withValues(alpha: 0.12),
+                color: theme.colorScheme.secondary.applyOpacity(0.12),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -701,8 +702,8 @@ class _AccountRenewalCostTile extends StatelessWidget {
                     (tx) => ListTile(
                       contentPadding: const EdgeInsets.symmetric(vertical: 4),
                       leading: CircleAvatar(
-                        backgroundColor: theme.colorScheme.primary.withValues(
-                          alpha: 0.15,
+                        backgroundColor: theme.colorScheme.primary.applyOpacity(
+                          0.15,
                         ),
                         child: const Icon(Icons.receipt_long, size: 18),
                       ),
