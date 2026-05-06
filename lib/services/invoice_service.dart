@@ -35,6 +35,16 @@ class InvoiceService {
     );
   }
 
+  Future<ApiResponse<Map<String, dynamic>?>> deleteDraftInvoice(
+    String referenceCode,
+  ) {
+    final ref = Uri.encodeComponent(referenceCode);
+    return _api.post<Map<String, dynamic>?>(
+      '/invoice/sepay/delete/$ref',
+      parser: (json) => json == null ? null : ensureMap(json),
+    );
+  }
+
   // ── Provider accounts ───────────────────────────────────────────────────────
 
   Future<ApiResponse<PaginatedData<InvoiceProviderAccount>>> listProviders({

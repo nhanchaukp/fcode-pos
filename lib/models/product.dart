@@ -83,6 +83,9 @@ class Product {
   /// Invoice unit.
   final enums.InvoiceUnit? invoiceUnit;
 
+  /// Invoice line type.
+  final enums.LineType? invoiceLineType;
+
   Product({
     required this.id,
     required this.name,
@@ -111,6 +114,7 @@ class Product {
     this.bestPrice,
     this.invoiceDisplayName,
     this.invoiceUnit,
+    this.invoiceLineType,
   });
 
 
@@ -150,6 +154,11 @@ class Product {
       bestPrice: asIntOrNull(map['best_price']),
       invoiceDisplayName: map['invoice_display_name']?.toString(),
       invoiceUnit: enums.InvoiceUnit.fromValue(map['invoice_unit']?.toString()),
+      invoiceLineType: enums.LineType.fromValue(
+        map['invoice_line_type'] is int
+            ? map['invoice_line_type'] as int
+            : int.tryParse(map['invoice_line_type']?.toString() ?? ''),
+      ),
     );
   }
 
@@ -182,6 +191,7 @@ class Product {
       'best_price': bestPrice,
       'invoice_display_name': invoiceDisplayName,
       'invoice_unit': invoiceUnit?.value,
+      'invoice_line_type': invoiceLineType?.value,
     };
   }
 }

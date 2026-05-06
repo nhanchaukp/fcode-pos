@@ -74,10 +74,8 @@ class OrderInvoicePreviewItem {
   enums.InvoiceUnit? get unitEnum => enums.InvoiceUnit.fromValue(unitValue);
   enums.TaxRate? get taxRateEnum => enums.TaxRate.fromValue(taxRateValue);
 
-  String get lineTypeLabel => switch (lineType) {
-    1 => 'Hàng hóa / dịch vụ',
-    _ => 'Loại dòng $lineType',
-  };
+  String get lineTypeLabel =>
+      enums.LineType.fromValue(lineType)?.label ?? 'Loại dòng $lineType';
 
   String get unitDisplay {
     if ((unitLabel ?? '').isNotEmpty) return '${unitLabel!} ($unitValue)';

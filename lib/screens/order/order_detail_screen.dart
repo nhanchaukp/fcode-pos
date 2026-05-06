@@ -432,17 +432,18 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
             icon: const Icon(Icons.more_vert),
             tooltip: 'Tùy chọn khác',
             onSelected: _onMenuActionSelected,
-            itemBuilder: (context) => const [
-              PopupMenuItem(
-                value: _OrderDetailMenuAction.createInvoice,
-                child: ListTile(
-                  leading: Icon(Icons.receipt_long_outlined),
-                  title: Text('Tạo hóa đơn'),
-                  contentPadding: EdgeInsets.zero,
-                  dense: true,
+            itemBuilder: (context) => [
+              if (_order?.status == 'complete')
+                const PopupMenuItem(
+                  value: _OrderDetailMenuAction.createInvoice,
+                  child: ListTile(
+                    leading: Icon(Icons.receipt_long_outlined),
+                    title: Text('Tạo hóa đơn'),
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                  ),
                 ),
-              ),
-              PopupMenuItem(
+              const PopupMenuItem(
                 value: _OrderDetailMenuAction.editOrder,
                 child: ListTile(
                   leading: Icon(Icons.edit),

@@ -18,98 +18,43 @@ class ProductHubScreen extends StatelessWidget {
   const ProductHubScreen({super.key});
 
   static final _sections = [
-    _ProductHubSection(
+    _Section(
       title: 'Quản lý',
       items: [
-        _ProductHubItem(
-          title: 'Sản phẩm',
-          icon: Icons.inventory_2_outlined,
-          color: Colors.blue,
-          builder: (context) => const ProductListScreen(),
-        ),
-        _ProductHubItem(
-          title: 'Kho tài khoản',
-          icon: Icons.vpn_key_outlined,
-          color: Colors.purple,
-          builder: (context) => const AccountSlotManagementScreen(),
-        ),
-        _ProductHubItem(
-          title: 'Nhà cung cấp',
-          icon: Icons.local_shipping_outlined,
-          color: Colors.orange,
-          builder: (context) => const SuppliersScreen(),
-        ),
-        _ProductHubItem(
-          title: 'Yêu cầu hoàn tiền',
-          icon: Icons.replay_outlined,
-          color: Colors.red,
-          builder: (context) => const RefundRequestScreen(),
-        ),
-        _ProductHubItem(
-          title: 'Giá nhập sản phẩm',
-          icon: Icons.price_change_outlined,
-          color: Colors.teal,
-          builder: (context) => const ProductCostScreen(),
-        ),
-        _ProductHubItem(
-          title: 'Khách hàng',
-          icon: Icons.people_alt_outlined,
-          color: Colors.indigo,
-          builder: (context) => const CustomerListScreen(),
-        ),
-        _ProductHubItem(
-          title: 'Nhật ký email',
-          icon: Icons.email_outlined,
-          color: Colors.pink,
-          builder: (context) => const MailLogScreen(),
-        ),
-        _ProductHubItem(
-          title: 'Giao dịch tài chính',
-          icon: Icons.account_balance_wallet_outlined,
-          color: Colors.green,
-          builder: (context) => const FinancialTransactionScreen(),
-        ),
-        _ProductHubItem(
-          title: 'Đánh giá',
-          icon: Icons.star_outline,
-          color: Colors.amber,
-          builder: (context) => const RatingListScreen(),
-        ),
-        _ProductHubItem(
-          title: 'Hóa đơn điện tử',
-          icon: Icons.receipt_long_outlined,
-          color: Colors.teal,
-          builder: (context) => const InvoiceListScreen(),
-        ),
+        _Item('Sản phẩm', Icons.inventory_2_rounded, Colors.blue,
+            (c) => const ProductListScreen()),
+        _Item('Kho tài khoản', Icons.vpn_key_rounded, Colors.purple,
+            (c) => const AccountSlotManagementScreen()),
+        _Item('Nhà cung cấp', Icons.local_shipping_rounded, Colors.orange,
+            (c) => const SuppliersScreen()),
+        _Item('Hoàn tiền', Icons.replay_rounded, Colors.red,
+            (c) => const RefundRequestScreen()),
+        _Item('Giá nhập', Icons.price_change_rounded, Colors.teal,
+            (c) => const ProductCostScreen()),
+        _Item('Khách hàng', Icons.people_alt_rounded, Colors.indigo,
+            (c) => const CustomerListScreen()),
+        _Item('Nhật ký email', Icons.email_rounded, Colors.pink,
+            (c) => const MailLogScreen()),
+        _Item('Tài chính', Icons.account_balance_wallet_rounded, Colors.green,
+            (c) => const FinancialTransactionScreen()),
+        _Item('Đánh giá', Icons.star_rounded, Colors.amber,
+            (c) => const RatingListScreen()),
+        _Item('Hóa đơn ĐT', Icons.receipt_long_rounded, Colors.cyan,
+            (c) => const InvoiceListScreen()),
       ],
     ),
-    _ProductHubSection(
+    _Section(
       title: 'Tính năng khác',
       items: [
-        _ProductHubItem(
-          title: 'Google Adsense',
-          icon: Icons.bar_chart_outlined,
-          color: Colors.deepOrange,
-          builder: (context) => const AdsenseScreen(),
-        ),
-        _ProductHubItem(
-          title: 'ChatGPT Sessions',
-          icon: Icons.smart_toy_outlined,
-          color: Colors.cyan,
-          builder: (context) => const ChatGptSessionScreen(),
-        ),
-        _ProductHubItem(
-          title: 'Icallme Voucher',
-          icon: Icons.confirmation_number_outlined,
-          color: Colors.deepPurple,
-          builder: (context) => const IcallmeVoucherScreen(),
-        ),
+        _Item('Google Adsense', Icons.bar_chart_rounded, Colors.deepOrange,
+            (c) => const AdsenseScreen()),
+        _Item('ChatGPT', Icons.smart_toy_rounded, Colors.blueGrey,
+            (c) => const ChatGptSessionScreen()),
+        _Item('Icallme', Icons.confirmation_number_rounded, Colors.deepPurple,
+            (c) => const IcallmeVoucherScreen()),
       ],
     ),
   ];
-
-  static const _crossAxisCount = 3;
-  static const _spacing = 6.0;
 
   @override
   Widget build(BuildContext context) {
@@ -117,119 +62,150 @@ class ProductHubScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Quản lý')),
       body: SafeArea(
         child: ListView.separated(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 28),
           itemCount: _sections.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 16),
-          itemBuilder: (context, i) => _buildSection(context, _sections[i]),
+          separatorBuilder: (_, _) => const SizedBox(height: 20),
+          itemBuilder: (context, i) => _SectionView(section: _sections[i]),
         ),
       ),
     );
   }
+}
 
-  Widget _buildSection(BuildContext context, _ProductHubSection section) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final items = section.items;
-    final remainder = items.length % _crossAxisCount;
-    final placeholders =
-        remainder == 0 ? 0 : _crossAxisCount - remainder;
-    final total = items.length + placeholders;
+// ─── Section ──────────────────────────────────────────────────────────────────
+
+class _SectionView extends StatelessWidget {
+  const _SectionView({required this.section});
+  final _Section section;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          padding: const EdgeInsets.only(left: 2, bottom: 10),
           child: Text(
-            section.title,
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            section.title.toUpperCase(),
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
               fontWeight: FontWeight.w700,
-              color: colorScheme.onSurfaceVariant,
-              letterSpacing: 0.5,
+              color: cs.onSurfaceVariant,
+              letterSpacing: 1.1,
             ),
           ),
         ),
         Card(
           margin: EdgeInsets.zero,
-          clipBehavior: Clip.antiAlias,
-          child: Padding(
-            padding: const EdgeInsets.all(_spacing),
-            child: GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: _crossAxisCount,
-                childAspectRatio: 1,
-                crossAxisSpacing: _spacing,
-                mainAxisSpacing: _spacing,
-              ),
-              itemCount: total,
-              itemBuilder: (context, index) {
-                if (index >= items.length) {
-                  return const _PlaceholderGridItem();
-                }
-                final item = items[index];
-                final itemColor = item.color ?? colorScheme.primary;
-                return _GridItem(
-                  item: item,
-                  itemColor: itemColor,
-                  colorScheme: colorScheme,
-                );
-              },
-            ),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.4)),
           ),
+          clipBehavior: Clip.antiAlias,
+          child: _ItemGrid(items: section.items),
         ),
       ],
     );
   }
 }
 
-class _GridItem extends StatelessWidget {
-  const _GridItem({
-    required this.item,
-    required this.itemColor,
-    required this.colorScheme,
-  });
+// ─── Grid ─────────────────────────────────────────────────────────────────────
 
-  final _ProductHubItem item;
-  final Color itemColor;
-  final ColorScheme colorScheme;
+class _ItemGrid extends StatelessWidget {
+  const _ItemGrid({required this.items});
+  final List<_Item> items;
+
+  static const _cols = 4;
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10),
-      child: Material(
-        color: colorScheme.surfaceContainerLowest,
-        child: InkWell(
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: item.builder),
-          ),
+    final cs = Theme.of(context).colorScheme;
+    final rows = (items.length / _cols).ceil();
+
+    return Column(
+      children: List.generate(rows, (row) {
+        final start = row * _cols;
+        final end = (start + _cols).clamp(0, items.length);
+        final rowItems = items.sublist(start, end);
+        return Column(
+          children: [
+            if (row > 0)
+              Divider(
+                height: 1,
+                color: cs.outlineVariant.withValues(alpha: 0.3),
+              ),
+            IntrinsicHeight(
+              child: Row(
+                children: List.generate(_cols, (col) {
+                  if (col >= rowItems.length) {
+                    return const Expanded(child: SizedBox());
+                  }
+                  return Expanded(
+                    child: _GridCell(
+                      item: rowItems[col],
+                      showRightBorder: col < _cols - 1 && col < rowItems.length - 1,
+                    ),
+                  );
+                }),
+              ),
+            ),
+          ],
+        );
+      }),
+    );
+  }
+}
+
+class _GridCell extends StatelessWidget {
+  const _GridCell({required this.item, this.showRightBorder = false});
+  final _Item item;
+  final bool showRightBorder;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: showRightBorder
+            ? Border(
+                right: BorderSide(
+                  color: cs.outlineVariant.withValues(alpha: 0.3),
+                ),
+              )
+            : const BoxDecoration().border ?? const Border(),
+      ),
+      child: InkWell(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: item.builder),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 6),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: 44,
-                height: 44,
+                width: 46,
+                height: 46,
                 decoration: BoxDecoration(
-                  color: itemColor.applyOpacity(0.12),
-                  borderRadius: BorderRadius.circular(11),
+                  color: item.color.applyOpacity(0.12),
+                  borderRadius: BorderRadius.circular(13),
                 ),
-                child: Icon(item.icon, size: 22, color: itemColor),
+                child: Icon(item.icon, size: 22, color: item.color),
               ),
-              const SizedBox(height: 7),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6),
-                child: Text(
-                  item.title,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: colorScheme.onSurface,
-                    height: 1.25,
-                  ),
+              const SizedBox(height: 8),
+              Text(
+                item.title,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: cs.onSurface,
+                  height: 1.3,
                 ),
               ),
             ],
@@ -240,41 +216,18 @@ class _GridItem extends StatelessWidget {
   }
 }
 
-class _PlaceholderGridItem extends StatelessWidget {
-  const _PlaceholderGridItem();
+// ─── Data ─────────────────────────────────────────────────────────────────────
 
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: colorScheme.outlineVariant.applyOpacity(0.35),
-          width: 1,
-        ),
-        borderRadius: BorderRadius.circular(10),
-      ),
-    );
-  }
-}
-
-class _ProductHubSection {
-  const _ProductHubSection({required this.title, required this.items});
-
+class _Section {
+  const _Section({required this.title, required this.items});
   final String title;
-  final List<_ProductHubItem> items;
+  final List<_Item> items;
 }
 
-class _ProductHubItem {
-  const _ProductHubItem({
-    required this.title,
-    required this.icon,
-    required this.builder,
-    this.color,
-  });
-
+class _Item {
+  const _Item(this.title, this.icon, this.color, this.builder);
   final String title;
   final IconData icon;
+  final Color color;
   final WidgetBuilder builder;
-  final Color? color;
 }

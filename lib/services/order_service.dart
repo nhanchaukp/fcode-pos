@@ -133,8 +133,7 @@ class OrderService {
     return _api.get<OrderInvoicePreview>(
       '/order/$orderId/invoice/preview',
       queryParameters: {'tax_rate': taxRate.value},
-      parser: (json) =>
-          OrderInvoicePreview.fromJson(ensureMap(json)),
+      parser: (json) => OrderInvoicePreview.fromJson(ensureMap(json)),
     );
   }
 
@@ -145,6 +144,13 @@ class OrderService {
     return _api.post<Invoice>(
       '/order/$orderId/invoice',
       data: data.toJson(),
+      parser: (json) => Invoice.fromJson(ensureMap(json)),
+    );
+  }
+
+  Future<ApiResponse<Invoice>> issueInvoice(Object orderId) {
+    return _api.post<Invoice>(
+      '/order/$orderId/invoice/issue',
       parser: (json) => Invoice.fromJson(ensureMap(json)),
     );
   }

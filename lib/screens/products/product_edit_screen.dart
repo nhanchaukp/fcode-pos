@@ -35,6 +35,7 @@ class _ProductEditScreenState extends State<ProductEditScreen> {
   late TextEditingController _upgradeMethodController;
   late TextEditingController _invoiceDisplayNameController;
   enums.InvoiceUnit? _selectedInvoiceUnit;
+  enums.LineType? _selectedLineType;
   bool _isActive = false;
   bool _allowBuyMulti = false;
   bool _requireAccount = false;
@@ -61,6 +62,7 @@ class _ProductEditScreenState extends State<ProductEditScreen> {
       text: p.invoiceDisplayName ?? '',
     );
     _selectedInvoiceUnit = p.invoiceUnit;
+    _selectedLineType = p.invoiceLineType;
     _isActive = p.isActive;
     _allowBuyMulti = p.allowBuyMulti;
     _requireAccount = p.requireAccount;
@@ -116,6 +118,7 @@ class _ProductEditScreenState extends State<ProductEditScreen> {
           ? null
           : _invoiceDisplayNameController.text.trim(),
       invoiceUnit: _selectedInvoiceUnit,
+      invoiceLineType: _selectedLineType,
     );
     try {
       await _service.update(data, widget.product.id);
@@ -368,22 +371,34 @@ class _ProductEditScreenState extends State<ProductEditScreen> {
                   ),
                   const SizedBox(height: 10),
                   DropdownButtonFormField<enums.InvoiceUnit>(
-                    value: _selectedInvoiceUnit,
+                    initialValue: _selectedInvoiceUnit,
                     decoration: const InputDecoration(labelText: 'Đơn vị tính'),
+                    isExpanded: true,
+                    items: enums.InvoiceUnit.values
+                        .map(
+                          (u) =>
+                              DropdownMenuItem(value: u, child: Text(u.label)),
+                        )
+                        .toList(),
+                    onChanged: (v) => setState(() => _selectedInvoiceUnit = v),
+                  ),
+                  const SizedBox(height: 10),
+                  DropdownButtonFormField<enums.LineType?>(
+                    initialValue: _selectedLineType,
+                    decoration: const InputDecoration(
+                      labelText: 'Loại dòng hóa đơn',
+                    ),
                     isExpanded: true,
                     items: [
                       const DropdownMenuItem(
                         value: null,
-                        child: Text('— Không chọn —'),
+                        child: Text('— Mặc định —'),
                       ),
-                      ...enums.InvoiceUnit.values.map(
-                        (u) => DropdownMenuItem(
-                          value: u,
-                          child: Text(u.label),
-                        ),
+                      ...enums.LineType.values.map(
+                        (t) => DropdownMenuItem(value: t, child: Text(t.label)),
                       ),
                     ],
-                    onChanged: (v) => setState(() => _selectedInvoiceUnit = v),
+                    onChanged: (v) => setState(() => _selectedLineType = v),
                   ),
                 ],
               ),

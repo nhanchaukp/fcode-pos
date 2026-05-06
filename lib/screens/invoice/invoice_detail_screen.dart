@@ -3,6 +3,7 @@ import 'package:fcode_pos/services/invoice_service.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/extensions.dart';
+import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -53,10 +54,21 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          _invoice != null && _invoice!.invoiceNumber.isNotEmpty
-              ? 'Hóa đơn #${_invoice!.invoiceNumber}'
-              : 'Chi tiết hóa đơn',
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _invoice != null && _invoice!.invoiceNumber.isNotEmpty
+                  ? 'Hóa đơn #${_invoice!.invoiceNumber}'
+                  : 'Chi tiết hóa đơn',
+            ),
+            Text(
+              widget.referenceCode,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
         ),
         actions: [
           if (_invoice != null)
@@ -129,6 +141,20 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
         if (inv.pdfUrl != null || inv.xmlUrl != null) ...[
           const SizedBox(height: 10),
           _buildLinksSection(context, inv),
+        ],
+        if (inv.status == 'draft') ...[
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: _deleteDraft,
+            icon: const Icon(Icons.delete_outline_rounded),
+            label: const Text('Xóa hóa đơn nháp'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.error,
+              side: BorderSide(
+                color: Theme.of(context).colorScheme.error.withValues(alpha: 0.5),
+              ),
+            ),
+          ),
         ],
       ],
     );
@@ -364,6 +390,60 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
           ),
       ],
     );
+  }
+
+  Future<void> _deleteDraft() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        icon: const Icon(Icons.delete_forever_rounded, color: Colors.red),
+        title: const Text('Xóa hóa đơn nháp'),
+        content: const Text(
+          'Xác nhận xóa hóa đơn nháp này?\nThao tác không thể hoàn tác.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Huỷ'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Xóa'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const PopScope(
+        canPop: false,
+        child: AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 16),
+              Text('Đang xóa hóa đơn…'),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    try {
+      await _service.deleteDraftInvoice(widget.referenceCode);
+      if (!mounted) return;
+      Navigator.of(context).pop(); // close loading dialog
+      Toastr.success('Đã xóa hóa đơn nháp.');
+      Navigator.of(context).pop(true); // back to list
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.of(context).pop(); // close loading dialog
+      Toastr.error('$e');
+    }
   }
 
   static (String, Color) _statusStyle(String status) {

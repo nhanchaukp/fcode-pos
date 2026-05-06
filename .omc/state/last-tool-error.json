@@ -1,7 +1,0 @@
-{
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"flutter analyze lib/screens/order/order_invoice_preview_screen.dart 2>&1\",\"description\":\"Analyze redesigned screen for errors\"}",
-  "error": "Exit code 1\n\n┌─────────────────────────────────────────────────────────┐\n│ A new version of Flutter is available!                  │\n│                                                         │\n│ To update to the latest version, run \"flutter upgrade\". │\n└─────────────────────────────────────────────────────────┘\nAnalyzing order_invoice_preview_screen.dart...                  \n\n  error • Undefined name 'SnackbarHelper' • lib/screens/order/order_invoice_preview_screen.dart:64:7 • undefined_identifi...",
-  "timestamp": "2026-05-05T16:28:57.867Z",
-  "retry_count": 1
-}

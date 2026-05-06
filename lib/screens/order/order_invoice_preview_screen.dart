@@ -1,6 +1,7 @@
 import 'package:fcode_pos/enums.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/customer/customer_upsert_screen.dart';
+import 'package:fcode_pos/screens/invoice/invoice_detail_screen.dart';
 import 'package:fcode_pos/screens/order/order_create_invoice_screen.dart';
 import 'package:fcode_pos/services/order_service.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
@@ -28,6 +29,7 @@ class _OrderInvoicePreviewScreenState extends State<OrderInvoicePreviewScreen> {
   final _service = OrderService();
   OrderInvoicePreview? _preview;
   bool _loading = true;
+  bool _issuing = false;
   String? _error;
 
   @override
@@ -57,6 +59,62 @@ class _OrderInvoicePreviewScreenState extends State<OrderInvoicePreviewScreen> {
         _error = e.toString();
         _loading = false;
       });
+    }
+  }
+
+  Future<void> _issueInvoice() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        icon: const Icon(Icons.send_rounded),
+        title: const Text('Phát hành hóa đơn'),
+        content: const Text(
+          'Xác nhận phát hành hóa đơn này?\nSau khi phát hành không thể hoàn tác.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Huỷ'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Phát hành'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _issuing = true);
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const PopScope(
+        canPop: false,
+        child: AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 16),
+              Text('Đang phát hành hóa đơn…'),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    try {
+      await _service.issueInvoice(widget.orderId);
+      if (!mounted) return;
+      Navigator.of(context).pop(); // close loading dialog
+      Toastr.success('Đã phát hành hóa đơn.');
+      await _load();
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.of(context).pop(); // close loading dialog
+      Toastr.error('$e');
+    } finally {
+      if (mounted) setState(() => _issuing = false);
     }
   }
 
@@ -131,7 +189,7 @@ class _OrderInvoicePreviewScreenState extends State<OrderInvoicePreviewScreen> {
             )
           else
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(14, 4, 14, 32),
+              padding: const EdgeInsets.fromLTRB(14, 4, 14, 116),
               sliver: SliverList.list(
                 children: [
                   _OverviewCard(preview: p),
@@ -139,7 +197,13 @@ class _OrderInvoicePreviewScreenState extends State<OrderInvoicePreviewScreen> {
                   _BuyerCard(buyer: p.buyer, onEdit: _openBuyerUpdate),
                   if (p.existingInvoice != null) ...[
                     const SizedBox(height: 12),
-                    _ExistingInvoiceCard(invoice: p.existingInvoice!),
+                    _ExistingInvoiceCard(
+                      invoice: p.existingInvoice!,
+                      onIssue: p.existingInvoice!.status == 'pending'
+                          ? (_issuing ? null : _issueInvoice)
+                          : null,
+                      issuing: _issuing,
+                    ),
                   ],
                   const SizedBox(height: 12),
                   _ItemsSection(items: p.items),
@@ -401,8 +465,14 @@ class _BuyerRow extends StatelessWidget {
 // ─── Existing invoice banner ──────────────────────────────────────────────────
 
 class _ExistingInvoiceCard extends StatelessWidget {
-  const _ExistingInvoiceCard({required this.invoice});
+  const _ExistingInvoiceCard({
+    required this.invoice,
+    this.onIssue,
+    this.issuing = false,
+  });
   final OrderInvoiceExistingInvoice invoice;
+  final VoidCallback? onIssue;
+  final bool issuing;
 
   @override
   Widget build(BuildContext context) {
@@ -445,6 +515,49 @@ class _ExistingInvoiceCard extends StatelessWidget {
                 invoice.issuedDate != null
                     ? DateHelper.formatDateTime(invoice.issuedDate)
                     : '—',
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              if (onIssue != null) ...[
+                FilledButton.icon(
+                  onPressed: onIssue,
+                  icon: issuing
+                      ? const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.send_rounded, size: 14),
+                  label: const Text('Phát hành hóa đơn'),
+                  style: FilledButton.styleFrom(
+                    textStyle: Theme.of(context).textTheme.labelSmall,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                  ),
+                ),
+              ],
+              TextButton.icon(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => InvoiceDetailScreen(
+                      referenceCode: invoice.referenceCode,
+                    ),
+                  ),
+                ),
+                icon: const Icon(Icons.open_in_new_rounded, size: 14),
+                label: const Text('Xem chi tiết'),
+                style: TextButton.styleFrom(
+                  textStyle: Theme.of(context).textTheme.labelSmall,
+                ),
               ),
             ],
           ),

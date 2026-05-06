@@ -2,10 +2,10 @@ part of '../enums.dart';
 
 /// Giá trị gửi API phải khớp backend `PaymentMethod` (TM, CK, TM/CK, KHAC).
 enum InvoicePaymentMethod {
-  tm('TM', 'Tiền mặt (Cash)'),
-  ck('CK', 'Chuyển khoản (Bank transfer)'),
-  tmAndCk('TM/CK', 'Tiền mặt và chuyển khoản (Cash and bank transfer)'),
-  khac('KHAC', 'Khác (Other)');
+  tm('TM', 'Tiền mặt (TM)'),
+  ck('CK', 'Chuyển khoản (CK)'),
+  tmAndCk('TM/CK', 'Tiền mặt và chuyển khoản (TM/CK)'),
+  khac('KHAC', 'Khác (KHAC)');
 
   const InvoicePaymentMethod(this.value, this.label);
 

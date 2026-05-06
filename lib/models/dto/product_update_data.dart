@@ -14,6 +14,7 @@ class ProductUpdateData {
   String? upgradeMethod;
   String? invoiceDisplayName;
   enums.InvoiceUnit? invoiceUnit;
+  enums.LineType? invoiceLineType;
 
   ProductUpdateData({
     this.name,
@@ -29,6 +30,7 @@ class ProductUpdateData {
     this.upgradeMethod,
     this.invoiceDisplayName,
     this.invoiceUnit,
+    this.invoiceLineType,
   });
 
   factory ProductUpdateData.fromJson(Map<String, dynamic> json) {
@@ -47,9 +49,8 @@ class ProductUpdateData {
       warning: json['warning'] as String?,
       upgradeMethod: json['upgrade_method'] as String?,
       invoiceDisplayName: json['invoice_display_name'] as String?,
-      invoiceUnit: enums.InvoiceUnit.fromValue(
-        json['invoice_unit'] as String?,
-      ),
+      invoiceUnit: enums.InvoiceUnit.fromValue(json['invoice_unit'] as String?),
+      invoiceLineType: enums.LineType.fromValue(json['line_type'] as int?),
     );
   }
 
@@ -69,6 +70,7 @@ class ProductUpdateData {
       if (invoiceDisplayName != null)
         'invoice_display_name': invoiceDisplayName,
       if (invoiceUnit != null) 'invoice_unit': invoiceUnit!.value,
+      if (invoiceLineType != null) 'invoice_line_type': invoiceLineType!.value,
     };
   }
 }
