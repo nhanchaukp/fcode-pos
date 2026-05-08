@@ -1,7 +1,0 @@
-{
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"flutter analyze lib/ui/components/customer_list_item.dart lib/ui/components/product_list_item.dart lib/screens/customer/customer_list_screen.dart lib/screens/products/product_list_screen.d...",
-  "error": "Exit code 1\nAnalyzing 9 items...                                            \n\n   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/screens/mail/mail_log_screen.dart:292:13 • deprecated_member_use\n   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v...",
-  "timestamp": "2026-05-06T17:17:31.400Z",
-  "retry_count": 2
-}

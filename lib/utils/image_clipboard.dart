@@ -8,18 +8,17 @@ class ImageClipboard {
 
   /// Sao chép ảnh vào clipboard iOS
   static Future<void> copyFromUrl(String url) async {
-    // 1. Tải ảnh
     final response = await http.get(Uri.parse(url));
     if (response.statusCode != 200) {
       throw Exception('Không thể tải ảnh');
     }
+    await copyFromBytes(response.bodyBytes);
+  }
 
-    // 2. Lưu tạm
+  static Future<void> copyFromBytes(Uint8List bytes) async {
     final tempDir = await getTemporaryDirectory();
     final file = File('${tempDir.path}/clipboard_image.jpg');
-    await file.writeAsBytes(response.bodyBytes);
-
-    // 3. Gọi native iOS để copy
+    await file.writeAsBytes(bytes);
     await _channel.invokeMethod('copyImage', {'path': file.path});
   }
 }

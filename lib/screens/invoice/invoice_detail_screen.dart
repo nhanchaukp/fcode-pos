@@ -1,4 +1,5 @@
 import 'package:fcode_pos/models.dart';
+import 'package:fcode_pos/screens/invoice/invoice_pdf_screen.dart';
 import 'package:fcode_pos/services/invoice_service.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
@@ -374,13 +375,33 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
       title: 'Tệp đính kèm',
       icon: Icons.attach_file_outlined,
       children: [
-        if (inv.pdfUrl != null)
+        if (inv.pdfUrl != null) ...[
+          _LinkTile(
+            label: 'Xem PDF',
+            icon: Icons.visibility_outlined,
+            color: Colors.deepPurple,
+            url: inv.pdfUrl!,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => InvoicePdfScreen(
+                    url: inv.pdfUrl!,
+                    title: inv.invoiceNumber.isNotEmpty
+                        ? 'HĐ #${inv.invoiceNumber}'
+                        : null,
+                  ),
+                ),
+              );
+            },
+          ),
           _LinkTile(
             label: 'Tải PDF',
             icon: Icons.picture_as_pdf_outlined,
             color: Colors.red,
             url: inv.pdfUrl!,
           ),
+        ],
         if (inv.xmlUrl != null)
           _LinkTile(
             label: 'Tải XML',
@@ -692,12 +713,14 @@ class _LinkTile extends StatelessWidget {
     required this.icon,
     required this.color,
     required this.url,
+    this.onTap,
   });
 
   final String label;
   final IconData icon;
   final Color color;
   final String url;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -714,8 +737,11 @@ class _LinkTile extends StatelessWidget {
         child: Icon(icon, size: 18, color: color),
       ),
       title: Text(label),
-      trailing: const Icon(Icons.open_in_new_outlined, size: 16),
-      onTap: () => openUrl(url),
+      trailing: Icon(
+        onTap != null ? Icons.chevron_right : Icons.open_in_new_outlined,
+        size: 16,
+      ),
+      onTap: onTap ?? () => openUrl(url),
     );
   }
 }

@@ -11,6 +11,7 @@ import 'package:fcode_pos/screens/adsense/adsense_screen.dart';
 import 'package:fcode_pos/screens/chatgpt/chatgpt_session_screen.dart';
 import 'package:fcode_pos/screens/icallme/icallme_voucher_screen.dart';
 import 'package:fcode_pos/screens/rating/rating_list_screen.dart';
+import 'package:fcode_pos/screens/coupon/coupon_list_screen.dart';
 import 'package:fcode_pos/utils/extensions.dart';
 import 'package:flutter/material.dart';
 
@@ -39,6 +40,8 @@ class ProductHubScreen extends StatelessWidget {
             (c) => const FinancialTransactionScreen()),
         _Item('Đánh giá', Icons.star_rounded, Colors.amber,
             (c) => const RatingListScreen()),
+        _Item('Mã giảm giá', Icons.confirmation_number_rounded, Colors.deepPurple,
+            (c) => const CouponListScreen()),
         _Item('Hóa đơn ĐT', Icons.receipt_long_rounded, Colors.cyan,
             (c) => const InvoiceListScreen()),
       ],

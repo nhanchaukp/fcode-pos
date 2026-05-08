@@ -85,14 +85,15 @@ class _DeveloperScreenState extends State<DeveloperScreen> {
                 _divider(),
                 _toastTile(
                   icon: Icons.hourglass_empty,
-                  label: 'Loading',
+                  label: 'Promise',
                   color: colorScheme.primary,
                   onTap: () {
-                    final id = ToastrHelper.loading('Đang xử lý...');
-                    Future.delayed(const Duration(seconds: 2), () {
-                      ToastrHelper.dismiss(id);
-                      Toastr.success('Xử lý xong!');
-                    });
+                    Toastr.promise(
+                      Future.delayed(const Duration(seconds: 2), () => true),
+                      loading: 'Đang xử lý...',
+                      success: 'Xử lý xong!',
+                      error: 'Xử lý thất bại!',
+                    );
                   },
                 ),
                 _divider(),

@@ -42,6 +42,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
   String? _error;
   late TabController _tabController;
   bool _isUpdatingStatus = false;
+  Uint8List? _qrImageBytes;
 
   @override
   void initState() {
@@ -82,10 +83,12 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
       setState(() {
         _order = order;
         _isLoading = false;
+        _qrImageBytes = null;
       });
 
-      if (syncList && order != null) {
-        _syncOrderToList(order);
+      if (order != null) {
+        if (syncList) _syncOrderToList(order);
+        _fetchQrImage();
       }
     } catch (e, st) {
       debugPrintStack(
@@ -143,6 +146,19 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
     }
   }
 
+  Future<void> _fetchQrImage() async {
+    if (_order?.urlQrCodePayment == null) return;
+    if (_qrImageBytes != null) return;
+    try {
+      final response = await http.get(Uri.parse(_order!.urlQrCodePayment!));
+      if (response.statusCode == 200 && mounted) {
+        setState(() => _qrImageBytes = response.bodyBytes);
+      }
+    } catch (e) {
+      debugPrint('Error pre-fetching QR image: $e');
+    }
+  }
+
   Future<void> _showQrCodeDialog() async {
     if (_order == null ||
         _order!.urlQrCodePayment == null ||
@@ -150,6 +166,28 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
       Toastr.error('Không có mã QR thanh toán');
       return;
     }
+
+    if (_qrImageBytes == null) {
+      try {
+        _qrImageBytes = await Toastr.promise(
+          http.get(Uri.parse(_order!.urlQrCodePayment!)).then((response) {
+            if (response.statusCode != 200) {
+              throw Exception('HTTP ${response.statusCode}');
+            }
+            return response.bodyBytes;
+          }),
+          loading: 'Đang tải mã QR...',
+          success: '',
+          error: 'Không thể tải ảnh QR',
+          successDuration: Duration.zero,
+        );
+      } catch (_) {
+        return;
+      }
+      if (_qrImageBytes == null || !mounted) return;
+    }
+
+    if (!mounted) return;
 
     showDialog(
       context: context,
@@ -175,74 +213,11 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
               const SizedBox(height: 16),
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                child: Image.network(
-                  _order!.urlQrCodePayment!,
+                child: Image.memory(
+                  _qrImageBytes!,
                   width: 260,
                   height: 260,
                   fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      width: 260,
-                      height: 260,
-                      decoration: BoxDecoration(
-                        color: colorScheme.errorContainer,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.broken_image_outlined,
-                            size: 48,
-                            color: colorScheme.error,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Không thể tải ảnh QR',
-                            style: TextStyle(color: colorScheme.error),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    final progress = loadingProgress.expectedTotalBytes != null
-                        ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
-                        : null;
-                    return Container(
-                      width: 260,
-                      height: 260,
-                      decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: 40,
-                            height: 40,
-                            child: CircularProgressIndicator(
-                              value: progress,
-                              strokeWidth: 3,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            progress != null
-                                ? '${(progress * 100).toStringAsFixed(0)}%'
-                                : 'Đang tải...',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
                 ),
               ),
               const SizedBox(height: 16),
@@ -353,10 +328,10 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
   }
 
   Future<void> _copyQrCodeToClipboard() async {
-    if (_order?.urlQrCodePayment == null) return;
+    if (_qrImageBytes == null) return;
 
     try {
-      await ImageClipboard.copyFromUrl(_order!.urlQrCodePayment!);
+      await ImageClipboard.copyFromBytes(_qrImageBytes!);
       Toastr.success('Mã QR đã được sao chép vào clipboard');
     } catch (e) {
       debugPrint('Error copying QR code to clipboard: $e');
@@ -365,32 +340,21 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
   }
 
   Future<void> _downloadQrCode() async {
-    if (_order?.urlQrCodePayment == null) return;
+    if (_qrImageBytes == null) return;
 
     try {
-      // Download image
+      final result = await ImageGallerySaver.saveImage(
+        _qrImageBytes!,
+        quality: 100,
+        name:
+            'qr_code_order_${_order!.id}_${DateTime.now().millisecondsSinceEpoch}',
+      );
 
-      final response = await http.get(Uri.parse(_order!.urlQrCodePayment!));
-
-      if (response.statusCode == 200) {
-        // Save to gallery
-        final result = await ImageGallerySaver.saveImage(
-          response.bodyBytes,
-          quality: 100,
-          name:
-              'qr_code_order_${_order!.id}_${DateTime.now().millisecondsSinceEpoch}',
-        );
-
-        if (mounted) {
-          if (result['isSuccess'] == true) {
-            Toastr.success('Đã lưu ảnh vào thư viện');
-          } else {
-            Toastr.error('Không thể lưu ảnh');
-          }
-        }
-      } else {
-        if (mounted) {
-          Toastr.error('Không thể tải xuống ảnh');
+      if (mounted) {
+        if (result['isSuccess'] == true) {
+          Toastr.success('Đã lưu ảnh vào thư viện');
+        } else {
+          Toastr.error('Không thể lưu ảnh');
         }
       }
     } catch (e) {

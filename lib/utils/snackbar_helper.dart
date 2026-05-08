@@ -41,6 +41,27 @@ class Toastr {
   }) =>
       ToastrHelper.error(message, duration: duration);
 
+  static Future<T> promise<T>(
+    Future<T> future, {
+    String loading = 'Đang xử lý...',
+    String success = 'Thành công!',
+    String error = 'Đã xảy ra lỗi',
+    String Function(T data)? successBuilder,
+    String Function(Object error)? errorBuilder,
+    Duration? successDuration,
+    Duration? errorDuration,
+  }) =>
+      ToastrHelper.promise<T>(
+        future,
+        loading: loading,
+        success: success,
+        error: error,
+        successBuilder: successBuilder,
+        errorBuilder: errorBuilder,
+        successDuration: successDuration,
+        errorDuration: errorDuration,
+      );
+
   /// Alias cho [info] — tương thích code cũ.
   static void show(
     String message, {

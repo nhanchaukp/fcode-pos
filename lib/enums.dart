@@ -16,3 +16,4 @@ part 'enums/refund_status.dart';
 part 'enums/refund_reason.dart';
 part 'enums/buyer_type.dart';
 part 'enums/line_type.dart';
+part 'enums/coupon_type.dart';
