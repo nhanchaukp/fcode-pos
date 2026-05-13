@@ -1,6 +1,8 @@
+import 'package:fcode_pos/enums.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/invoice/invoice_pdf_screen.dart';
 import 'package:fcode_pos/services/invoice_service.dart';
+import 'package:fcode_pos/ui/components/enum_badge.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/extensions.dart';
@@ -77,9 +79,7 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
               icon: const Icon(Icons.copy_outlined),
               tooltip: 'Sao chép mã tham chiếu',
               onPressed: () {
-                Clipboard.setData(
-                  ClipboardData(text: _invoice!.referenceCode),
-                );
+                Clipboard.setData(ClipboardData(text: _invoice!.referenceCode));
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('Đã sao chép mã tham chiếu'),
@@ -121,10 +121,11 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
     }
 
     final inv = _invoice!;
+    final invoiceStatus = InvoiceStatus.fromValue(inv.status);
     return ListView(
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
       children: [
-        _buildStatusHeader(context, inv),
+        _buildStatusHeader(context, inv, invoiceStatus),
         const SizedBox(height: 10),
         _buildInfoSection(context, inv),
         const SizedBox(height: 10),
@@ -143,7 +144,7 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
           const SizedBox(height: 10),
           _buildLinksSection(context, inv),
         ],
-        if (inv.status == 'draft') ...[
+        if (invoiceStatus == InvoiceStatus.draft) ...[
           const SizedBox(height: 16),
           OutlinedButton.icon(
             onPressed: _deleteDraft,
@@ -152,7 +153,9 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
             style: OutlinedButton.styleFrom(
               foregroundColor: Theme.of(context).colorScheme.error,
               side: BorderSide(
-                color: Theme.of(context).colorScheme.error.withValues(alpha: 0.5),
+                color: Theme.of(
+                  context,
+                ).colorScheme.error.withValues(alpha: 0.5),
               ),
             ),
           ),
@@ -161,8 +164,13 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
     );
   }
 
-  Widget _buildStatusHeader(BuildContext context, Invoice inv) {
-    final (statusLabel, statusColor) = _statusStyle(inv.status);
+  Widget _buildStatusHeader(
+    BuildContext context,
+    Invoice inv,
+    InvoiceStatus? status,
+  ) {
+    final statusColor = status?.color ?? Colors.grey;
+    final statusIcon = status?.icon ?? Icons.help_outline;
     final cs = Theme.of(context).colorScheme;
     return Card(
       margin: EdgeInsets.zero,
@@ -177,15 +185,7 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
                 color: statusColor.applyOpacity(0.12),
                 borderRadius: BorderRadius.circular(11),
               ),
-              child: Icon(
-                inv.isIssued
-                    ? Icons.check_circle_outline
-                    : inv.isCancelled
-                    ? Icons.cancel_outlined
-                    : Icons.edit_note_outlined,
-                color: statusColor,
-                size: 24,
-              ),
+              child: Icon(statusIcon, color: statusColor, size: 24),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -203,27 +203,19 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
                   const SizedBox(height: 3),
                   Text(
                     DateHelper.formatDate(inv.issuedDate),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: cs.onSurfaceVariant,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
                   ),
                 ],
               ),
             ),
-            Container(
+            EnumBadge(
+              value: status,
+              fallbackLabel: inv.status,
+              fontSize: 12,
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: statusColor.applyOpacity(0.12),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                statusLabel,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: statusColor,
-                ),
-              ),
+              borderRadius: 8,
             ),
           ],
         ),
@@ -316,9 +308,7 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
           ),
         ),
         Divider(height: 1, color: cs.outlineVariant.applyOpacity(0.4)),
-        ...items.map(
-          (item) => _ItemRow(item: item, colorScheme: cs),
-        ),
+        ...items.map((item) => _ItemRow(item: item, colorScheme: cs)),
       ],
     );
   }
@@ -339,10 +329,7 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
           amount: inv.taxAmount,
           color: Colors.orange,
         ),
-        Divider(
-          height: 16,
-          color: cs.outlineVariant.applyOpacity(0.4),
-        ),
+        Divider(height: 16, color: cs.outlineVariant.applyOpacity(0.4)),
         _TotalRow(
           label: 'Tổng cộng',
           amount: inv.totalAmount,
@@ -362,9 +349,9 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
       children: [
         Text(
           notes,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: cs.onSurfaceVariant,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
         ),
       ],
     );
@@ -466,15 +453,6 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
       Toastr.error('$e');
     }
   }
-
-  static (String, Color) _statusStyle(String status) {
-    return switch (status) {
-      'draft' => ('Nháp', Colors.orange),
-      'issued' => ('Đã phát hành', Colors.green),
-      'cancelled' => ('Đã huỷ', Colors.red),
-      _ => (status, Colors.grey),
-    };
-  }
 }
 
 // ── Sub-widgets ───────────────────────────────────────────────────────────────
@@ -549,9 +527,9 @@ class _InfoRow extends StatelessWidget {
             width: 120,
             child: Text(
               label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: cs.onSurfaceVariant,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
             ),
           ),
           Expanded(
@@ -609,12 +587,11 @@ class _TotalRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = (large
-            ? Theme.of(context).textTheme.bodyMedium
-            : Theme.of(context).textTheme.bodySmall)
-        ?.copyWith(
-          fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
-        );
+    final style =
+        (large
+                ? Theme.of(context).textTheme.bodyMedium
+                : Theme.of(context).textTheme.bodySmall)
+            ?.copyWith(fontWeight: bold ? FontWeight.w700 : FontWeight.w500);
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
@@ -655,9 +632,9 @@ class _ItemRow extends StatelessWidget {
               children: [
                 Text(
                   item.itemName,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 if (item.itemCode != null)
                   Text(
@@ -691,9 +668,9 @@ class _ItemRow extends StatelessWidget {
             child: Text(
               CurrencyHelper.formatCurrency(total.round()),
               textAlign: TextAlign.right,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
         ],

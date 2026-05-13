@@ -1,38 +1,52 @@
 part of '../enums.dart';
 
-enum OrderStatus {
-  all('', 'Tất cả', Colors.grey),
-  new_('new', 'Mới', Colors.blue),
-  paymentSuccess('payment_success', 'Đã thanh toán', Colors.teal),
-  processing('processing', 'Đang xử lý', Colors.orange),
-  complete('complete', 'Hoàn thành', Colors.green),
-  cancel('cancel', 'Hủy', Colors.red),
-  underWarranty('under_warranty', 'Bảo hành', Colors.purple),
-  refund('refund', 'Hoàn tiền', Colors.red);
-
-  final String value;
-  final String label;
-  final Color color;
+enum OrderStatus implements LabeledIconEnum {
+  all('', 'Tất cả', AppColor.gray),
+  new_('new', 'Mới', AppColor.blue),
+  paymentSuccess('payment_success', 'Đã thanh toán', AppColor.teal),
+  processing('processing', 'Đang xử lý', AppColor.orange),
+  complete('complete', 'Hoàn thành', AppColor.green),
+  cancel('cancel', 'Hủy', AppColor.red),
+  underWarranty('under_warranty', 'Bảo hành', AppColor.purple),
+  refund('refund', 'Hoàn tiền', AppColor.red);
 
   const OrderStatus(this.value, this.label, this.color);
 
-  /// Lấy giá trị raw
-  static OrderStatus? fromString(String? value) {
-    if (value == null) return null;
-    try {
-      return OrderStatus.values.firstWhere((e) => e.value == value);
-    } catch (e) {
-      return null;
-    }
+  final String value;
+
+  @override
+  final String label;
+
+  @override
+  final Color color;
+
+  @override
+  IconData get icon => switch (this) {
+    OrderStatus.all => Icons.list,
+    OrderStatus.new_ => Icons.fiber_new,
+    OrderStatus.paymentSuccess => Icons.check_circle,
+    OrderStatus.processing => Icons.autorenew,
+    OrderStatus.complete => Icons.done_all,
+    OrderStatus.cancel => Icons.cancel,
+    OrderStatus.underWarranty => Icons.verified_user,
+    OrderStatus.refund => Icons.undo,
+  };
+
+  static OrderStatus? fromValue(String? value) {
+    return _enumFromStringValue(
+      OrderStatus.values,
+      value,
+      (item) => item.value,
+      caseInsensitive: true,
+      allowEmpty: true,
+    );
   }
 
-  /// Tất cả giá trị dưới dạng list string
   static List<String> getAllValues() {
-    return OrderStatus.values.map((e) => e.value).toList();
+    return OrderStatus.values.map((item) => item.value).toList(growable: false);
   }
 
-  /// Check xem value có hợp lệ không
   static bool isValid(String value) {
-    return OrderStatus.values.any((e) => e.value == value);
+    return fromValue(value) != null;
   }
 }

@@ -3,7 +3,21 @@ import 'dart:convert';
 import 'package:fcode_pos/models/icallme_voucher.dart';
 import 'package:fcode_pos/screens/icallme/icallme_voucher_detail_screen.dart';
 import 'package:fcode_pos/services/icallme_voucher_service.dart';
+import 'package:fcode_pos/ui/components/enum_badge.dart';
 import 'package:flutter/material.dart';
+
+enum _VoucherStatusTab {
+  all('Tất cả', null),
+  available('Khả dụng', 'available'),
+  used('Đã dùng', 'used'),
+  revoked('Thu hồi', 'revoked'),
+  expired('Hết hạn', 'expired');
+
+  const _VoucherStatusTab(this.label, this.status);
+
+  final String label;
+  final String? status;
+}
 
 class IcallmeVoucherScreen extends StatefulWidget {
   const IcallmeVoucherScreen({super.key});
@@ -19,13 +33,7 @@ class _IcallmeVoucherScreenState extends State<IcallmeVoucherScreen>
 
   late TabController _tabController;
 
-  static const _tabs = [
-    (label: 'Tất cả', status: null),
-    (label: 'Khả dụng', status: 'available'),
-    (label: 'Đã dùng', status: 'used'),
-    (label: 'Thu hồi', status: 'revoked'),
-    (label: 'Hết hạn', status: 'expired'),
-  ];
+  static const List<_VoucherStatusTab> _tabs = _VoucherStatusTab.values;
 
   // Filters
   String _externalRefId = '';
@@ -178,9 +186,8 @@ class _IcallmeVoucherScreenState extends State<IcallmeVoucherScreen>
     final refreshed = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
-        builder: (_) => IcallmeVoucherDetailScreen(
-          voucherCode: voucher.voucherCode,
-        ),
+        builder: (_) =>
+            IcallmeVoucherDetailScreen(voucherCode: voucher.voucherCode),
       ),
     );
     if (refreshed == true) _resetAndLoad();
@@ -429,16 +436,12 @@ class _FilterSheetState extends State<_FilterSheet> {
             children: [
               Text(
                 'Bộ lọc',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               const Spacer(),
-              TextButton(
-                onPressed: _reset,
-                child: const Text('Xóa tất cả'),
-              ),
+              TextButton(onPressed: _reset, child: const Text('Xóa tất cả')),
             ],
           ),
           const SizedBox(height: 12),
@@ -450,8 +453,9 @@ class _FilterSheetState extends State<_FilterSheet> {
               labelText: 'Ref ID (ORDER-xxx)',
               hintText: 'Ví dụ: ORDER-2129',
               prefixIcon: const Icon(Icons.link_outlined),
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
               suffixIcon: _refIdController.text.isNotEmpty
                   ? IconButton(
                       icon: const Icon(Icons.clear),
@@ -546,8 +550,11 @@ class _DatePickerField extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(Icons.calendar_today_outlined,
-                size: 16, color: cs.onSurfaceVariant),
+            Icon(
+              Icons.calendar_today_outlined,
+              size: 16,
+              color: cs.onSurfaceVariant,
+            ),
             const SizedBox(width: 6),
             Expanded(
               child: Text(
@@ -611,14 +618,14 @@ class _ActiveFilterChips extends StatelessWidget {
             child: Wrap(
               spacing: 6,
               children: chips
-                  .map((c) => Chip(
-                        label: Text(c,
-                            style: const TextStyle(fontSize: 11)),
-                        padding: EdgeInsets.zero,
-                        materialTapTargetSize:
-                            MaterialTapTargetSize.shrinkWrap,
-                        visualDensity: VisualDensity.compact,
-                      ))
+                  .map(
+                    (c) => Chip(
+                      label: Text(c, style: const TextStyle(fontSize: 11)),
+                      padding: EdgeInsets.zero,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  )
                   .toList(),
             ),
           ),
@@ -683,9 +690,7 @@ class _CreateVoucherSheetState extends State<_CreateVoucherSheet> {
     final metaText = _metaController.text.trim();
     if (metaText.isNotEmpty) {
       try {
-        meta = Map<String, dynamic>.from(
-          jsonDecode(metaText) as Map,
-        );
+        meta = Map<String, dynamic>.from(jsonDecode(metaText) as Map);
       } catch (_) {
         setState(() => _saveError = 'Metadata không phải JSON hợp lệ');
         return;
@@ -745,28 +750,25 @@ class _CreateVoucherSheetState extends State<_CreateVoucherSheet> {
             ),
             Text(
               'Tạo Voucher',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
 
             // Package
             DropdownButtonFormField<_PackageId>(
-              value: _package,
+              initialValue: _package,
               decoration: InputDecoration(
                 labelText: 'Gói *',
                 prefixIcon: const Icon(Icons.card_membership_outlined),
                 border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10)),
+                  borderRadius: BorderRadius.circular(10),
+                ),
                 isDense: true,
               ),
               items: _PackageId.values
-                  .map((p) => DropdownMenuItem(
-                        value: p,
-                        child: Text(p.label),
-                      ))
+                  .map((p) => DropdownMenuItem(value: p, child: Text(p.label)))
                   .toList(),
               onChanged: (v) => setState(() => _package = v!),
             ),
@@ -780,7 +782,8 @@ class _CreateVoucherSheetState extends State<_CreateVoucherSheet> {
                 hintText: 'ORDER-xxx',
                 prefixIcon: const Icon(Icons.link_outlined),
                 border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10)),
+                  borderRadius: BorderRadius.circular(10),
+                ),
                 isDense: true,
               ),
               validator: (v) =>
@@ -800,7 +803,8 @@ class _CreateVoucherSheetState extends State<_CreateVoucherSheet> {
                   child: Icon(Icons.data_object_outlined),
                 ),
                 border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10)),
+                  borderRadius: BorderRadius.circular(10),
+                ),
                 alignLabelWithHint: true,
                 isDense: true,
               ),
@@ -811,8 +815,10 @@ class _CreateVoucherSheetState extends State<_CreateVoucherSheet> {
             if (_saveError != null) ...[
               const SizedBox(height: 10),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: cs.errorContainer,
                   borderRadius: BorderRadius.circular(8),
@@ -935,15 +941,15 @@ class _SummaryHeader extends StatelessWidget {
               ),
               const Spacer(),
               if (s.totalExpired > 0) ...[
-                Icon(Icons.timer_off_outlined,
-                    size: 13, color: cs.onSurfaceVariant),
+                Icon(
+                  Icons.timer_off_outlined,
+                  size: 13,
+                  color: cs.onSurfaceVariant,
+                ),
                 const SizedBox(width: 3),
                 Text(
                   '${s.totalExpired} hết hạn',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: cs.onSurfaceVariant,
-                  ),
+                  style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
                 ),
               ],
             ],
@@ -1009,7 +1015,8 @@ class _VoucherTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final (statusColor, statusIcon) = _statusMeta(voucher.status, cs);
+    final statusColor = voucher.status.color;
+    final statusIcon = voucher.status.icon;
 
     return InkWell(
       onTap: onTap,
@@ -1054,20 +1061,30 @@ class _VoucherTile extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      _StatusBadge(
-                        label: voucher.status.label,
-                        color: statusColor,
+                      EnumBadge(
+                        value: voucher.status,
+                        fontSize: 10,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        borderRadius: 4,
                       ),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(Icons.star_outline,
-                          size: 12, color: cs.onSurfaceVariant),
+                      Icon(
+                        Icons.star_outline,
+                        size: 12,
+                        color: cs.onSurfaceVariant,
+                      ),
                       const SizedBox(width: 3),
                       Text(
-                        '${voucher.premiumDays == 9999 ? 'Lifetime' : '${voucher.premiumDays} ngày'}',
+                        voucher.premiumDays == 9999
+                            ? 'Lifetime'
+                            : '${voucher.premiumDays} ngày',
                         style: TextStyle(
                           fontSize: 12,
                           color: cs.onSurfaceVariant,
@@ -1075,14 +1092,19 @@ class _VoucherTile extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 10),
-                      Icon(Icons.link_outlined,
-                          size: 12, color: cs.onSurfaceVariant),
+                      Icon(
+                        Icons.link_outlined,
+                        size: 12,
+                        color: cs.onSurfaceVariant,
+                      ),
                       const SizedBox(width: 3),
                       Expanded(
                         child: Text(
                           voucher.externalRefId,
                           style: TextStyle(
-                              fontSize: 12, color: cs.onSurfaceVariant),
+                            fontSize: 12,
+                            color: cs.onSurfaceVariant,
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -1130,43 +1152,6 @@ class _VoucherTile extends StatelessWidget {
         '${dt.month.toString().padLeft(2, '0')}/'
         '${dt.year}';
   }
-
-  (Color, IconData) _statusMeta(IcallmeVoucherStatus status, ColorScheme cs) {
-    return switch (status) {
-      IcallmeVoucherStatus.available => (Colors.green, Icons.check_circle_outline),
-      IcallmeVoucherStatus.used => (cs.primary, Icons.task_alt),
-      IcallmeVoucherStatus.revoked => (Colors.red, Icons.cancel_outlined),
-      IcallmeVoucherStatus.expired => (Colors.orange, Icons.timer_off_outlined),
-      _ => (cs.onSurfaceVariant, Icons.help_outline),
-    };
-  }
-}
-
-class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.label, required this.color});
-
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: color.withValues(alpha: 0.3), width: 0.7),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-          color: color,
-        ),
-      ),
-    );
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -1185,10 +1170,9 @@ class _EmptyView extends StatelessWidget {
           Icon(
             Icons.confirmation_number_outlined,
             size: 52,
-            color: Theme.of(context)
-                .colorScheme
-                .onSurfaceVariant
-                .withValues(alpha: 0.4),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
           ),
           const SizedBox(height: 12),
           Text(
@@ -1218,8 +1202,11 @@ class _ErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline,
-                size: 48, color: cs.error.withValues(alpha: 0.7)),
+            Icon(
+              Icons.error_outline,
+              size: 48,
+              color: cs.error.withValues(alpha: 0.7),
+            ),
             const SizedBox(height: 12),
             Text(error, textAlign: TextAlign.center),
             const SizedBox(height: 16),

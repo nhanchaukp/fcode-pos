@@ -44,7 +44,7 @@ class _OrderUpdateBottomSheetState extends State<OrderUpdateBottomSheet> {
     _totalController.text = widget.order.total.toString();
     _noteController.text = widget.order.note ?? '';
     _selectedUser = widget.order.user;
-    _selectedStatus = enums.OrderStatus.fromString(widget.order.status);
+    _selectedStatus = enums.OrderStatus.fromValue(widget.order.status);
     _selectedUtmSource = widget.order.utmSource;
   }
 

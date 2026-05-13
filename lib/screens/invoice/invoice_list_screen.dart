@@ -2,6 +2,16 @@ import 'package:fcode_pos/screens/invoice/invoice_documents_tab.dart';
 import 'package:fcode_pos/screens/invoice/invoice_providers_tab.dart';
 import 'package:flutter/material.dart';
 
+enum _InvoiceListTab {
+  documents('Hóa đơn', Icons.receipt_long_outlined),
+  providers('Nhà cung cấp', Icons.store_outlined);
+
+  const _InvoiceListTab(this.label, this.icon);
+
+  final String label;
+  final IconData icon;
+}
+
 class InvoiceListScreen extends StatefulWidget {
   const InvoiceListScreen({super.key});
 
@@ -17,10 +27,14 @@ class _InvoiceListScreenState extends State<InvoiceListScreen>
   final GlobalKey<InvoiceProvidersTabState> _providersKey =
       GlobalKey<InvoiceProvidersTabState>();
 
+  static const List<_InvoiceListTab> _tabs = _InvoiceListTab.values;
+
+  _InvoiceListTab get _currentTab => _tabs[_tabController.index];
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: _tabs.length, vsync: this);
   }
 
   @override
@@ -30,10 +44,11 @@ class _InvoiceListScreenState extends State<InvoiceListScreen>
   }
 
   Future<void> _refreshCurrent() async {
-    if (_tabController.index == 0) {
-      await _documentsKey.currentState?.refreshAll();
-    } else {
-      await _providersKey.currentState?.refresh();
+    switch (_currentTab) {
+      case _InvoiceListTab.documents:
+        await _documentsKey.currentState?.refreshAll();
+      case _InvoiceListTab.providers:
+        await _providersKey.currentState?.refresh();
     }
   }
 
@@ -44,16 +59,11 @@ class _InvoiceListScreenState extends State<InvoiceListScreen>
         title: const Text('Hóa đơn điện tử'),
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
-            Tab(
-              text: 'Hóa đơn',
-              icon: Icon(Icons.receipt_long_outlined, size: 20),
-            ),
-            Tab(
-              text: 'Nhà cung cấp',
-              icon: Icon(Icons.store_outlined, size: 20),
-            ),
-          ],
+          tabs: _tabs
+              .map(
+                (tab) => Tab(text: tab.label, icon: Icon(tab.icon, size: 20)),
+              )
+              .toList(growable: false),
         ),
         actions: [
           IconButton(

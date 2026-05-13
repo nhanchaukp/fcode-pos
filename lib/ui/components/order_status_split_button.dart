@@ -12,8 +12,8 @@ class OrderStatusSplitButton extends StatefulWidget {
     this.onPrimaryPressed,
   });
 
-  /// Current order status value.
-  final String status;
+  /// Current order status.
+  final enums.OrderStatus status;
 
   /// Callback when a new status is selected from the menu.
   final ValueChanged<enums.OrderStatus> onStatusSelected;
@@ -46,9 +46,8 @@ class _OrderStatusSplitButtonState extends State<OrderStatusSplitButton> {
 
   @override
   Widget build(BuildContext context) {
-    final currentStatus = enums.OrderStatus.fromString(widget.status);
-    final statusColor =
-        currentStatus?.color ?? Theme.of(context).colorScheme.primary;
+    final currentStatus = widget.status;
+    final statusColor = currentStatus.color;
 
     return MenuAnchor(
       controller: _menuController,
@@ -61,7 +60,7 @@ class _OrderStatusSplitButtonState extends State<OrderStatusSplitButton> {
                   widget.onStatusSelected(status);
                   _menuController.close();
                 },
-          leadingIcon: Icon(Icons.circle, size: 8, color: status.color),
+          leadingIcon: Icon(status.icon, size: 16, color: status.color),
           trailingIcon: isCurrent
               ? Icon(Icons.check, size: 14, color: status.color)
               : null,
@@ -87,8 +86,9 @@ class _OrderStatusSplitButtonState extends State<OrderStatusSplitButton> {
                     ? null
                     : (widget.onPrimaryPressed ??
                           () => _toggleMenu(controller)),
-                label: currentStatus?.label ?? 'Trạng thái',
+                label: currentStatus.label,
                 color: statusColor,
+                icon: currentStatus.icon,
               ),
               _SplitButtonDivider(color: statusColor),
               _SplitButtonIconSegment(
@@ -120,11 +120,13 @@ class _SplitButtonSegment extends StatelessWidget {
     required this.onPressed,
     required this.label,
     required this.color,
+    required this.icon,
   });
 
   final VoidCallback? onPressed;
   final String label;
   final Color color;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
@@ -143,7 +145,7 @@ class _SplitButtonSegment extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.circle, size: 7, color: color),
+            Icon(icon, size: 14, color: color),
             const SizedBox(width: 4),
             Flexible(
               child: Text(label, overflow: TextOverflow.ellipsis, maxLines: 1),

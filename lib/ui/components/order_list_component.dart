@@ -180,7 +180,9 @@ class OrderListComponent extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainer,
         border: Border(
-          bottom: BorderSide(color: colorScheme.outlineVariant.applyOpacity(0.3)),
+          bottom: BorderSide(
+            color: colorScheme.outlineVariant.applyOpacity(0.3),
+          ),
         ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -298,9 +300,19 @@ class OrderListComponent extends StatelessWidget {
                 if (order.user != null) ...[
                   Row(
                     children: [
-                      const Icon(Icons.person_outline, size: 16),
+                      Icon(
+                        Icons.person_outline,
+                        size: 16,
+                        color: colorScheme.primary,
+                      ),
                       const SizedBox(width: 4),
-                      Text(order.user!.name, style: textTheme.bodyMedium),
+                      Text(
+                        order.user!.name,
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: colorScheme.primary,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),

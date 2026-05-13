@@ -1,6 +1,6 @@
-import 'package:fcode_pos/utils/extensions/colors.dart';
-import 'package:flutter/material.dart';
 import 'package:fcode_pos/enums.dart' as enums;
+import 'package:fcode_pos/ui/components/enum_badge.dart';
+import 'package:flutter/material.dart';
 
 class OrderStatusBadge extends StatelessWidget {
   final String status;
@@ -16,39 +16,14 @@ class OrderStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final orderStatus = enums.OrderStatus.fromString(status);
-    final color = _getStatusColor(orderStatus);
+    final orderStatus = enums.OrderStatus.fromValue(status);
 
-    return Container(
+    return EnumBadge(
+      value: orderStatus,
+      fallbackLabel: status,
+      fontSize: fontSize,
       padding: padding,
-      decoration: BoxDecoration(
-        color: color.applyOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        // border: Border.all(color: color),
-        // backgroundBlendMode: BlendMode.darken,
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            orderStatus?.label.toString() ?? '',
-            style: TextStyle(
-              color: color,
-              fontSize: fontSize,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
+      showIcon: true,
     );
-  }
-
-  Color _getStatusColor(enums.OrderStatus? status) {
-    return status?.color ?? Colors.grey;
   }
 }

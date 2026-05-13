@@ -1,6 +1,8 @@
+import 'package:fcode_pos/enums.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/mail/mail_log_detail_screen.dart';
 import 'package:fcode_pos/services/mail_log_service.dart';
+import 'package:fcode_pos/ui/components/enum_badge.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:flutter/material.dart';
 
@@ -13,7 +15,7 @@ class MailLogScreen extends StatefulWidget {
 
 class _MailLogScreenState extends State<MailLogScreen> {
   // Filter state
-  String? _selectedStatus;
+  MailLogStatus? _selectedStatus;
   String _recipientSearch = '';
   String _subjectSearch = '';
 
@@ -166,9 +168,8 @@ class _MailLogScreenState extends State<MailLogScreen> {
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => MailLogDetailScreen(
-                        mailLogId: _mailLogs[index].id,
-                      ),
+                      builder: (_) =>
+                          MailLogDetailScreen(mailLogId: _mailLogs[index].id),
                     ),
                   );
                 },
@@ -284,17 +285,29 @@ class _MailLogScreenState extends State<MailLogScreen> {
           const SizedBox(height: 16),
 
           // Status dropdown
-          DropdownButtonFormField<String>(
+          DropdownButtonFormField<MailLogStatus>(
             decoration: const InputDecoration(
               labelText: 'Trạng thái',
               border: OutlineInputBorder(),
             ),
-            value: _selectedStatus,
+            initialValue: _selectedStatus,
             items: const [
-              DropdownMenuItem(value: null, child: Text('Tất cả')),
-              DropdownMenuItem(value: 'sent', child: Text('Đã gửi')),
-              DropdownMenuItem(value: 'pending', child: Text('Đang chờ')),
-              DropdownMenuItem(value: 'failed', child: Text('Thất bại')),
+              DropdownMenuItem<MailLogStatus>(
+                value: null,
+                child: Text('Tất cả'),
+              ),
+              DropdownMenuItem<MailLogStatus>(
+                value: MailLogStatus.sent,
+                child: Text('Đã gửi'),
+              ),
+              DropdownMenuItem<MailLogStatus>(
+                value: MailLogStatus.pending,
+                child: Text('Đang chờ'),
+              ),
+              DropdownMenuItem<MailLogStatus>(
+                value: MailLogStatus.failed,
+                child: Text('Thất bại'),
+              ),
             ],
             onChanged: (value) {
               setState(() => _selectedStatus = value);
@@ -425,45 +438,12 @@ class _MailStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    final (Color bg, Color fg, String label) = switch (status.toLowerCase()) {
-      'sent' => (
-        colorScheme.primaryContainer,
-        colorScheme.onPrimaryContainer,
-        'Đã gửi',
-      ),
-      'pending' => (
-        colorScheme.tertiaryContainer,
-        colorScheme.onTertiaryContainer,
-        'Đang chờ',
-      ),
-      'failed' => (
-        colorScheme.errorContainer,
-        colorScheme.onErrorContainer,
-        'Thất bại',
-      ),
-      _ => (
-        colorScheme.surfaceContainerHighest,
-        colorScheme.onSurfaceVariant,
-        status,
-      ),
-    };
-
-    return Container(
+    return EnumBadge(
+      value: MailLogStatus.fromValue(status),
+      fallbackLabel: status,
+      fontSize: 11,
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        label,
-        style: textTheme.labelSmall?.copyWith(
-          fontWeight: FontWeight.w600,
-          color: fg,
-        ),
-      ),
+      borderRadius: 12,
     );
   }
 }

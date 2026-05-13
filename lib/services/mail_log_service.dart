@@ -1,4 +1,5 @@
 import 'package:fcode_pos/api/api_response.dart';
+import 'package:fcode_pos/enums.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/api_service.dart';
 import 'package:fcode_pos/utils/extensions.dart';
@@ -10,13 +11,13 @@ class MailLogService {
 
   /// Get paginated list of mail logs with optional filters
   ///
-  /// [status] - Filter by mail status (e.g., "sent", "pending", "failed")
+  /// [status] - Filter by mail status
   /// [recipient] - Filter by recipient email address
   /// [subject] - Search by subject (partial match)
   /// [page] - Page number for pagination (default: 1)
   /// [perPage] - Number of items per page (default: 15)
   Future<ApiResponse<PaginatedData<MailLog>>> list({
-    String? status,
+    MailLogStatus? status,
     String? recipient,
     String? subject,
     int page = 1,
@@ -27,8 +28,8 @@ class MailLogService {
       'per_page': perPage,
     };
 
-    if (status != null && status.isNotEmpty) {
-      queryParameters['status'] = status;
+    if (status != null) {
+      queryParameters['status'] = status.value;
     }
     if (recipient != null && recipient.isNotEmpty) {
       queryParameters['recipient'] = recipient;

@@ -1,14 +1,18 @@
+import 'package:fcode_pos/config/app_color.dart';
+import 'package:fcode_pos/enums.dart';
+import 'package:flutter/material.dart';
+
 /// Icallme Voucher models (standalone - không dùng part of models.dart)
 
-enum IcallmeVoucherStatus {
+enum IcallmeVoucherStatus implements LabeledIconEnum {
   available,
   used,
   revoked,
   expired,
   unknown;
 
-  static IcallmeVoucherStatus fromString(String? value) {
-    return switch (value?.toLowerCase()) {
+  static IcallmeVoucherStatus fromValue(String? value) {
+    return switch (value?.trim().toLowerCase()) {
       'available' => available,
       'used' => used,
       'revoked' => revoked,
@@ -17,13 +21,36 @@ enum IcallmeVoucherStatus {
     };
   }
 
+  static IcallmeVoucherStatus fromString(String? value) {
+    return fromValue(value);
+  }
+
+  @override
   String get label => switch (this) {
-        available => 'Khả dụng',
-        used => 'Đã dùng',
-        revoked => 'Đã thu hồi',
-        expired => 'Hết hạn',
-        unknown => 'Không xác định',
-      };
+    available => 'Khả dụng',
+    used => 'Đã dùng',
+    revoked => 'Đã thu hồi',
+    expired => 'Hết hạn',
+    unknown => 'Không xác định',
+  };
+
+  @override
+  IconData get icon => switch (this) {
+    IcallmeVoucherStatus.available => Icons.check_circle_outline,
+    IcallmeVoucherStatus.used => Icons.task_alt,
+    IcallmeVoucherStatus.revoked => Icons.cancel_outlined,
+    IcallmeVoucherStatus.expired => Icons.timer_off_outlined,
+    IcallmeVoucherStatus.unknown => Icons.help_outline,
+  };
+
+  @override
+  Color get color => switch (this) {
+    IcallmeVoucherStatus.available => AppColor.green,
+    IcallmeVoucherStatus.used => AppColor.blue,
+    IcallmeVoucherStatus.revoked => AppColor.red,
+    IcallmeVoucherStatus.expired => AppColor.orange,
+    IcallmeVoucherStatus.unknown => AppColor.gray,
+  };
 }
 
 class IcallmeVoucher {
@@ -165,9 +192,9 @@ class IcalmePagedResult<T> {
     final rawItems = json['data'];
     final items = rawItems is List
         ? rawItems
-            .whereType<Map<String, dynamic>>()
-            .map(itemParser)
-            .toList(growable: false)
+              .whereType<Map<String, dynamic>>()
+              .map(itemParser)
+              .toList(growable: false)
         : <T>[];
 
     return IcalmePagedResult<T>(

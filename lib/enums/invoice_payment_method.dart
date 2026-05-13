@@ -1,7 +1,7 @@
 part of '../enums.dart';
 
 /// Giá trị gửi API phải khớp backend `PaymentMethod` (TM, CK, TM/CK, KHAC).
-enum InvoicePaymentMethod {
+enum InvoicePaymentMethod implements LabeledIconEnum {
   tm('TM', 'Tiền mặt (TM)'),
   ck('CK', 'Chuyển khoản (CK)'),
   tmAndCk('TM/CK', 'Tiền mặt và chuyển khoản (TM/CK)'),
@@ -10,18 +10,32 @@ enum InvoicePaymentMethod {
   const InvoicePaymentMethod(this.value, this.label);
 
   final String value;
+
+  @override
   final String label;
 
-  static InvoicePaymentMethod? fromValue(String? v) {
-    if (v == null || v.isEmpty) return null;
-    final s = v.trim();
-    final normalized = s.toUpperCase();
-    try {
-      return InvoicePaymentMethod.values.firstWhere(
-        (e) => e.value.toUpperCase() == normalized,
-      );
-    } catch (_) {
-      return null;
-    }
+  @override
+  IconData get icon => switch (this) {
+    InvoicePaymentMethod.tm => Icons.attach_money,
+    InvoicePaymentMethod.ck => Icons.account_balance,
+    InvoicePaymentMethod.tmAndCk => Icons.swap_horiz,
+    InvoicePaymentMethod.khac => Icons.more_horiz,
+  };
+
+  @override
+  Color get color => switch (this) {
+    InvoicePaymentMethod.tm => AppColor.green,
+    InvoicePaymentMethod.ck => AppColor.blue,
+    InvoicePaymentMethod.tmAndCk => AppColor.purple,
+    InvoicePaymentMethod.khac => AppColor.gray,
+  };
+
+  static InvoicePaymentMethod? fromValue(String? value) {
+    return _enumFromStringValue(
+      InvoicePaymentMethod.values,
+      value,
+      (item) => item.value,
+      caseInsensitive: true,
+    );
   }
 }

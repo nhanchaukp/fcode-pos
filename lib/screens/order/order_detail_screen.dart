@@ -561,7 +561,9 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
                 ),
               ),
               OrderStatusSplitButton(
-                status: order.status,
+                status:
+                    enums.OrderStatus.fromValue(order.status) ??
+                    enums.OrderStatus.all,
                 isUpdating: _isUpdatingStatus,
                 onPrimaryPressed: () {
                   _showUpdateDialog();

@@ -1,22 +1,33 @@
 part of '../enums.dart';
 
-enum CouponType {
-  subtraction('subtraction', 'Giảm trừ', Colors.blue),
-  percentage('percentage', 'Phần trăm', Colors.orange),
-  fixed('fixed', 'Giá cố định', Colors.green);
-
-  final String value;
-  final String label;
-  final Color color;
+enum CouponType implements LabeledIconEnum {
+  subtraction('subtraction', 'Giảm trừ', AppColor.blue),
+  percentage('percentage', 'Phần trăm', AppColor.orange),
+  fixed('fixed', 'Giá cố định', AppColor.green);
 
   const CouponType(this.value, this.label, this.color);
 
-  static CouponType? fromString(String? value) {
-    if (value == null) return null;
-    try {
-      return CouponType.values.firstWhere((e) => e.value == value);
-    } catch (e) {
-      return null;
-    }
+  final String value;
+
+  @override
+  final String label;
+
+  @override
+  final Color color;
+
+  @override
+  IconData get icon => switch (this) {
+    CouponType.subtraction => Icons.remove_circle,
+    CouponType.percentage => Icons.percent,
+    CouponType.fixed => Icons.attach_money,
+  };
+
+  static CouponType? fromValue(String? value) {
+    return _enumFromStringValue(
+      CouponType.values,
+      value,
+      (type) => type.value,
+      caseInsensitive: true,
+    );
   }
 }

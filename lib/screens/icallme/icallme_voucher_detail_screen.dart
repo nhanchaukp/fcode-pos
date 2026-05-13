@@ -1,5 +1,6 @@
 import 'package:fcode_pos/models/icallme_voucher.dart';
 import 'package:fcode_pos/services/icallme_voucher_service.dart';
+import 'package:fcode_pos/ui/components/enum_badge.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -102,8 +103,10 @@ class _IcallmeVoucherDetailScreenState
         actions: [
           if (canRevoke)
             IconButton(
-              icon: Icon(Icons.block,
-                  color: Theme.of(context).colorScheme.error),
+              icon: Icon(
+                Icons.block,
+                color: Theme.of(context).colorScheme.error,
+              ),
               tooltip: 'Thu hồi voucher',
               onPressed: _revoke,
             ),
@@ -135,12 +138,13 @@ class _IcallmeVoucherDetailScreenState
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.error_outline,
-                  size: 48,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .error
-                      .withValues(alpha: 0.7)),
+              Icon(
+                Icons.error_outline,
+                size: 48,
+                color: Theme.of(
+                  context,
+                ).colorScheme.error.withValues(alpha: 0.7),
+              ),
               const SizedBox(height: 12),
               Text(_error!, textAlign: TextAlign.center),
               const SizedBox(height: 16),
@@ -172,7 +176,8 @@ class _VoucherDetail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final (statusColor, statusIcon) = _statusMeta(voucher.status, cs);
+    final statusColor = voucher.status.color;
+    final statusIcon = voucher.status.icon;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -287,18 +292,6 @@ class _VoucherDetail extends StatelessWidget {
         '${dt.hour.toString().padLeft(2, '0')}:'
         '${dt.minute.toString().padLeft(2, '0')}';
   }
-
-  (Color, IconData) _statusMeta(IcallmeVoucherStatus status, ColorScheme cs) {
-    return switch (status) {
-      IcallmeVoucherStatus.available =>
-        (Colors.green, Icons.check_circle_outline),
-      IcallmeVoucherStatus.used => (cs.primary, Icons.task_alt),
-      IcallmeVoucherStatus.revoked => (Colors.red, Icons.cancel_outlined),
-      IcallmeVoucherStatus.expired =>
-        (Colors.orange, Icons.timer_off_outlined),
-      _ => (cs.onSurfaceVariant, Icons.help_outline),
-    };
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -352,33 +345,18 @@ class _CodeCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 6),
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              decoration: BoxDecoration(
-                color: statusColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                    color: statusColor.withValues(alpha: 0.3), width: 0.8),
-              ),
-              child: Text(
-                voucher.status.label,
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: statusColor,
-                  fontSize: 13,
-                ),
-              ),
+            EnumBadge(
+              value: voucher.status,
+              fontSize: 13,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              borderRadius: 20,
             ),
             const SizedBox(height: 4),
             Text(
               voucher.premiumDays == 9999
                   ? 'Lifetime Premium'
                   : '${voucher.premiumDays} ngày Premium',
-              style: TextStyle(
-                fontSize: 13,
-                color: cs.onSurfaceVariant,
-              ),
+              style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant),
             ),
           ],
         ),

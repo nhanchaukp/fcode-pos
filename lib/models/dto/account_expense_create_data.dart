@@ -20,8 +20,8 @@ class AccountExpenseCreateData {
   factory AccountExpenseCreateData.fromJson(Map<String, dynamic> json) {
     return AccountExpenseCreateData(
       accountId: json['account_id'] as int,
-      type: enums.FinancialTransactionType.fromString(json['type'] as String)!,
-      category: enums.FinancialTransactionCategory.fromString(
+      type: enums.FinancialTransactionType.fromValue(json['type'] as String)!,
+      category: enums.FinancialTransactionCategory.fromValue(
         json['category'] as String,
       )!,
       amount: json['amount'] as int,

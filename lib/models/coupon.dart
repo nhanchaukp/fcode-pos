@@ -67,7 +67,7 @@ class Coupon implements Model {
     };
   }
 
-  enums.CouponType? get couponType => enums.CouponType.fromString(type);
+  enums.CouponType? get couponType => enums.CouponType.fromValue(type);
 
   String get discountText {
     final couponType = this.couponType;

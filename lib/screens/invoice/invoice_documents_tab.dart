@@ -1,6 +1,8 @@
+import 'package:fcode_pos/enums.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/invoice/invoice_detail_screen.dart';
 import 'package:fcode_pos/services/invoice_service.dart';
+import 'package:fcode_pos/ui/components/enum_badge.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/extensions.dart';
@@ -29,13 +31,13 @@ class InvoiceDocumentsTabState extends State<InvoiceDocumentsTab>
   int _currentPage = 1;
   int _totalPages = 1;
   int _totalCount = 0;
-  String? _selectedStatus;
+  InvoiceStatus? _selectedStatus;
 
-  static const _statusOptions = [
-    (null, 'Tất cả'),
-    ('draft', 'Nháp'),
-    ('issued', 'Đã phát hành'),
-    ('cancelled', 'Đã huỷ'),
+  static const List<InvoiceStatus?> _statusOptions = [
+    null,
+    InvoiceStatus.draft,
+    InvoiceStatus.issued,
+    InvoiceStatus.cancelled,
   ];
 
   @override
@@ -46,10 +48,7 @@ class InvoiceDocumentsTabState extends State<InvoiceDocumentsTab>
 
   /// Gọi từ nút làm mới trên AppBar.
   Future<void> refreshAll() async {
-    await Future.wait([
-      _loadInvoices(page: 1),
-      _loadQuota(),
-    ]);
+    await Future.wait([_loadInvoices(page: 1), _loadQuota()]);
   }
 
   Future<void> _loadData() async {
@@ -67,7 +66,7 @@ class InvoiceDocumentsTabState extends State<InvoiceDocumentsTab>
       final res = await _service.listInvoices(
         page: targetPage,
         perPage: 15,
-        status: _selectedStatus,
+        status: _selectedStatus?.value,
       );
       if (!mounted) return;
       final pagination = res.data?.pagination;
@@ -168,7 +167,8 @@ class InvoiceDocumentsTabState extends State<InvoiceDocumentsTab>
         itemCount: _statusOptions.length,
         separatorBuilder: (context, _) => const SizedBox(width: 6),
         itemBuilder: (context, i) {
-          final (value, label) = _statusOptions[i];
+          final value = _statusOptions[i];
+          final label = value?.label ?? 'Tất cả';
           final selected = _selectedStatus == value;
           return FilterChip(
             label: Text(label),
@@ -177,11 +177,8 @@ class InvoiceDocumentsTabState extends State<InvoiceDocumentsTab>
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             labelStyle: TextStyle(
               fontSize: 12,
-              fontWeight:
-                  selected ? FontWeight.w700 : FontWeight.w500,
-              color: selected
-                  ? cs.onSecondaryContainer
-                  : cs.onSurfaceVariant,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              color: selected ? cs.onSecondaryContainer : cs.onSurfaceVariant,
             ),
             onSelected: (_) {
               setState(() => _selectedStatus = value);
@@ -233,8 +230,7 @@ class InvoiceDocumentsTabState extends State<InvoiceDocumentsTab>
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       physics: const AlwaysScrollableScrollPhysics(),
       itemCount: _invoices.length,
-      itemBuilder: (context, index) =>
-          _InvoiceCard(invoice: _invoices[index]),
+      itemBuilder: (context, index) => _InvoiceCard(invoice: _invoices[index]),
     );
   }
 
@@ -314,16 +310,16 @@ class _StatCard extends StatelessWidget {
                   Text(
                     label,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: cs.onSurfaceVariant,
-                        ),
+                      color: cs.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     value,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: cs.onSurface,
-                        ),
+                      fontWeight: FontWeight.w700,
+                      color: cs.onSurface,
+                    ),
                   ),
                 ],
               ),
@@ -343,7 +339,7 @@ class _InvoiceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final (statusLabel, statusColor) = _statusStyle(invoice.status);
+    final status = InvoiceStatus.fromValue(invoice.status);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -369,32 +365,37 @@ class _InvoiceCard extends StatelessWidget {
                           ? invoice.buyer.name
                           : 'Khách lẻ',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+                        fontWeight: FontWeight.w600,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   const SizedBox(width: 8),
-                  _StatusBadge(label: statusLabel, color: statusColor),
+                  EnumBadge(
+                    value: status,
+                    fallbackLabel: invoice.status,
+                    fontSize: 11,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    borderRadius: 6,
+                  ),
                 ],
               ),
               const SizedBox(height: 6),
               Row(
                 children: [
-                  Icon(
-                    Icons.tag,
-                    size: 13,
-                    color: cs.onSurfaceVariant,
-                  ),
+                  Icon(Icons.tag, size: 13, color: cs.onSurfaceVariant),
                   const SizedBox(width: 3),
                   Text(
                     invoice.invoiceNumber.isNotEmpty
                         ? 'Số ${invoice.invoiceNumber}'
                         : 'Chưa có số',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: cs.onSurfaceVariant,
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
                   ),
                   const SizedBox(width: 12),
                   Icon(
@@ -405,9 +406,9 @@ class _InvoiceCard extends StatelessWidget {
                   const SizedBox(width: 3),
                   Text(
                     DateHelper.formatDate(invoice.issuedDate),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: cs.onSurfaceVariant,
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
                   ),
                 ],
               ),
@@ -439,41 +440,6 @@ class _InvoiceCard extends StatelessWidget {
       ),
     );
   }
-
-  static (String, Color) _statusStyle(String status) {
-    return switch (status) {
-      'draft' => ('Nháp', Colors.orange),
-      'issued' => ('Đã phát hành', Colors.green),
-      'cancelled' => ('Đã huỷ', Colors.red),
-      _ => (status, Colors.grey),
-    };
-  }
-}
-
-class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.label, required this.color});
-
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.applyOpacity(0.12),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: color,
-        ),
-      ),
-    );
-  }
 }
 
 class _AmountChip extends StatelessWidget {
@@ -497,16 +463,16 @@ class _AmountChip extends StatelessWidget {
         Text(
           label,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
         const SizedBox(height: 1),
         Text(
           CurrencyHelper.formatCurrency(amount),
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: color,
-                fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
-              ),
+            color: color,
+            fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
+          ),
         ),
       ],
     );
