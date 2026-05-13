@@ -1,13 +1,18 @@
 import 'dart:io';
 
 import 'package:fcode_pos/config/google_config.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:toastr_flutter/toastr.dart'
-    show ToastrHelper, ToastrPosition, ToastrShowMethod, ToastrHideMethod;
+    show
+        ToastrHelper,
+        ToastrHideMethod,
+        ToastrPosition,
+        ToastrShowMethod,
+        ToastrTheme;
 import 'package:window_manager/window_manager.dart';
 
 /// A utility class for initializing the Flutter application.
@@ -20,26 +25,28 @@ class AppInitializer {
   ///
   /// Ensures Flutter bindings are initialized, sets up window dimensions,
   /// and configures device orientation settings.
-  static Future<void> initialize() async {
-    _ensureInitialized();
-    _setupToastr();
+  static Future<void> initialize({required ThemeMode themeMode}) async {
+    _setupToastr(themeMode);
     await _setupWindowDimensions();
     await _setupDeviceOrientation();
     await _setupLocaleData();
     await _setupGoogleSignIn();
   }
 
-  static void _setupToastr() {
+  static void _setupToastr(ThemeMode themeMode) {
+    final isDark = switch (themeMode) {
+      ThemeMode.dark => true,
+      ThemeMode.light => false,
+      ThemeMode.system =>
+        WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+            Brightness.dark,
+    };
     ToastrHelper.configure(
       position: ToastrPosition.topCenter,
       showMethod: ToastrShowMethod.slideDown,
       hideMethod: ToastrHideMethod.slideUp,
+      theme: isDark ? ToastrTheme.dark : ToastrTheme.light,
     );
-  }
-
-  /// Ensures that Flutter bindings are initialized.
-  static void _ensureInitialized() {
-    WidgetsFlutterBinding.ensureInitialized();
   }
 
   /// Configures the window dimensions for desktop applications.

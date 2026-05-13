@@ -20,6 +20,10 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
 
   static const _themeKey = 'theme_mode';
 
+  ThemeMode getThemeMode() {
+    return state;
+  }
+
   Future<void> _loadThemeMode() async {
     final prefs = await SharedPreferences.getInstance();
     final stored = prefs.getString(_themeKey);

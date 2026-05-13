@@ -14,32 +14,28 @@ class Toastr {
     BuildContext? context,
     Duration duration = const Duration(seconds: 3),
     SnackBarAction? action,
-  }) =>
-      ToastrHelper.success(message, duration: duration);
+  }) => ToastrHelper.success(message, duration: duration);
 
   static void info(
     String message, {
     BuildContext? context,
     Duration duration = const Duration(seconds: 3),
     SnackBarAction? action,
-  }) =>
-      ToastrHelper.info(message, duration: duration);
+  }) => ToastrHelper.info(message, duration: duration);
 
   static void warning(
     String message, {
     BuildContext? context,
     Duration duration = const Duration(seconds: 4),
     SnackBarAction? action,
-  }) =>
-      ToastrHelper.warning(message, duration: duration);
+  }) => ToastrHelper.warning(message, duration: duration);
 
   static void error(
     String message, {
     BuildContext? context,
     Duration duration = const Duration(seconds: 4),
     SnackBarAction? action,
-  }) =>
-      ToastrHelper.error(message, duration: duration);
+  }) => ToastrHelper.error(message, duration: duration);
 
   static Future<T> promise<T>(
     Future<T> future, {
@@ -50,17 +46,16 @@ class Toastr {
     String Function(Object error)? errorBuilder,
     Duration? successDuration,
     Duration? errorDuration,
-  }) =>
-      ToastrHelper.promise<T>(
-        future,
-        loading: loading,
-        success: success,
-        error: error,
-        successBuilder: successBuilder,
-        errorBuilder: errorBuilder,
-        successDuration: successDuration,
-        errorDuration: errorDuration,
-      );
+  }) => ToastrHelper.promise<T>(
+    future,
+    loading: loading,
+    success: success,
+    error: error,
+    successBuilder: successBuilder,
+    errorBuilder: errorBuilder,
+    successDuration: successDuration,
+    errorDuration: errorDuration,
+  );
 
   /// Alias cho [info] — tương thích code cũ.
   static void show(
@@ -69,6 +64,7 @@ class Toastr {
     Duration duration = const Duration(seconds: 3),
     SnackBarAction? action,
     IconData? icon,
-  }) =>
-      ToastrHelper.info(message, duration: duration);
+  }) => ToastrHelper.info(message, duration: duration);
+
+  static void loading(String message) => ToastrHelper.loading(message);
 }
