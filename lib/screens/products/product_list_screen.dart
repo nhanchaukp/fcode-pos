@@ -138,7 +138,13 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
     required int currentPage,
   }) {
     if (isLoading && !hasData && error == null) {
-      return const Center(child: CircularProgressIndicator());
+      return ListView.separated(
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: 8,
+        separatorBuilder: (context, _) => const SizedBox(height: 8),
+        itemBuilder: (context, _) => const ProductListItemSkeleton(),
+      );
     }
 
     if (error != null && !hasData) {
@@ -248,4 +254,3 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
     );
   }
 }
-

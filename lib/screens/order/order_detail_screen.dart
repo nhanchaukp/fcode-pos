@@ -397,16 +397,15 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
             tooltip: 'Tùy chọn khác',
             onSelected: _onMenuActionSelected,
             itemBuilder: (context) => [
-              if (_order?.status == 'complete')
-                const PopupMenuItem(
-                  value: _OrderDetailMenuAction.createInvoice,
-                  child: ListTile(
-                    leading: Icon(Icons.receipt_long_outlined),
-                    title: Text('Tạo hóa đơn'),
-                    contentPadding: EdgeInsets.zero,
-                    dense: true,
-                  ),
+              const PopupMenuItem(
+                value: _OrderDetailMenuAction.createInvoice,
+                child: ListTile(
+                  leading: Icon(Icons.receipt_long_outlined),
+                  title: Text('Tạo hóa đơn'),
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
                 ),
+              ),
               const PopupMenuItem(
                 value: _OrderDetailMenuAction.editOrder,
                 child: ListTile(
