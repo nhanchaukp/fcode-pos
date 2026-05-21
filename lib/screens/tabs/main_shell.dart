@@ -13,7 +13,11 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   final PageStorageBucket _bucket = PageStorageBucket();
+  final PageController _pageController = PageController();
   int _currentIndex = 0;
+
+  static const _tabTransitionDuration = Duration(milliseconds: 320);
+  static const _tabTransitionCurve = Curves.easeInOutCubic;
 
   late final List<Widget> _screens = [
     const HomeScreen(key: PageStorageKey('orders')),
@@ -23,18 +27,42 @@ class _MainShellState extends State<MainShell> {
   ];
 
   @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _onTabSelected(int index) {
+    if (index == _currentIndex) return;
+
+    setState(() => _currentIndex = index);
+    _pageController.animateToPage(
+      index,
+      duration: _tabTransitionDuration,
+      curve: _tabTransitionCurve,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: PageStorage(
         bucket: _bucket,
-        child: IndexedStack(index: _currentIndex, children: _screens),
+        child: PageView(
+          controller: _pageController,
+          physics: const NeverScrollableScrollPhysics(),
+          onPageChanged: (index) {
+            if (_currentIndex != index) {
+              setState(() => _currentIndex = index);
+            }
+          },
+          children: _screens,
+        ),
       ),
       // extendBody: true,
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
-        onDestinationSelected: (index) {
-          setState(() => _currentIndex = index);
-        },
+        onDestinationSelected: _onTabSelected,
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.receipt_long_outlined),
