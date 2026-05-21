@@ -129,8 +129,11 @@ class _CustomerUpsertScreenState extends State<CustomerUpsertScreen> {
     _taxDebounce?.cancel();
     final code = _taxCodeController.text.trim();
     if (code.isEmpty) {
-      if (_fetchedBusinessInfo != null) {
-        setState(() => _fetchedBusinessInfo = null);
+      if (_fetchedBusinessInfo != null || _isFetchingTaxInfo) {
+        setState(() {
+          _fetchedBusinessInfo = null;
+          _isFetchingTaxInfo = false;
+        });
       }
       return;
     }
@@ -140,17 +143,21 @@ class _CustomerUpsertScreenState extends State<CustomerUpsertScreen> {
   }
 
   Future<void> _fetchTaxInfo(String taxCode) async {
+    final requestedTaxCode = taxCode.trim();
     setState(() {
       _isFetchingTaxInfo = true;
       _fetchedBusinessInfo = null;
     });
-    final info = await VietQrService().lookupByTaxCode(taxCode);
-    if (!mounted) return;
+    final info = await VietQrService().lookupByTaxCode(requestedTaxCode);
+    if (!mounted || _taxCodeController.text.trim() != requestedTaxCode) return;
     setState(() {
       _isFetchingTaxInfo = false;
       _fetchedBusinessInfo = info;
     });
     if (info != null) {
+      if (_nameController.text.trim().isEmpty) {
+        _nameController.text = info.name;
+      }
       if (_legalNameController.text.trim().isEmpty) {
         _legalNameController.text = info.name;
       }

@@ -15,6 +15,16 @@ class FinancialReportScreen extends StatefulWidget {
   State<FinancialReportScreen> createState() => _FinancialReportScreenState();
 }
 
+enum _ReportPeriodType {
+  currentMonth,
+  quarter1,
+  quarter2,
+  quarter3,
+  quarter4,
+  fullYear,
+  custom,
+}
+
 class _FinancialReportScreenState extends State<FinancialReportScreen> {
   late FinacialService _financialService;
   FinancialReport? _financialReport;
@@ -23,7 +33,8 @@ class _FinancialReportScreenState extends State<FinancialReportScreen> {
   bool _isLoadingMonthly = false;
   String? _financialError;
   String? _monthlyError;
-  DateTime _selectedMonth = DateTime.now();
+  _ReportRange _selectedRange = _ReportRange.currentMonth();
+  _ReportPeriodType _selectedPeriodType = _ReportPeriodType.currentMonth;
 
   @override
   void initState() {
@@ -44,17 +55,9 @@ class _FinancialReportScreenState extends State<FinancialReportScreen> {
     });
 
     try {
-      // Lấy ngày đầu và cuối của tháng được chọn
-      final firstDay = DateTime(_selectedMonth.year, _selectedMonth.month, 1);
-      final lastDay = DateTime(
-        _selectedMonth.year,
-        _selectedMonth.month + 1,
-        0,
-      );
-
       final response = await _financialService.report(
-        fromDate: firstDay,
-        toDate: lastDay,
+        fromDate: _selectedRange.startDate,
+        toDate: _selectedRange.endDate,
       );
       if (!mounted) return;
       setState(() {
@@ -128,27 +131,251 @@ class _FinancialReportScreenState extends State<FinancialReportScreen> {
         .toList(growable: false);
   }
 
-  Future<void> _selectMonth() async {
-    final result = await showDatePicker(
+  Future<void> _selectReportPeriod() async {
+    final now = DateTime.now();
+    final year = now.year;
+    final initialPresetRange = _buildPresetRange(_selectedPeriodType, year);
+    var selectedType = _selectedPeriodType;
+    var startDate = initialPresetRange?.startDate ?? _selectedRange.startDate;
+    var endDate = initialPresetRange?.endDate ?? _selectedRange.endDate;
+
+    final selection = await showDialog<_ReportPeriodSelection>(
       context: context,
-      initialDate: _selectedMonth,
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
-      initialDatePickerMode: DatePickerMode.year,
-      helpText: 'Chọn tháng',
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final isCustom = selectedType == _ReportPeriodType.custom;
+            return AlertDialog(
+              title: const Text('Chọn kỳ báo cáo'),
+              content: SizedBox(
+                width: 420,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _PeriodRadioTile(
+                        title: 'Tháng hiện tại',
+                        value: _ReportPeriodType.currentMonth,
+                        groupValue: selectedType,
+                        onChanged: (value) {
+                          if (value == null) return;
+                          final range = _buildPresetRange(value, year);
+                          if (range == null) return;
+                          setDialogState(() {
+                            selectedType = value;
+                            startDate = range.startDate;
+                            endDate = range.endDate;
+                          });
+                        },
+                      ),
+                      _PeriodRadioTile(
+                        title: 'Quý 1',
+                        value: _ReportPeriodType.quarter1,
+                        groupValue: selectedType,
+                        onChanged: (value) {
+                          if (value == null) return;
+                          final range = _buildPresetRange(value, year);
+                          if (range == null) return;
+                          setDialogState(() {
+                            selectedType = value;
+                            startDate = range.startDate;
+                            endDate = range.endDate;
+                          });
+                        },
+                      ),
+                      _PeriodRadioTile(
+                        title: 'Quý 2',
+                        value: _ReportPeriodType.quarter2,
+                        groupValue: selectedType,
+                        onChanged: (value) {
+                          if (value == null) return;
+                          final range = _buildPresetRange(value, year);
+                          if (range == null) return;
+                          setDialogState(() {
+                            selectedType = value;
+                            startDate = range.startDate;
+                            endDate = range.endDate;
+                          });
+                        },
+                      ),
+                      _PeriodRadioTile(
+                        title: 'Quý 3',
+                        value: _ReportPeriodType.quarter3,
+                        groupValue: selectedType,
+                        onChanged: (value) {
+                          if (value == null) return;
+                          final range = _buildPresetRange(value, year);
+                          if (range == null) return;
+                          setDialogState(() {
+                            selectedType = value;
+                            startDate = range.startDate;
+                            endDate = range.endDate;
+                          });
+                        },
+                      ),
+                      _PeriodRadioTile(
+                        title: 'Quý 4',
+                        value: _ReportPeriodType.quarter4,
+                        groupValue: selectedType,
+                        onChanged: (value) {
+                          if (value == null) return;
+                          final range = _buildPresetRange(value, year);
+                          if (range == null) return;
+                          setDialogState(() {
+                            selectedType = value;
+                            startDate = range.startDate;
+                            endDate = range.endDate;
+                          });
+                        },
+                      ),
+                      _PeriodRadioTile(
+                        title: 'Cả năm',
+                        value: _ReportPeriodType.fullYear,
+                        groupValue: selectedType,
+                        onChanged: (value) {
+                          if (value == null) return;
+                          final range = _buildPresetRange(value, year);
+                          if (range == null) return;
+                          setDialogState(() {
+                            selectedType = value;
+                            startDate = range.startDate;
+                            endDate = range.endDate;
+                          });
+                        },
+                      ),
+                      _PeriodRadioTile(
+                        title: 'Tùy chỉnh',
+                        value: _ReportPeriodType.custom,
+                        groupValue: selectedType,
+                        onChanged: (value) {
+                          if (value == null) return;
+                          setDialogState(() => selectedType = value);
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      _DateInputTile(
+                        label: 'Start date',
+                        value: startDate,
+                        enabled: isCustom,
+                        onTap: () async {
+                          final picked = await _pickDate(startDate);
+                          if (picked == null) return;
+                          setDialogState(() {
+                            startDate = DateTime(
+                              picked.year,
+                              picked.month,
+                              picked.day,
+                            );
+                            if (endDate.isBefore(startDate)) {
+                              endDate = startDate;
+                            }
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      _DateInputTile(
+                        label: 'End date',
+                        value: endDate,
+                        enabled: isCustom,
+                        onTap: () async {
+                          final picked = await _pickDate(endDate);
+                          if (picked == null) return;
+                          setDialogState(() {
+                            endDate = DateTime(
+                              picked.year,
+                              picked.month,
+                              picked.day,
+                              23,
+                              59,
+                              59,
+                            );
+                            if (endDate.isBefore(startDate)) {
+                              startDate = DateTime(
+                                picked.year,
+                                picked.month,
+                                picked.day,
+                              );
+                            }
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Hủy'),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    final range = _ReportRange(
+                      label: selectedType == _ReportPeriodType.custom
+                          ? _buildCustomLabel(startDate, endDate)
+                          : (_buildPresetRange(selectedType, year)?.label ??
+                                _buildCustomLabel(startDate, endDate)),
+                      startDate: startDate,
+                      endDate: endDate,
+                    );
+                    Navigator.pop(
+                      context,
+                      _ReportPeriodSelection(type: selectedType, range: range),
+                    );
+                  },
+                  child: const Text('Áp dụng'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
 
-    if (result != null && mounted) {
-      setState(() {
-        _selectedMonth = result;
-      });
-      _loadFinancialReport();
+    if (selection == null || !mounted) return;
+
+    setState(() {
+      _selectedPeriodType = selection.type;
+      _selectedRange = selection.range;
+    });
+    _loadFinancialReport();
+  }
+
+  _ReportRange? _buildPresetRange(_ReportPeriodType type, int year) {
+    switch (type) {
+      case _ReportPeriodType.currentMonth:
+        return _ReportRange.currentMonth();
+      case _ReportPeriodType.quarter1:
+        return _ReportRange.forQuarter(year, 1);
+      case _ReportPeriodType.quarter2:
+        return _ReportRange.forQuarter(year, 2);
+      case _ReportPeriodType.quarter3:
+        return _ReportRange.forQuarter(year, 3);
+      case _ReportPeriodType.quarter4:
+        return _ReportRange.forQuarter(year, 4);
+      case _ReportPeriodType.fullYear:
+        return _ReportRange.fullYear(year);
+      case _ReportPeriodType.custom:
+        return null;
     }
   }
 
-  String _formatMonth(DateTime date) {
-    return 'Tháng ${date.month}/${date.year}';
+  Future<DateTime?> _pickDate(DateTime initialDate) {
+    return showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2100),
+      helpText: 'Chọn ngày',
+    );
   }
+
+  String _buildCustomLabel(DateTime startDate, DateTime endDate) {
+    final formatter = DateFormat('dd/MM/yyyy');
+    return '${formatter.format(startDate)} - ${formatter.format(endDate)}';
+  }
+
+  String _formatSelectedRange() => _selectedRange.label;
 
   @override
   Widget build(BuildContext context) {
@@ -202,9 +429,9 @@ class _FinancialReportScreenState extends State<FinancialReportScreen> {
                 DashboardSection(
                   title: 'Báo cáo chi tiết',
                   trailing: TextButton.icon(
-                    onPressed: _selectMonth,
+                    onPressed: _selectReportPeriod,
                     icon: const Icon(Icons.calendar_month, size: 18),
-                    label: Text(_formatMonth(_selectedMonth)),
+                    label: Text(_formatSelectedRange()),
                   ),
                   children: [
                     if (_isLoadingFinancial)
@@ -240,82 +467,24 @@ class _FinancialReportContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final summary = report.financialSummary;
+    final revenue = summary.revenue.toDouble();
+    final costs = summary.costs.toDouble();
+    final refunds = summary.refunds.toDouble();
+    final grossProfit = summary.grossProfit.toDouble();
+    final netProfit = summary.netProfit.toDouble();
+    final profitMargin = summary.profitMargin.toDouble();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Financial Summary Card
-        Card(
-          elevation: 0,
-          color: theme.colorScheme.primaryContainer,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Tổng quan tài chính',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onPrimaryContainer,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                _FinancialRow(
-                  label: 'Doanh thu',
-                  value: CurrencyHelper.formatCurrency(
-                    report.financialSummary.revenue.toInt(),
-                  ),
-                  icon: Icons.trending_up,
-                  color: Colors.green,
-                ),
-                const SizedBox(height: 8),
-                _FinancialRow(
-                  label: 'Chi phí',
-                  value: CurrencyHelper.formatCurrency(
-                    report.financialSummary.costs.toInt(),
-                  ),
-                  icon: Icons.trending_down,
-                  color: Colors.orange,
-                ),
-                const SizedBox(height: 8),
-                _FinancialRow(
-                  label: 'Hoàn tiền',
-                  value: CurrencyHelper.formatCurrency(
-                    report.financialSummary.refunds.toInt(),
-                  ),
-                  icon: Icons.replay,
-                  color: Colors.red,
-                ),
-                const SizedBox(height: 8),
-                _FinancialRow(
-                  label: 'Lợi nhuận gộp',
-                  value: CurrencyHelper.formatCurrency(
-                    report.financialSummary.grossProfit.toInt(),
-                  ),
-                  icon: Icons.account_balance_wallet,
-                  color: Colors.blue,
-                ),
-                const SizedBox(height: 8),
-                _FinancialRow(
-                  label: 'Lợi nhuận ròng',
-                  value: CurrencyHelper.formatCurrency(
-                    report.financialSummary.netProfit.toInt(),
-                  ),
-                  icon: Icons.savings,
-                  color: Colors.teal,
-                ),
-                const SizedBox(height: 8),
-                _FinancialRow(
-                  label: 'Tỷ suất lợi nhuận',
-                  value:
-                      '${report.financialSummary.profitMargin.toStringAsFixed(2)}%',
-                  icon: Icons.percent,
-                  color: Colors.purple,
-                ),
-              ],
-            ),
-          ),
+        _FinancialOverviewCard(
+          revenue: revenue,
+          costs: costs,
+          refunds: refunds,
+          grossProfit: grossProfit,
+          netProfit: netProfit,
+          profitMargin: profitMargin,
         ),
         const SizedBox(height: 12),
 
@@ -405,14 +574,145 @@ class _FinancialReportContent extends StatelessWidget {
   }
 }
 
-class _FinancialRow extends StatelessWidget {
-  const _FinancialRow({
+class _FinancialOverviewCard extends StatelessWidget {
+  const _FinancialOverviewCard({
+    required this.revenue,
+    required this.costs,
+    required this.refunds,
+    required this.grossProfit,
+    required this.netProfit,
+    required this.profitMargin,
+  });
+
+  final double revenue;
+  final double costs;
+  final double refunds;
+  final double grossProfit;
+  final double netProfit;
+  final double profitMargin;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final safeRevenue = revenue <= 0 ? 1.0 : revenue;
+    final costRate = (costs / safeRevenue).clamp(0.0, 1.0);
+    final refundRate = (refunds / safeRevenue).clamp(0.0, 1.0);
+    final netRate = (netProfit / safeRevenue).clamp(-1.0, 1.0);
+
+    return Card(
+      elevation: 0,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.insights_outlined, color: theme.colorScheme.primary),
+                const SizedBox(width: 8),
+                Text(
+                  'Tổng quan tài chính',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: (netProfit >= 0 ? Colors.teal : Colors.red)
+                        .applyOpacity(0.12),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    '${profitMargin.toStringAsFixed(2)}%',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: netProfit >= 0 ? Colors.teal.shade800 : Colors.red,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final tileWidth = constraints.maxWidth >= 560
+                    ? (constraints.maxWidth - 12) / 2
+                    : constraints.maxWidth;
+                return Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    _OverviewStatTile(
+                      width: tileWidth,
+                      label: 'Doanh thu',
+                      value: CurrencyHelper.formatCurrency(revenue.round()),
+                      icon: Icons.trending_up,
+                      color: Colors.green,
+                    ),
+                    _OverviewStatTile(
+                      width: tileWidth,
+                      label: 'Lợi nhuận ròng',
+                      value: CurrencyHelper.formatCurrency(netProfit.round()),
+                      icon: Icons.savings_outlined,
+                      color: netProfit >= 0 ? Colors.teal : Colors.red,
+                    ),
+                    _OverviewStatTile(
+                      width: tileWidth,
+                      label: 'Chi phí',
+                      value: CurrencyHelper.formatCurrency(costs.round()),
+                      icon: Icons.money_off_csred_outlined,
+                      color: Colors.orange,
+                    ),
+                    _OverviewStatTile(
+                      width: tileWidth,
+                      label: 'Hoàn tiền',
+                      value: CurrencyHelper.formatCurrency(refunds.round()),
+                      icon: Icons.replay_outlined,
+                      color: Colors.red,
+                    ),
+                  ],
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+            _BreakdownBar(label: 'Tỷ lệ chi phí', rate: costRate, color: Colors.orange),
+            const SizedBox(height: 8),
+            _BreakdownBar(label: 'Tỷ lệ hoàn tiền', rate: refundRate, color: Colors.red),
+            const SizedBox(height: 8),
+            _BreakdownBar(
+              label: 'Tỷ lệ lợi nhuận ròng',
+              rate: netRate.abs(),
+              color: netProfit >= 0 ? Colors.teal : Colors.red.shade700,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Lợi nhuận gộp: ${CurrencyHelper.formatCurrency(grossProfit.round())}',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _OverviewStatTile extends StatelessWidget {
+  const _OverviewStatTile({
+    required this.width,
     required this.label,
     required this.value,
     required this.icon,
     required this.color,
   });
 
+  final double width;
   final String label;
   final String value;
   final IconData icon;
@@ -420,18 +720,77 @@ class _FinancialRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: color),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
+    final theme = Theme.of(context);
+    return SizedBox(
+      width: width,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: color.applyOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
         ),
-        Text(
-          value,
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: color),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    value,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BreakdownBar extends StatelessWidget {
+  const _BreakdownBar({
+    required this.label,
+    required this.rate,
+    required this.color,
+  });
+
+  final String label;
+  final double rate;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final percent = (rate * 100).clamp(0, 100).toDouble();
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(child: Text(label, style: Theme.of(context).textTheme.bodySmall)),
+            Text('${percent.toStringAsFixed(1)}%', style: Theme.of(context).textTheme.labelMedium),
+          ],
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(999),
+          child: LinearProgressIndicator(
+            value: percent / 100,
+            minHeight: 8,
+            backgroundColor: color.applyOpacity(0.15),
+            valueColor: AlwaysStoppedAnimation<Color>(color),
+          ),
         ),
       ],
     );
@@ -810,6 +1169,136 @@ class _SectionEmptyCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _PeriodRadioTile extends StatelessWidget {
+  const _PeriodRadioTile({
+    required this.title,
+    required this.value,
+    required this.groupValue,
+    required this.onChanged,
+  });
+
+  final String title;
+  final _ReportPeriodType value;
+  final _ReportPeriodType groupValue;
+  final ValueChanged<_ReportPeriodType?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isSelected = value == groupValue;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        clipBehavior: Clip.antiAlias,
+        child: ListTile(
+          dense: true,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+          leading: Icon(
+            isSelected
+                ? Icons.radio_button_checked
+                : Icons.radio_button_unchecked,
+            color: isSelected
+                ? theme.colorScheme.primary
+                : theme.colorScheme.onSurfaceVariant,
+          ),
+          title: Text(title),
+          onTap: () => onChanged(value),
+        ),
+      ),
+    );
+  }
+}
+
+class _DateInputTile extends StatelessWidget {
+  const _DateInputTile({
+    required this.label,
+    required this.value,
+    required this.enabled,
+    required this.onTap,
+  });
+
+  final String label;
+  final DateTime value;
+  final bool enabled;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final formatter = DateFormat('dd/MM/yyyy');
+    return InkWell(
+      onTap: enabled ? onTap : null,
+      borderRadius: BorderRadius.circular(12),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: label,
+          suffixIcon: const Icon(Icons.calendar_today, size: 18),
+          enabled: enabled,
+          border: const OutlineInputBorder(),
+        ),
+        child: Text(
+          formatter.format(value),
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: enabled
+                ? theme.colorScheme.onSurface
+                : theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ReportPeriodSelection {
+  const _ReportPeriodSelection({required this.type, required this.range});
+
+  final _ReportPeriodType type;
+  final _ReportRange range;
+}
+
+class _ReportRange {
+  const _ReportRange({
+    required this.label,
+    required this.startDate,
+    required this.endDate,
+  });
+
+  factory _ReportRange.currentMonth() {
+    final now = DateTime.now();
+    return _ReportRange(
+      label: 'Tháng hiện tại',
+      startDate: DateTime(now.year, now.month, 1),
+      endDate: DateTime(now.year, now.month + 1, 0, 23, 59, 59),
+    );
+  }
+
+  factory _ReportRange.forQuarter(int year, int quarter) {
+    final startMonth = ((quarter - 1) * 3) + 1;
+    return _ReportRange(
+      label: 'Quý $quarter/$year',
+      startDate: DateTime(year, startMonth),
+      endDate: DateTime(year, startMonth + 3, 0, 23, 59, 59),
+    );
+  }
+
+  factory _ReportRange.fullYear(int year) {
+    return _ReportRange(
+      label: 'Cả năm $year',
+      startDate: DateTime(year),
+      endDate: DateTime(year, 12, 31, 23, 59, 59),
+    );
+  }
+
+  final String label;
+  final DateTime startDate;
+  final DateTime endDate;
 }
 
 class _MonthlyRevenueChart extends StatelessWidget {

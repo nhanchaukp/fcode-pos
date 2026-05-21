@@ -23,7 +23,10 @@ class ProductEditScreen extends StatefulWidget {
 class _ProductEditScreenState extends State<ProductEditScreen> {
   final _formKey = GlobalKey<FormState>();
   final _service = ProductService();
+  late Product _product;
+
   bool _isLoading = false;
+  bool _isDetailLoading = true;
   String? _error;
 
   late TextEditingController _nameController;
@@ -44,29 +47,58 @@ class _ProductEditScreenState extends State<ProductEditScreen> {
   @override
   void initState() {
     super.initState();
-    final p = widget.product;
-    _nameController = TextEditingController(text: p.name);
-    _priceController = TextEditingController(text: p.price.toString());
-    _priceSaleController = TextEditingController(
-      text: p.priceSale?.toString() ?? '',
-    );
-    _instockController = TextEditingController(text: p.instock.toString());
-    _expiryMonthController = TextEditingController(
-      text: p.expiryMonth?.toString() ?? '',
-    );
-    _warningController = TextEditingController(text: p.warning ?? '');
-    _upgradeMethodController = TextEditingController(
-      text: p.upgradeMethod ?? '',
-    );
-    _invoiceDisplayNameController = TextEditingController(
-      text: p.invoiceDisplayName ?? '',
-    );
-    _selectedInvoiceUnit = p.invoiceUnit;
-    _selectedLineType = p.invoiceLineType;
-    _isActive = p.isActive;
-    _allowBuyMulti = p.allowBuyMulti;
-    _requireAccount = p.requireAccount;
-    _requirePassword = p.requirePassword;
+    _product = widget.product;
+    _nameController = TextEditingController();
+    _priceController = TextEditingController();
+    _priceSaleController = TextEditingController();
+    _instockController = TextEditingController();
+    _expiryMonthController = TextEditingController();
+    _warningController = TextEditingController();
+    _upgradeMethodController = TextEditingController();
+    _invoiceDisplayNameController = TextEditingController();
+    _applyProductToForm(_product);
+    _loadProductDetail();
+  }
+
+  void _applyProductToForm(Product product) {
+    _nameController.text = product.name;
+    _priceController.text = product.price.toString();
+    _priceSaleController.text = product.priceSale?.toString() ?? '';
+    _instockController.text = product.instock.toString();
+    _expiryMonthController.text = product.expiryMonth?.toString() ?? '';
+    _warningController.text = product.warning ?? '';
+    _upgradeMethodController.text = product.upgradeMethod ?? '';
+    _invoiceDisplayNameController.text = product.invoiceDisplayName ?? '';
+    _selectedInvoiceUnit = product.invoiceUnit;
+    _selectedLineType = product.invoiceLineType;
+    _isActive = product.isActive;
+    _allowBuyMulti = product.allowBuyMulti;
+    _requireAccount = product.requireAccount;
+    _requirePassword = product.requirePassword;
+  }
+
+  Future<void> _loadProductDetail() async {
+    try {
+      final response = await _service.detail(widget.product.id.toString());
+      if (!mounted) return;
+      final product = response.data;
+      if (product != null) {
+        _product = product;
+        _applyProductToForm(product);
+      }
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      _error = e.message;
+    } catch (_) {
+      if (!mounted) return;
+      _error = 'Không tải được thông tin chi tiết sản phẩm.';
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isDetailLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -121,7 +153,7 @@ class _ProductEditScreenState extends State<ProductEditScreen> {
       invoiceLineType: _selectedLineType,
     );
     try {
-      await _service.update(data, widget.product.id);
+      await _service.update(data, _product.id);
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } on ApiException catch (e) {
@@ -140,7 +172,7 @@ class _ProductEditScreenState extends State<ProductEditScreen> {
   }
 
   Future<void> _shareLink() async {
-    final url = '${Environment.baseURL}/${widget.product.slug}';
+    final url = '${Environment.baseURL}/${_product.slug}';
     try {
       await SharePlus.instance.share(ShareParams(text: url, title: url));
     } catch (e) {
@@ -162,259 +194,273 @@ class _ProductEditScreenState extends State<ProductEditScreen> {
           ),
         ],
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-          children: [
-            if (_error != null) ...[
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: colorScheme.errorContainer,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  _error!,
-                  style: TextStyle(color: colorScheme.onErrorContainer),
-                ),
-              ),
-              const SizedBox(height: 10),
-            ],
-            _Section(
-              title: 'Thông tin cơ bản',
-              icon: Icons.inventory_2_outlined,
-              child: Column(
+      body: _isDetailLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Form(
+              key: _formKey,
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
                 children: [
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Tên sản phẩm',
-                    ),
-                    validator: (v) =>
-                        v != null && v.length > 255 ? 'Tối đa 255 ký tự' : null,
-                  ),
-                  const SizedBox(height: 10),
-                  MoneyFormField(
-                    controller: _priceController,
-                    labelText: 'Giá',
-                    validator: (value) {
-                      if (value == null || value.isEmpty) return null;
-                      final raw = value.replaceAll('.', '').trim();
-                      final parsed = int.tryParse(raw);
-                      if (parsed == null || parsed < 0) {
-                        return 'Giá phải >= 0';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  MoneyFormField(
-                    controller: _priceSaleController,
-                    labelText: 'Giá khuyến mãi',
-                    validator: (value) {
-                      if (value == null || value.isEmpty) return null;
-                      final saleRaw = value.replaceAll('.', '').trim();
-                      final sale = int.tryParse(saleRaw);
-                      if (sale == null || sale < 0) {
-                        return 'Giá khuyến mãi phải >= 0';
-                      }
-                      final price = _priceController.moneyValue;
-                      if (price > 0 && sale >= price) {
-                        return 'Giá khuyến mãi phải nhỏ hơn giá';
-                      }
-                      return null;
-                    },
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 10),
-            _Section(
-              title: 'Kho & thời hạn',
-              icon: Icons.warehouse_outlined,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: QuantityInput(
-                      labelText: 'Tồn kho',
-                      controller: _instockController,
-                      validator: (v) {
-                        if (v == null || v.isEmpty) return null;
-                        final value = int.tryParse(v);
-                        if (value == null || value < 0) {
-                          return 'Tồn kho phải >= 0';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: QuantityInput(
-                      controller: _expiryMonthController,
-                      labelText: 'Tháng sử dụng',
-                      validator: (v) {
-                        if (v == null || v.isEmpty) return null;
-                        final value = int.tryParse(v);
-                        if (value == null || value < 0) {
-                          return 'Hạn sử dụng phải >= 0';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 10),
-            _Section(
-              title: 'Tuỳ chọn',
-              icon: Icons.tune_outlined,
-              child: Column(
-                children: [
-                  SwitchListTile(
-                    dense: true,
-                    visualDensity: VisualDensity.compact,
-                    contentPadding: EdgeInsets.zero,
-                    value: _isActive,
-                    onChanged: (v) => setState(() => _isActive = v),
-                    title: const Text('Kích hoạt'),
-                  ),
-                  SwitchListTile(
-                    dense: true,
-                    visualDensity: VisualDensity.compact,
-                    contentPadding: EdgeInsets.zero,
-                    value: _allowBuyMulti,
-                    onChanged: (v) => setState(() => _allowBuyMulti = v),
-                    title: const Text('Cho phép mua nhiều'),
-                  ),
-                  SwitchListTile(
-                    dense: true,
-                    visualDensity: VisualDensity.compact,
-                    contentPadding: EdgeInsets.zero,
-                    value: _requireAccount,
-                    onChanged: (v) => setState(() => _requireAccount = v),
-                    title: const Text('Yêu cầu tài khoản'),
-                  ),
-                  SwitchListTile(
-                    dense: true,
-                    visualDensity: VisualDensity.compact,
-                    contentPadding: EdgeInsets.zero,
-                    value: _requirePassword,
-                    onChanged: (v) => setState(() => _requirePassword = v),
-                    title: const Text('Yêu cầu mật khẩu'),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 10),
-            _Section(
-              title: 'Warning (Markdown)',
-              icon: Icons.warning_amber_outlined,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Nội dung cảnh báo hiển thị cho khách hàng (hỗ trợ Markdown).',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerHigh,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.all(8),
-                    child: MarkdownAutoPreview(
-                      controller: _warningController,
-                      emojiConvert: true,
-                      minLines: 3,
-                      toolbarBackground: colorScheme.surfaceContainerHigh,
-                      expandableBackground: colorScheme.surfaceContainerHighest,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 10),
-            _Section(
-              title: 'Upgrade method',
-              icon: Icons.upgrade_outlined,
-              child: TextFormField(
-                controller: _upgradeMethodController,
-                decoration: const InputDecoration(
-                  labelText: 'Cách nâng cấp',
-                  hintText:
-                      'Ví dụ: Đổi email, gia hạn thủ công, upgrade tại web…',
-                ),
-                textInputAction: TextInputAction.done,
-              ),
-            ),
-            const SizedBox(height: 10),
-            _Section(
-              title: 'Thông tin hoá đơn',
-              icon: Icons.receipt_long_outlined,
-              child: Column(
-                children: [
-                  TextFormField(
-                    controller: _invoiceDisplayNameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Tên hiển thị trên hoá đơn',
-                      hintText: 'Để trống sẽ dùng tên sản phẩm',
-                    ),
-                    textInputAction: TextInputAction.next,
-                    validator: (v) =>
-                        v != null && v.length > 255 ? 'Tối đa 255 ký tự' : null,
-                  ),
-                  const SizedBox(height: 10),
-                  DropdownButtonFormField<enums.InvoiceUnit>(
-                    initialValue: _selectedInvoiceUnit,
-                    decoration: const InputDecoration(labelText: 'Đơn vị tính'),
-                    isExpanded: true,
-                    items: enums.InvoiceUnit.values
-                        .map(
-                          (u) =>
-                              DropdownMenuItem(value: u, child: Text(u.label)),
-                        )
-                        .toList(),
-                    onChanged: (v) => setState(() => _selectedInvoiceUnit = v),
-                  ),
-                  const SizedBox(height: 10),
-                  DropdownButtonFormField<enums.LineType?>(
-                    initialValue: _selectedLineType,
-                    decoration: const InputDecoration(
-                      labelText: 'Loại dòng hóa đơn',
-                    ),
-                    isExpanded: true,
-                    items: [
-                      const DropdownMenuItem(
-                        value: null,
-                        child: Text('— Mặc định —'),
+                  if (_error != null) ...[
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: colorScheme.errorContainer,
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      ...enums.LineType.values.map(
-                        (t) => DropdownMenuItem(value: t, child: Text(t.label)),
+                      child: Text(
+                        _error!,
+                        style: TextStyle(color: colorScheme.onErrorContainer),
                       ),
-                    ],
-                    onChanged: (v) => setState(() => _selectedLineType = v),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                  _Section(
+                    title: 'Thông tin cơ bản',
+                    icon: Icons.inventory_2_outlined,
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          controller: _nameController,
+                          decoration: const InputDecoration(
+                            labelText: 'Tên sản phẩm',
+                          ),
+                          validator: (v) => v != null && v.length > 255
+                              ? 'Tối đa 255 ký tự'
+                              : null,
+                        ),
+                        const SizedBox(height: 10),
+                        MoneyFormField(
+                          controller: _priceController,
+                          labelText: 'Giá',
+                          validator: (value) {
+                            if (value == null || value.isEmpty) return null;
+                            final raw = value.replaceAll('.', '').trim();
+                            final parsed = int.tryParse(raw);
+                            if (parsed == null || parsed < 0) {
+                              return 'Giá phải >= 0';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        MoneyFormField(
+                          controller: _priceSaleController,
+                          labelText: 'Giá khuyến mãi',
+                          validator: (value) {
+                            if (value == null || value.isEmpty) return null;
+                            final saleRaw = value.replaceAll('.', '').trim();
+                            final sale = int.tryParse(saleRaw);
+                            if (sale == null || sale < 0) {
+                              return 'Giá khuyến mãi phải >= 0';
+                            }
+                            final price = _priceController.moneyValue;
+                            if (price > 0 && sale >= price) {
+                              return 'Giá khuyến mãi phải nhỏ hơn giá';
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  _Section(
+                    title: 'Kho & thời hạn',
+                    icon: Icons.warehouse_outlined,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: QuantityInput(
+                            labelText: 'Tồn kho',
+                            controller: _instockController,
+                            validator: (v) {
+                              if (v == null || v.isEmpty) return null;
+                              final value = int.tryParse(v);
+                              if (value == null || value < 0) {
+                                return 'Tồn kho phải >= 0';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: QuantityInput(
+                            controller: _expiryMonthController,
+                            labelText: 'Tháng sử dụng',
+                            validator: (v) {
+                              if (v == null || v.isEmpty) return null;
+                              final value = int.tryParse(v);
+                              if (value == null || value < 0) {
+                                return 'Hạn sử dụng phải >= 0';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  _Section(
+                    title: 'Tuỳ chọn',
+                    icon: Icons.tune_outlined,
+                    child: Column(
+                      children: [
+                        SwitchListTile(
+                          dense: true,
+                          visualDensity: VisualDensity.compact,
+                          contentPadding: EdgeInsets.zero,
+                          value: _isActive,
+                          onChanged: (v) => setState(() => _isActive = v),
+                          title: const Text('Kích hoạt'),
+                        ),
+                        SwitchListTile(
+                          dense: true,
+                          visualDensity: VisualDensity.compact,
+                          contentPadding: EdgeInsets.zero,
+                          value: _allowBuyMulti,
+                          onChanged: (v) => setState(() => _allowBuyMulti = v),
+                          title: const Text('Cho phép mua nhiều'),
+                        ),
+                        SwitchListTile(
+                          dense: true,
+                          visualDensity: VisualDensity.compact,
+                          contentPadding: EdgeInsets.zero,
+                          value: _requireAccount,
+                          onChanged: (v) => setState(() => _requireAccount = v),
+                          title: const Text('Yêu cầu tài khoản'),
+                        ),
+                        SwitchListTile(
+                          dense: true,
+                          visualDensity: VisualDensity.compact,
+                          contentPadding: EdgeInsets.zero,
+                          value: _requirePassword,
+                          onChanged: (v) =>
+                              setState(() => _requirePassword = v),
+                          title: const Text('Yêu cầu mật khẩu'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  _Section(
+                    title: 'Warning (Markdown)',
+                    icon: Icons.warning_amber_outlined,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Nội dung cảnh báo hiển thị cho khách hàng (hỗ trợ Markdown).',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: colorScheme.onSurfaceVariant),
+                        ),
+                        const SizedBox(height: 10),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: colorScheme.surfaceContainerHigh,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.all(8),
+                          child: MarkdownAutoPreview(
+                            controller: _warningController,
+                            emojiConvert: true,
+                            minLines: 3,
+                            toolbarBackground: colorScheme.surfaceContainerHigh,
+                            expandableBackground:
+                                colorScheme.surfaceContainerHighest,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  _Section(
+                    title: 'Upgrade method',
+                    icon: Icons.upgrade_outlined,
+                    child: TextFormField(
+                      controller: _upgradeMethodController,
+                      decoration: const InputDecoration(
+                        labelText: 'Cách nâng cấp',
+                        hintText:
+                            'Ví dụ: Đổi email, gia hạn thủ công, upgrade tại web…',
+                      ),
+                      textInputAction: TextInputAction.done,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  _Section(
+                    title: 'Thông tin hoá đơn',
+                    icon: Icons.receipt_long_outlined,
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          controller: _invoiceDisplayNameController,
+                          decoration: const InputDecoration(
+                            labelText: 'Tên hiển thị trên hoá đơn',
+                            hintText: 'Để trống sẽ dùng tên sản phẩm',
+                          ),
+                          textInputAction: TextInputAction.next,
+                          validator: (v) => v != null && v.length > 255
+                              ? 'Tối đa 255 ký tự'
+                              : null,
+                        ),
+                        const SizedBox(height: 10),
+                        DropdownButtonFormField<enums.InvoiceUnit>(
+                          initialValue: _selectedInvoiceUnit,
+                          decoration: const InputDecoration(
+                            labelText: 'Đơn vị tính',
+                          ),
+                          isExpanded: true,
+                          items: enums.InvoiceUnit.values
+                              .map(
+                                (u) => DropdownMenuItem(
+                                  value: u,
+                                  child: Text(u.label),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (v) =>
+                              setState(() => _selectedInvoiceUnit = v),
+                        ),
+                        const SizedBox(height: 10),
+                        DropdownButtonFormField<enums.LineType?>(
+                          initialValue: _selectedLineType,
+                          decoration: const InputDecoration(
+                            labelText: 'Loại dòng hóa đơn',
+                          ),
+                          isExpanded: true,
+                          items: [
+                            const DropdownMenuItem(
+                              value: null,
+                              child: Text('— Mặc định —'),
+                            ),
+                            ...enums.LineType.values.map(
+                              (t) => DropdownMenuItem(
+                                value: t,
+                                child: Text(t.label),
+                              ),
+                            ),
+                          ],
+                          onChanged: (v) =>
+                              setState(() => _selectedLineType = v),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  FilledButton.icon(
+                    onPressed: _isLoading ? null : _submit,
+                    icon: LoadingIcon(
+                      icon: Icons.check_circle_outline_outlined,
+                      loading: _isLoading,
+                    ),
+                    label: const Text('Lưu thay đổi'),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 14),
-            FilledButton.icon(
-              onPressed: _isLoading ? null : _submit,
-              icon: LoadingIcon(
-                icon: Icons.check_circle_outline_outlined,
-                loading: _isLoading,
-              ),
-              label: const Text('Lưu thay đổi'),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

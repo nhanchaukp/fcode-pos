@@ -12,6 +12,7 @@ import 'package:fcode_pos/screens/chatgpt/chatgpt_session_screen.dart';
 import 'package:fcode_pos/screens/icallme/icallme_voucher_screen.dart';
 import 'package:fcode_pos/screens/rating/rating_list_screen.dart';
 import 'package:fcode_pos/screens/coupon/coupon_list_screen.dart';
+import 'package:fcode_pos/screens/telegram-bot/telegram_bot_hub_screen.dart';
 import 'package:fcode_pos/utils/extensions.dart';
 import 'package:flutter/material.dart';
 
@@ -22,39 +23,101 @@ class ProductHubScreen extends StatelessWidget {
     _Section(
       title: 'Quản lý',
       items: [
-        _Item('Sản phẩm', Icons.inventory_2_rounded, Colors.blue,
-            (c) => const ProductListScreen()),
-        _Item('Kho tài khoản', Icons.vpn_key_rounded, Colors.purple,
-            (c) => const AccountSlotManagementScreen()),
-        _Item('Nhà cung cấp', Icons.local_shipping_rounded, Colors.orange,
-            (c) => const SuppliersScreen()),
-        _Item('Hoàn tiền', Icons.replay_rounded, Colors.red,
-            (c) => const RefundRequestScreen()),
-        _Item('Giá nhập', Icons.price_change_rounded, Colors.teal,
-            (c) => const ProductCostScreen()),
-        _Item('Khách hàng', Icons.people_alt_rounded, Colors.indigo,
-            (c) => const CustomerListScreen()),
-        _Item('Nhật ký email', Icons.email_rounded, Colors.pink,
-            (c) => const MailLogScreen()),
-        _Item('Tài chính', Icons.account_balance_wallet_rounded, Colors.green,
-            (c) => const FinancialTransactionScreen()),
-        _Item('Đánh giá', Icons.star_rounded, Colors.amber,
-            (c) => const RatingListScreen()),
-        _Item('Mã giảm giá', Icons.confirmation_number_rounded, Colors.deepPurple,
-            (c) => const CouponListScreen()),
-        _Item('Hóa đơn ĐT', Icons.receipt_long_rounded, Colors.cyan,
-            (c) => const InvoiceListScreen()),
+        _Item(
+          'Sản phẩm',
+          Icons.inventory_2_rounded,
+          Colors.blue,
+          (c) => const ProductListScreen(),
+        ),
+        _Item(
+          'Kho tài khoản',
+          Icons.vpn_key_rounded,
+          Colors.purple,
+          (c) => const AccountSlotManagementScreen(),
+        ),
+        _Item(
+          'Nhà cung cấp',
+          Icons.local_shipping_rounded,
+          Colors.orange,
+          (c) => const SuppliersScreen(),
+        ),
+        _Item(
+          'Hoàn tiền',
+          Icons.replay_rounded,
+          Colors.red,
+          (c) => const RefundRequestScreen(),
+        ),
+        _Item(
+          'Giá nhập',
+          Icons.price_change_rounded,
+          Colors.teal,
+          (c) => const ProductCostScreen(),
+        ),
+        _Item(
+          'Khách hàng',
+          Icons.people_alt_rounded,
+          Colors.indigo,
+          (c) => const CustomerListScreen(),
+        ),
+        _Item(
+          'Nhật ký email',
+          Icons.email_rounded,
+          Colors.pink,
+          (c) => const MailLogScreen(),
+        ),
+        _Item(
+          'Tài chính',
+          Icons.account_balance_wallet_rounded,
+          Colors.green,
+          (c) => const FinancialTransactionScreen(),
+        ),
+        _Item(
+          'Đánh giá',
+          Icons.star_rounded,
+          Colors.amber,
+          (c) => const RatingListScreen(),
+        ),
+        _Item(
+          'Mã giảm giá',
+          Icons.confirmation_number_rounded,
+          Colors.deepPurple,
+          (c) => const CouponListScreen(),
+        ),
+        _Item(
+          'Hóa đơn ĐT',
+          Icons.receipt_long_rounded,
+          Colors.cyan,
+          (c) => const InvoiceListScreen(),
+        ),
+        _Item(
+          'Telegram Bot',
+          Icons.smart_toy_rounded,
+          Colors.lightBlue,
+          (c) => const TelegramBotHubScreen(),
+        ),
       ],
     ),
     _Section(
       title: 'Tính năng khác',
       items: [
-        _Item('Google Adsense', Icons.bar_chart_rounded, Colors.deepOrange,
-            (c) => const AdsenseScreen()),
-        _Item('ChatGPT', Icons.smart_toy_rounded, Colors.blueGrey,
-            (c) => const ChatGptSessionScreen()),
-        _Item('Icallme', Icons.confirmation_number_rounded, Colors.deepPurple,
-            (c) => const IcallmeVoucherScreen()),
+        _Item(
+          'Google Adsense',
+          Icons.bar_chart_rounded,
+          Colors.deepOrange,
+          (c) => const AdsenseScreen(),
+        ),
+        _Item(
+          'ChatGPT',
+          Icons.smart_toy_rounded,
+          Colors.blueGrey,
+          (c) => const ChatGptSessionScreen(),
+        ),
+        _Item(
+          'Icallme',
+          Icons.confirmation_number_rounded,
+          Colors.deepPurple,
+          (c) => const IcallmeVoucherScreen(),
+        ),
       ],
     ),
   ];
@@ -148,7 +211,8 @@ class _ItemGrid extends StatelessWidget {
                   return Expanded(
                     child: _GridCell(
                       item: rowItems[col],
-                      showRightBorder: col < _cols - 1 && col < rowItems.length - 1,
+                      showRightBorder:
+                          col < _cols - 1 && col < rowItems.length - 1,
                     ),
                   );
                 }),
@@ -181,10 +245,8 @@ class _GridCell extends StatelessWidget {
             : const BoxDecoration().border ?? const Border(),
       ),
       child: InkWell(
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: item.builder),
-        ),
+        onTap: () =>
+            Navigator.push(context, MaterialPageRoute(builder: item.builder)),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 6),
           child: Column(
