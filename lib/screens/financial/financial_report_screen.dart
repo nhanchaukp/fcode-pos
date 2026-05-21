@@ -415,7 +415,7 @@ class _FinancialReportScreenState extends State<FinancialReportScreen> {
                   ),
                   children: [
                     if (_isLoadingMonthly)
-                      const _SectionLoadingCard()
+                      const _MonthlyRevenueChartSkeleton()
                     else if (_monthlyError != null)
                       _SectionErrorCard(
                         message: _monthlyError!,
@@ -436,7 +436,7 @@ class _FinancialReportScreenState extends State<FinancialReportScreen> {
                   title: 'Báo cáo chi tiết',
                   children: [
                     if (_isLoadingFinancial)
-                      const _SectionLoadingCard()
+                      const _FinancialReportSkeleton()
                     else if (_financialError != null)
                       _SectionErrorCard(
                         message: _financialError!,
@@ -1106,16 +1106,337 @@ class _AccountRenewalCostTile extends StatelessWidget {
   }
 }
 
-class _SectionLoadingCard extends StatelessWidget {
-  const _SectionLoadingCard();
+class _MonthlyRevenueChartSkeleton extends StatelessWidget {
+  const _MonthlyRevenueChartSkeleton();
+
+  static const _barHeightFactors = [
+    0.35,
+    0.55,
+    0.42,
+    0.68,
+    0.5,
+    0.72,
+    0.48,
+    0.61,
+    0.38,
+    0.66,
+    0.52,
+    0.58,
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return const Card(
+    return Card(
       elevation: 0,
       child: Padding(
-        padding: EdgeInsets.all(24),
-        child: Center(child: CircularProgressIndicator()),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Expanded(child: _SkeletonLine(height: 16, widthFactor: 0.5)),
+                SizedBox(width: 12),
+                _SkeletonBox(width: 88, height: 16, radius: 4),
+              ],
+            ),
+            const SizedBox(height: 8),
+            const _SkeletonLine(height: 12, widthFactor: 0.65),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 200,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  for (final factor in _barHeightFactors)
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            _SkeletonBox(
+                              width: 16,
+                              height: 200 * factor,
+                              radius: 6,
+                            ),
+                            const SizedBox(height: 8),
+                            const _SkeletonBox(width: 10, height: 10, radius: 2),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FinancialReportSkeleton extends StatelessWidget {
+  const _FinancialReportSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: const [
+        _FinancialOverviewCardSkeleton(),
+        SizedBox(height: 12),
+        _OrderStatisticsCardSkeleton(),
+        SizedBox(height: 12),
+        _SkeletonLine(height: 16, widthFactor: 0.42),
+        SizedBox(height: 12),
+        _ListTileSkeleton(),
+        SizedBox(height: 8),
+        _ListTileSkeleton(),
+      ],
+    );
+  }
+}
+
+class _FinancialOverviewCardSkeleton extends StatelessWidget {
+  const _FinancialOverviewCardSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 0,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: const [
+            Row(
+              children: [
+                _SkeletonBox(width: 20, height: 20, radius: 4),
+                SizedBox(width: 8),
+                Expanded(child: _SkeletonLine(height: 16, widthFactor: 0.45)),
+                _SkeletonBox(width: 56, height: 24, radius: 999),
+              ],
+            ),
+            SizedBox(height: 14),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                _StatTileSkeleton(),
+                _StatTileSkeleton(),
+                _StatTileSkeleton(),
+                _StatTileSkeleton(),
+              ],
+            ),
+            SizedBox(height: 16),
+            _BreakdownBarSkeleton(),
+            SizedBox(height: 8),
+            _BreakdownBarSkeleton(),
+            SizedBox(height: 8),
+            _BreakdownBarSkeleton(),
+            SizedBox(height: 8),
+            _SkeletonLine(height: 12, widthFactor: 0.38),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _OrderStatisticsCardSkeleton extends StatelessWidget {
+  const _OrderStatisticsCardSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 0,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: const [
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _SkeletonLine(height: 16, widthFactor: 0.55),
+                      SizedBox(height: 6),
+                      _SkeletonLine(height: 12, widthFactor: 0.35),
+                    ],
+                  ),
+                ),
+                SizedBox(width: 12),
+                _SkeletonBox(width: 120, height: 28, radius: 999),
+              ],
+            ),
+            SizedBox(height: 16),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                _StatTileSkeleton(compact: true),
+                _StatTileSkeleton(compact: true),
+                _StatTileSkeleton(compact: true),
+                _StatTileSkeleton(compact: true),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StatTileSkeleton extends StatelessWidget {
+  const _StatTileSkeleton({this.compact = false});
+
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final tileWidth = screenWidth >= 512
+        ? (screenWidth - 32 - 12) / 2
+        : screenWidth - 32;
+
+    return SizedBox(
+      width: tileWidth,
+      child: Container(
+        padding: EdgeInsets.all(compact ? 10 : 12),
+        decoration: BoxDecoration(
+          color: Theme.of(context)
+              .colorScheme
+              .surfaceContainerHighest
+              .withValues(alpha: 0.35),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: const [
+            _SkeletonBox(width: 18, height: 18, radius: 4),
+            SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _SkeletonLine(height: 11, widthFactor: 0.55),
+                  SizedBox(height: 6),
+                  _SkeletonLine(height: 14, widthFactor: 0.72),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BreakdownBarSkeleton extends StatelessWidget {
+  const _BreakdownBarSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      children: [
+        Row(
+          children: [
+            Expanded(child: _SkeletonLine(height: 12, widthFactor: 0.4)),
+            SizedBox(width: 12),
+            _SkeletonBox(width: 36, height: 12, radius: 4),
+          ],
+        ),
+        SizedBox(height: 6),
+        SizedBox(
+          width: double.infinity,
+          child: _SkeletonBox(height: 8, radius: 999),
+        ),
+      ],
+    );
+  }
+}
+
+class _ListTileSkeleton extends StatelessWidget {
+  const _ListTileSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: const [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _SkeletonLine(height: 14, widthFactor: 0.62),
+                  SizedBox(height: 8),
+                  _SkeletonLine(height: 12, widthFactor: 0.35),
+                  SizedBox(height: 4),
+                  _SkeletonLine(height: 12, widthFactor: 0.48),
+                ],
+              ),
+            ),
+            SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                _SkeletonBox(width: 72, height: 14, radius: 4),
+                SizedBox(height: 8),
+                _SkeletonBox(width: 56, height: 12, radius: 4),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SkeletonLine extends StatelessWidget {
+  const _SkeletonLine({required this.height, required this.widthFactor});
+
+  final double height;
+  final double widthFactor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: FractionallySizedBox(
+        widthFactor: widthFactor,
+        child: _SkeletonBox(height: height),
+      ),
+    );
+  }
+}
+
+class _SkeletonBox extends StatelessWidget {
+  const _SkeletonBox({
+    this.width,
+    required this.height,
+    this.radius = 8,
+  });
+
+  final double? width;
+  final double height;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(radius),
       ),
     );
   }
