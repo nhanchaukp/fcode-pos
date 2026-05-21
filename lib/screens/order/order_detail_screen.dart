@@ -86,9 +86,8 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
         _qrImageBytes = null;
       });
 
-      if (order != null) {
-        if (syncList) _syncOrderToList(order);
-        _fetchQrImage();
+      if (order != null && syncList) {
+        _syncOrderToList(order);
       }
     } catch (e, st) {
       debugPrintStack(
@@ -146,19 +145,6 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
     }
   }
 
-  Future<void> _fetchQrImage() async {
-    if (_order?.urlQrCodePayment == null) return;
-    if (_qrImageBytes != null) return;
-    try {
-      final response = await http.get(Uri.parse(_order!.urlQrCodePayment!));
-      if (response.statusCode == 200 && mounted) {
-        setState(() => _qrImageBytes = response.bodyBytes);
-      }
-    } catch (e) {
-      debugPrint('Error pre-fetching QR image: $e');
-    }
-  }
-
   Future<void> _showQrCodeDialog() async {
     if (_order == null ||
         _order!.urlQrCodePayment == null ||
@@ -168,23 +154,21 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
     }
 
     if (_qrImageBytes == null) {
+      final toastId = Toastr.loading('Đang tải mã QR...');
       try {
-        _qrImageBytes = await Toastr.promise(
-          http.get(Uri.parse(_order!.urlQrCodePayment!)).then((response) {
-            if (response.statusCode != 200) {
-              throw Exception('HTTP ${response.statusCode}');
-            }
-            return response.bodyBytes;
-          }),
-          loading: 'Đang tải mã QR...',
-          success: '',
-          error: 'Không thể tải ảnh QR',
-          successDuration: Duration.zero,
-        );
-      } catch (_) {
+        final response =
+            await http.get(Uri.parse(_order!.urlQrCodePayment!));
+        if (response.statusCode != 200) {
+          throw Exception('HTTP ${response.statusCode}');
+        }
+        _qrImageBytes = response.bodyBytes;
+        Toastr.dismiss(toastId);
+      } catch (e) {
+        Toastr.dismiss(toastId);
+        Toastr.error('Không thể tải ảnh QR');
         return;
       }
-      if (_qrImageBytes == null || !mounted) return;
+      if (!mounted) return;
     }
 
     if (!mounted) return;

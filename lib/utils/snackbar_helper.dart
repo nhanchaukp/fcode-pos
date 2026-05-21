@@ -66,5 +66,7 @@ class Toastr {
     IconData? icon,
   }) => ToastrHelper.info(message, duration: duration);
 
-  static void loading(String message) => ToastrHelper.loading(message);
+  static String loading(String message) => ToastrHelper.loading(message);
+
+  static void dismiss([String? id]) => ToastrHelper.dismiss(id);
 }

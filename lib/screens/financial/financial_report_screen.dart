@@ -382,13 +382,33 @@ class _FinancialReportScreenState extends State<FinancialReportScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Báo cáo tài chính'),
-        actions: [
-          IconButton(
-            tooltip: 'Làm mới',
-            icon: const Icon(Icons.refresh),
-            onPressed: _refreshData,
+        centerTitle: false,
+        scrolledUnderElevation: 2,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(56),
+          child: SizedBox(
+            height: 56,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Row(
+                children: [
+                  TextButton.icon(
+                    onPressed: _selectReportPeriod,
+                    icon: const Icon(Icons.calendar_month, size: 18),
+                    label: Text(_formatSelectedRange()),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    tooltip: 'Làm mới',
+                    icon: const Icon(Icons.refresh),
+                    onPressed: _refreshData,
+                  ),
+                ],
+              ),
+            ),
           ),
-        ],
+        ),
       ),
       body: SafeArea(
         child: RefreshIndicator(
@@ -428,11 +448,6 @@ class _FinancialReportScreenState extends State<FinancialReportScreen> {
                 // Financial Report Detail Section
                 DashboardSection(
                   title: 'Báo cáo chi tiết',
-                  trailing: TextButton.icon(
-                    onPressed: _selectReportPeriod,
-                    icon: const Icon(Icons.calendar_month, size: 18),
-                    label: Text(_formatSelectedRange()),
-                  ),
                   children: [
                     if (_isLoadingFinancial)
                       const _SectionLoadingCard()
