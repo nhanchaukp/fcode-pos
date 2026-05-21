@@ -131,8 +131,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             tooltip: 'Báo cáo tài chính',
             icon: const Icon(Icons.bar_chart_outlined),
             onPressed: () {
-              Navigator.push(
-                context,
+              Navigator.of(context, rootNavigator: true).push(
                 MaterialPageRoute(
                   builder: (context) => const FinancialReportScreen(),
                 ),

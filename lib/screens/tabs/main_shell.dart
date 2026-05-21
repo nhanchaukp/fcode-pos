@@ -46,18 +46,30 @@ class _MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: PageStorage(
-        bucket: _bucket,
-        child: PageView(
-          controller: _pageController,
-          physics: const NeverScrollableScrollPhysics(),
-          onPageChanged: (index) {
-            if (_currentIndex != index) {
-              setState(() => _currentIndex = index);
-            }
-          },
-          children: _screens,
-        ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return PageStorage(
+            bucket: _bucket,
+            child: PageView(
+              controller: _pageController,
+              physics: const NeverScrollableScrollPhysics(),
+              onPageChanged: (index) {
+                if (_currentIndex != index) {
+                  setState(() => _currentIndex = index);
+                }
+              },
+              children: _screens
+                  .map(
+                    (screen) => SizedBox(
+                      height: constraints.maxHeight,
+                      width: constraints.maxWidth,
+                      child: screen,
+                    ),
+                  )
+                  .toList(growable: false),
+            ),
+          );
+        },
       ),
       // extendBody: true,
       bottomNavigationBar: NavigationBar(

@@ -382,41 +382,27 @@ class _FinancialReportScreenState extends State<FinancialReportScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Báo cáo tài chính'),
-        centerTitle: false,
-        scrolledUnderElevation: 2,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(56),
-          child: SizedBox(
-            height: 56,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Row(
-                children: [
-                  TextButton.icon(
-                    onPressed: _selectReportPeriod,
-                    icon: const Icon(Icons.calendar_month, size: 18),
-                    label: Text(_formatSelectedRange()),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    tooltip: 'Làm mới',
-                    icon: const Icon(Icons.refresh),
-                    onPressed: _refreshData,
-                  ),
-                ],
-              ),
-            ),
+        // centerTitle: false,
+        // scrolledUnderElevation: 2,
+        actions: [
+          IconButton(
+            tooltip: _formatSelectedRange(),
+            icon: const Icon(Icons.calendar_month),
+            onPressed: _selectReportPeriod,
           ),
-        ),
+        ],
       ),
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _refreshData,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: Column(
+      body: RefreshIndicator(
+        onRefresh: _refreshData,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(
+            16,
+            12,
+            16,
+            24 + MediaQuery.paddingOf(context).bottom,
+          ),
+          child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Monthly Revenue Chart Section
@@ -467,7 +453,6 @@ class _FinancialReportScreenState extends State<FinancialReportScreen> {
             ),
           ),
         ),
-      ),
     );
   }
 }
@@ -695,9 +680,17 @@ class _FinancialOverviewCard extends StatelessWidget {
               },
             ),
             const SizedBox(height: 16),
-            _BreakdownBar(label: 'Tỷ lệ chi phí', rate: costRate, color: Colors.orange),
+            _BreakdownBar(
+              label: 'Tỷ lệ chi phí',
+              rate: costRate,
+              color: Colors.orange,
+            ),
             const SizedBox(height: 8),
-            _BreakdownBar(label: 'Tỷ lệ hoàn tiền', rate: refundRate, color: Colors.red),
+            _BreakdownBar(
+              label: 'Tỷ lệ hoàn tiền',
+              rate: refundRate,
+              color: Colors.red,
+            ),
             const SizedBox(height: 8),
             _BreakdownBar(
               label: 'Tỷ lệ lợi nhuận ròng',
@@ -793,8 +786,13 @@ class _BreakdownBar extends StatelessWidget {
       children: [
         Row(
           children: [
-            Expanded(child: Text(label, style: Theme.of(context).textTheme.bodySmall)),
-            Text('${percent.toStringAsFixed(1)}%', style: Theme.of(context).textTheme.labelMedium),
+            Expanded(
+              child: Text(label, style: Theme.of(context).textTheme.bodySmall),
+            ),
+            Text(
+              '${percent.toStringAsFixed(1)}%',
+              style: Theme.of(context).textTheme.labelMedium,
+            ),
           ],
         ),
         const SizedBox(height: 6),
