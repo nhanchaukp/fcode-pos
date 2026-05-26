@@ -275,7 +275,7 @@ class GradientStatCard extends StatelessWidget {
   });
 
   final String title;
-  final String value;
+  final Widget value;
   final String percentage;
   final IconData icon;
   final Gradient gradient;
@@ -321,13 +321,13 @@ class GradientStatCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    value,
-                    style: theme.textTheme.headlineSmall?.copyWith(
+                  DefaultTextStyle(
+                    style: theme.textTheme.headlineSmall!.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                       height: 1.2,
                     ),
+                    child: value,
                   ),
                   if (percentage.isNotEmpty) ...[
                     const SizedBox(height: 2),

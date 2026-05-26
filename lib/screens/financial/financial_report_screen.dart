@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/finacial_service.dart';
+import 'package:fcode_pos/ui/components/animated_stat_text.dart';
 import 'package:fcode_pos/ui/dashboard/dashboard_components.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/extensions/colors.dart';
@@ -501,11 +502,25 @@ class _FinancialReportContent extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
-          Text(
-            'Tổng ${CurrencyHelper.formatCurrency(report.accountRenewalCosts.fold<int>(0, (sum, item) => sum + item.totalAmount))}',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+          Row(
+            children: [
+              Text(
+                'Tổng ',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              AnimatedCurrencyText(
+                value: report.accountRenewalCosts.fold<int>(
+                  0,
+                  (sum, item) => sum + item.totalAmount,
+                ),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                delay: kNumberAnimStagger * 4,
+              ),
+            ],
           ),
           const SizedBox(height: 12),
           ...report.accountRenewalCosts.map(
@@ -549,19 +564,27 @@ class _FinancialReportContent extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(
-                      CurrencyHelper.formatCurrency(
-                        double.tryParse(product.totalRevenue)?.toInt() ?? 0,
-                      ),
+                    AnimatedCurrencyText(
+                      value:
+                          double.tryParse(product.totalRevenue)?.toInt() ?? 0,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: Colors.green,
                       ),
+                      delay: kNumberAnimStagger * 5,
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      'TB: ${CurrencyHelper.formatCurrency(double.tryParse(product.avgPrice)?.toInt() ?? 0)}',
-                      style: theme.textTheme.bodySmall,
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('TB: ', style: theme.textTheme.bodySmall),
+                        AnimatedCurrencyText(
+                          value:
+                              double.tryParse(product.avgPrice)?.toInt() ?? 0,
+                          style: theme.textTheme.bodySmall,
+                          delay: kNumberAnimStagger * 6,
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -627,8 +650,10 @@ class _FinancialOverviewCard extends StatelessWidget {
                         .applyOpacity(0.12),
                     borderRadius: BorderRadius.circular(999),
                   ),
-                  child: Text(
-                    '${profitMargin.toStringAsFixed(2)}%',
+                  child: AnimatedPercentText(
+                    value: profitMargin,
+                    decimals: 2,
+                    delay: kNumberAnimStagger,
                     style: theme.textTheme.labelMedium?.copyWith(
                       color: netProfit >= 0 ? Colors.teal.shade800 : Colors.red,
                       fontWeight: FontWeight.w700,
@@ -650,30 +675,34 @@ class _FinancialOverviewCard extends StatelessWidget {
                     _OverviewStatTile(
                       width: tileWidth,
                       label: 'Doanh thu',
-                      value: CurrencyHelper.formatCurrency(revenue.round()),
+                      amount: revenue.round(),
                       icon: Icons.trending_up,
                       color: Colors.green,
+                      animationDelay: Duration.zero,
                     ),
                     _OverviewStatTile(
                       width: tileWidth,
                       label: 'Lợi nhuận ròng',
-                      value: CurrencyHelper.formatCurrency(netProfit.round()),
+                      amount: netProfit.round(),
                       icon: Icons.savings_outlined,
                       color: netProfit >= 0 ? Colors.teal : Colors.red,
+                      animationDelay: kNumberAnimStagger,
                     ),
                     _OverviewStatTile(
                       width: tileWidth,
                       label: 'Chi phí',
-                      value: CurrencyHelper.formatCurrency(costs.round()),
+                      amount: costs.round(),
                       icon: Icons.money_off_csred_outlined,
                       color: Colors.orange,
+                      animationDelay: kNumberAnimStagger * 2,
                     ),
                     _OverviewStatTile(
                       width: tileWidth,
                       label: 'Hoàn tiền',
-                      value: CurrencyHelper.formatCurrency(refunds.round()),
+                      amount: refunds.round(),
                       icon: Icons.replay_outlined,
                       color: Colors.red,
+                      animationDelay: kNumberAnimStagger * 3,
                     ),
                   ],
                 );
@@ -684,25 +713,39 @@ class _FinancialOverviewCard extends StatelessWidget {
               label: 'Tỷ lệ chi phí',
               rate: costRate,
               color: Colors.orange,
+              animationDelay: kNumberAnimStagger * 4,
             ),
             const SizedBox(height: 8),
             _BreakdownBar(
               label: 'Tỷ lệ hoàn tiền',
               rate: refundRate,
               color: Colors.red,
+              animationDelay: kNumberAnimStagger * 5,
             ),
             const SizedBox(height: 8),
             _BreakdownBar(
               label: 'Tỷ lệ lợi nhuận ròng',
               rate: netRate.abs(),
               color: netProfit >= 0 ? Colors.teal : Colors.red.shade700,
+              animationDelay: kNumberAnimStagger * 6,
             ),
             const SizedBox(height: 8),
-            Text(
-              'Lợi nhuận gộp: ${CurrencyHelper.formatCurrency(grossProfit.round())}',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+            Row(
+              children: [
+                Text(
+                  'Lợi nhuận gộp: ',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                AnimatedCurrencyText(
+                  value: grossProfit.round(),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  delay: kNumberAnimStagger * 7,
+                ),
+              ],
             ),
           ],
         ),
@@ -715,16 +758,18 @@ class _OverviewStatTile extends StatelessWidget {
   const _OverviewStatTile({
     required this.width,
     required this.label,
-    required this.value,
+    required this.amount,
     required this.icon,
     required this.color,
+    this.animationDelay = Duration.zero,
   });
 
   final double width;
   final String label;
-  final String value;
+  final int amount;
   final IconData icon;
   final Color color;
+  final Duration animationDelay;
 
   @override
   Widget build(BuildContext context) {
@@ -752,8 +797,9 @@ class _OverviewStatTile extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    value,
+                  AnimatedCurrencyText(
+                    value: amount,
+                    delay: animationDelay,
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
@@ -773,39 +819,50 @@ class _BreakdownBar extends StatelessWidget {
     required this.label,
     required this.rate,
     required this.color,
+    this.animationDelay = Duration.zero,
   });
 
   final String label;
   final double rate;
   final Color color;
+  final Duration animationDelay;
 
   @override
   Widget build(BuildContext context) {
-    final percent = (rate * 100).clamp(0, 100).toDouble();
-    return Column(
-      children: [
-        Row(
+    return AnimatedStatText(
+      value: (rate * 100).clamp(0, 100).toDouble(),
+      delay: animationDelay,
+      builder: (context, animatedPercent) {
+        final percent = animatedPercent.clamp(0, 100).toDouble();
+        return Column(
           children: [
-            Expanded(
-              child: Text(label, style: Theme.of(context).textTheme.bodySmall),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    label,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+                Text(
+                  '${percent.toStringAsFixed(1)}%',
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
+              ],
             ),
-            Text(
-              '${percent.toStringAsFixed(1)}%',
-              style: Theme.of(context).textTheme.labelMedium,
+            const SizedBox(height: 6),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(999),
+              child: LinearProgressIndicator(
+                value: percent / 100,
+                minHeight: 8,
+                backgroundColor: color.applyOpacity(0.15),
+                valueColor: AlwaysStoppedAnimation<Color>(color),
+              ),
             ),
           ],
-        ),
-        const SizedBox(height: 6),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(999),
-          child: LinearProgressIndicator(
-            value: percent / 100,
-            minHeight: 8,
-            backgroundColor: color.applyOpacity(0.15),
-            valueColor: AlwaysStoppedAnimation<Color>(color),
-          ),
-        ),
-      ],
+        );
+      },
     );
   }
 }
@@ -844,8 +901,10 @@ class _OrderStatisticsCard extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    Text(
-                      '$totalOrders đơn trong kỳ',
+                    AnimatedIntText(
+                      value: totalOrders,
+                      suffix: ' đơn trong kỳ',
+                      delay: Duration.zero,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -866,8 +925,10 @@ class _OrderStatisticsCard extends StatelessWidget {
                     children: [
                       const Icon(Icons.verified, size: 16, color: Colors.teal),
                       const SizedBox(width: 4),
-                      Text(
-                        '${completionRate.toStringAsFixed(1)}% thành công',
+                      AnimatedPercentText(
+                        value: completionRate,
+                        suffix: '% thành công',
+                        delay: kNumberAnimStagger,
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: Colors.teal.shade800,
                           fontWeight: FontWeight.w600,
@@ -892,26 +953,28 @@ class _OrderStatisticsCard extends StatelessWidget {
                       width: tileWidth,
                       icon: Icons.task_alt_outlined,
                       label: 'Thành công',
-                      value: '${stats.completedOrders}',
+                      count: stats.completedOrders,
                       color: Colors.green,
-                      subtitle:
-                          '${completionRate.toStringAsFixed(1)}% tổng đơn',
+                      percent: completionRate,
+                      animationDelay: kNumberAnimStagger * 2,
                     ),
                     _OrderStatTile(
                       width: tileWidth,
                       icon: Icons.verified_outlined,
                       label: 'Hoàn tiền',
-                      value: '${stats.refundedOrders}',
+                      count: stats.refundedOrders,
                       color: Colors.orange,
-                      subtitle: '${refundedRate.toStringAsFixed(1)}% tổng đơn',
+                      percent: refundedRate,
+                      animationDelay: kNumberAnimStagger * 3,
                     ),
                     _OrderStatTile(
                       width: tileWidth,
                       icon: Icons.cancel_outlined,
                       label: 'Đã hủy',
-                      value: '${stats.cancelledOrders}',
+                      count: stats.cancelledOrders,
                       color: Colors.red,
-                      subtitle: '${cancelledRate.toStringAsFixed(1)}% tổng đơn',
+                      percent: cancelledRate,
+                      animationDelay: kNumberAnimStagger * 4,
                     ),
                   ],
                 );
@@ -929,17 +992,19 @@ class _OrderStatTile extends StatelessWidget {
     required this.width,
     required this.icon,
     required this.label,
-    required this.value,
+    required this.count,
     required this.color,
-    this.subtitle,
+    required this.percent,
+    this.animationDelay = Duration.zero,
   });
 
   final double width;
   final IconData icon;
   final String label;
-  final String value;
-  final String? subtitle;
+  final int count;
+  final double percent;
   final Color color;
+  final Duration animationDelay;
 
   @override
   Widget build(BuildContext context) {
@@ -976,22 +1041,23 @@ class _OrderStatTile extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    value,
+                  AnimatedIntText(
+                    value: count,
+                    delay: animationDelay,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                       color: color,
                     ),
                   ),
-                  if (subtitle != null) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle!,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                  const SizedBox(height: 2),
+                  AnimatedPercentText(
+                    value: percent,
+                    suffix: '% tổng đơn',
+                    delay: animationDelay + const Duration(milliseconds: 120),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
-                  ],
+                  ),
                 ],
               ),
             ),
@@ -1010,7 +1076,6 @@ class _AccountRenewalCostTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final total = CurrencyHelper.formatCurrency(cost.totalAmount);
     return Card(
       elevation: 0,
       margin: const EdgeInsets.only(bottom: 8),
@@ -1058,8 +1123,9 @@ class _AccountRenewalCostTile extends StatelessWidget {
                 ],
               ),
             ),
-            Text(
-              total,
+            AnimatedCurrencyText(
+              value: cost.totalAmount,
+              delay: kNumberAnimStagger * 5,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: theme.colorScheme.secondary,
@@ -1091,8 +1157,9 @@ class _AccountRenewalCostTile extends StatelessWidget {
                         '${DateFormat('dd/MM/yyyy').format(tx.createdAt)} • ${tx.status}',
                         style: theme.textTheme.bodySmall,
                       ),
-                      trailing: Text(
-                        CurrencyHelper.formatCurrency(tx.amount),
+                      trailing: AnimatedCurrencyText(
+                        value: tx.amount,
+                        delay: kNumberAnimStagger * 6,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: theme.colorScheme.primary,

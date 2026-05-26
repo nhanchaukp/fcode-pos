@@ -1,4 +1,5 @@
 import 'package:fcode_pos/ui/components/copyable_icon_text.dart';
+import 'package:fcode_pos/ui/components/skeleton.dart';
 import 'package:fcode_pos/enums.dart' as enums;
 import 'package:fcode_pos/utils/functions.dart';
 import 'package:fcode_pos/utils/image_clipboard.dart';
@@ -417,11 +418,11 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
   }
 
   Widget _buildBody() {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+    if (_isLoading && _order == null) {
+      return const _OrderDetailSkeleton();
     }
 
-    if (_error != null) {
+    if (_error != null && _order == null) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -451,6 +452,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
 
     return Column(
       children: [
+        if (_isLoading) const LinearProgressIndicator(minHeight: 2),
         // Card thông tin đơn hàng
         _buildOrderInfoCard(order),
 
@@ -1473,5 +1475,136 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
     if (mounted) {
       Toastr.success('Đã copy thông tin tài khoản');
     }
+  }
+}
+
+class _OrderDetailSkeleton extends StatelessWidget {
+  const _OrderDetailSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SkeletonLine(height: 18, widthFactor: 0.55),
+                        SizedBox(height: 10),
+                        SkeletonLine(height: 13, widthFactor: 0.72),
+                        SizedBox(height: 6),
+                        SkeletonLine(height: 13, widthFactor: 0.48),
+                      ],
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  SkeletonBox(width: 108, height: 36, radius: 999),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SkeletonLine(height: 12, widthFactor: 0.35),
+                        SizedBox(height: 6),
+                        SkeletonLine(height: 12, widthFactor: 0.3),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      SkeletonLine(height: 11, widthFactor: 0.2),
+                      SizedBox(height: 6),
+                      SkeletonBox(width: 96, height: 22, radius: 4),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              const SkeletonLine(height: 11, widthFactor: 0.85),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: List.generate(
+              3,
+              (index) => Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(left: index == 0 ? 0 : 6),
+                  child: SkeletonBox(
+                    height: 48,
+                    radius: 8,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: ListView.separated(
+            padding: const EdgeInsets.only(top: 4, bottom: 88),
+            itemCount: 4,
+            separatorBuilder: (_, _) => Divider(
+              height: 1,
+              color: colorScheme.outlineVariant.applyOpacity(0.35),
+            ),
+            itemBuilder: (_, _) => const _OrderProductItemSkeleton(),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _OrderProductItemSkeleton extends StatelessWidget {
+  const _OrderProductItemSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SkeletonLine(height: 14, widthFactor: 0.68),
+          SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(child: SkeletonLine(height: 12, widthFactor: 0.5)),
+              SizedBox(width: 12),
+              SkeletonBox(width: 72, height: 12, radius: 4),
+            ],
+          ),
+          SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(child: SkeletonLine(height: 12, widthFactor: 0.35)),
+              SizedBox(width: 12),
+              SkeletonBox(width: 80, height: 14, radius: 4),
+            ],
+          ),
+          SizedBox(height: 10),
+          SkeletonBox(height: 52, radius: 10),
+        ],
+      ),
+    );
   }
 }

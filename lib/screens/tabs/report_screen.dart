@@ -2,8 +2,9 @@ import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/financial/financial_report_screen.dart';
 import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/services/order_service.dart';
+import 'package:fcode_pos/ui/components/animated_stat_text.dart';
+import 'package:fcode_pos/ui/components/skeleton.dart';
 import 'package:fcode_pos/ui/dashboard/dashboard_components.dart';
-import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -60,7 +61,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _OrderStatConfig(
         icon: Icons.check_circle_outlined,
         title: 'Đã thanh toán',
-        value: '${_stats!.paymentSuccessOrderCount}',
+        count: _stats!.paymentSuccessOrderCount,
         gradient: const LinearGradient(
           colors: [Color(0xFF11998e), Color(0xFF38ef7d)],
           begin: Alignment.topLeft,
@@ -70,7 +71,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _OrderStatConfig(
         icon: Icons.done_all_outlined,
         title: 'Hoàn thành',
-        value: '${_stats!.completeOrderCount}',
+        count: _stats!.completeOrderCount,
         gradient: const LinearGradient(
           colors: [Color(0xFF0cebeb), Color(0xFF20e3b2)],
           begin: Alignment.topLeft,
@@ -80,7 +81,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _OrderStatConfig(
         icon: Icons.fiber_new_outlined,
         title: 'Đơn mới',
-        value: '${_stats!.newOrderCount}',
+        count: _stats!.newOrderCount,
         gradient: const LinearGradient(
           colors: [Color(0xFF4facfe), Color(0xFF00f2fe)],
           begin: Alignment.topLeft,
@@ -90,7 +91,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _OrderStatConfig(
         icon: Icons.shopping_bag_outlined,
         title: 'Tổng đơn hàng',
-        value: '${_stats!.totalOrdersCount}',
+        count: _stats!.totalOrdersCount,
         gradient: const LinearGradient(
           colors: [Color(0xFF667eea), Color(0xFF764ba2)],
           begin: Alignment.topLeft,
@@ -123,6 +124,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final statValueStyle = theme.textTheme.headlineSmall?.copyWith(
+      color: Colors.white,
+      fontWeight: FontWeight.bold,
+      height: 1.2,
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Báo cáo'),
@@ -141,13 +149,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       ),
       body: SafeArea(
-        child: _isLoading && _stats == null
-            ? const Center(child: CircularProgressIndicator())
-            : Column(
-                children: [
-                  if (_isLoading) const LinearProgressIndicator(minHeight: 2),
-                  Expanded(
-                    child: _error != null && _stats == null
+        child: _error != null && _stats == null
             ? Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -168,105 +170,112 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ],
                 ),
               )
-            : RefreshIndicator(
-                onRefresh: _loadStats,
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Date Range Display
-                      Card(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        child: InkWell(
-                          onTap: _selectDateRange,
-                          borderRadius: BorderRadius.circular(12),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.calendar_today,
-                                  size: 18,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    'Từ ${_formatDate(_fromDate)} đến ${_formatDate(_toDate)}',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.copyWith(fontWeight: FontWeight.w500),
+            : Column(
+                children: [
+                  if (_isLoading) const LinearProgressIndicator(minHeight: 2),
+                  Expanded(
+                    child: RefreshIndicator(
+                      onRefresh: _loadStats,
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Card(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              child: InkWell(
+                                onTap: _isLoading ? null : _selectDateRange,
+                                borderRadius: BorderRadius.circular(12),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.calendar_today,
+                                        size: 18,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(
+                                          'Từ ${_formatDate(_fromDate)} đến ${_formatDate(_toDate)}',
+                                          style: theme.textTheme.bodyMedium
+                                              ?.copyWith(
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                      Icon(
+                                        Icons.chevron_right,
+                                        size: 20,
+                                        color: theme
+                                            .colorScheme.onSurfaceVariant,
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                Icon(
-                                  Icons.chevron_right,
-                                  size: 20,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      // Revenue & Profit Group Card
-                      if (_stats != null)
-                        Column(
-                          children: [
-                            SizedBox(
-                              width: double.infinity,
-                              child: GradientStatCard(
-                                title: 'Doanh thu',
-                                value: CurrencyHelper.formatCurrency(
-                                  _stats!.totalMoney,
-                                ),
-                                percentage: '',
-                                icon: Icons.attach_money_outlined,
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    Color(0xFFf093fb),
-                                    Color(0xFFf5576c),
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
                               ),
                             ),
-                            const SizedBox(height: 12),
-                            SizedBox(
-                              width: double.infinity,
-                              child: GradientStatCard(
-                                title: 'Lợi nhuận',
-                                value: CurrencyHelper.formatCurrency(
-                                  _stats!.revenue,
-                                ),
-                                percentage: '',
-                                icon: Icons.payments_outlined,
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    Color(0xFF11998e),
-                                    Color(0xFF38ef7d),
+                            if (_isLoading && _stats == null)
+                              const _DashboardSkeletonContent()
+                            else ...[
+                              if (_stats != null)
+                                Column(
+                                  children: [
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: GradientStatCard(
+                                        title: 'Doanh thu',
+                                        value: AnimatedCurrencyText(
+                                          value: _stats!.totalMoney,
+                                          delay: Duration.zero,
+                                          style: statValueStyle,
+                                        ),
+                                        percentage: '',
+                                        icon: Icons.attach_money_outlined,
+                                        gradient: const LinearGradient(
+                                          colors: [
+                                            Color(0xFFf093fb),
+                                            Color(0xFFf5576c),
+                                          ],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: GradientStatCard(
+                                        title: 'Lợi nhuận',
+                                        value: AnimatedCurrencyText(
+                                          value: _stats!.revenue,
+                                          delay: kNumberAnimStagger,
+                                          style: statValueStyle,
+                                        ),
+                                        percentage: '',
+                                        icon: Icons.payments_outlined,
+                                        gradient: const LinearGradient(
+                                          colors: [
+                                            Color(0xFF11998e),
+                                            Color(0xFF38ef7d),
+                                          ],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
                                   ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
                                 ),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                          ],
-                        ),
-                      // Order Stats 2x2 Grid
-                      LayoutBuilder(
+                              LayoutBuilder(
                         builder: (context, constraints) {
                           final spacing = 12.0;
 
@@ -287,7 +296,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               final config = orderStatConfigs[index];
                               return GradientStatCard(
                                 title: config.title,
-                                value: config.value,
+                                value: AnimatedIntText(
+                                  value: config.count,
+                                  delay: kNumberAnimStagger * (index + 2),
+                                  style: statValueStyle,
+                                ),
                                 percentage: '',
                                 icon: config.icon,
                                 gradient: config.gradient,
@@ -295,24 +308,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             },
                           );
                         },
-                      ),
-                      const SizedBox(height: 20),
-                      // Expiring orders (order-related)
-                      DashboardSection(
-                        title: 'Đơn hàng sắp hết hạn',
-                        children: [
-                          if (_stats?.ordersExpiringSoon == null ||
-                              _stats!.ordersExpiringSoon!.count == 0)
-                            Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Text(
-                                'Không có đơn hàng sắp hết hạn',
-                                style: Theme.of(context).textTheme.bodyMedium,
                               ),
-                            )
-                          else
-                            ..._stats!.ordersExpiringSoon!.orders.map(
-                              (order) => Card(
+                              const SizedBox(height: 20),
+                              DashboardSection(
+                                title: 'Đơn hàng sắp hết hạn',
+                                children: [
+                                  if (_stats?.ordersExpiringSoon == null ||
+                                      _stats!.ordersExpiringSoon!.count == 0)
+                                    Padding(
+                                      padding: const EdgeInsets.all(16),
+                                      child: Text(
+                                        'Không có đơn hàng sắp hết hạn',
+                                        style:
+                                            Theme.of(context).textTheme.bodyMedium,
+                                      ),
+                                    )
+                                  else
+                                    ..._stats!.ordersExpiringSoon!.orders.map(
+                                      (order) => Card(
                                 elevation: 0,
                                 margin: const EdgeInsets.only(bottom: 12),
                                 child: InkWell(
@@ -379,8 +392,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                               .onSurfaceVariant,
                                                         ),
                                                   ),
-                                                  Text(
-                                                    '${order.itemsCount} sản phẩm',
+                                                  AnimatedIntText(
+                                                    value: order.itemsCount,
+                                                    suffix: ' sản phẩm',
+                                                    delay: kNumberAnimStagger * 2,
                                                     style: Theme.of(context)
                                                         .textTheme
                                                         .bodySmall
@@ -496,27 +511,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                           999,
                                                         ),
                                                   ),
-                                                  child: Text(
-                                                    item.daysRemaining == 0
-                                                        ? 'Hôm nay'
-                                                        : '${item.daysRemaining} ngày',
-                                                    style: Theme.of(context)
-                                                        .textTheme
-                                                        .labelSmall
-                                                        ?.copyWith(
-                                                          color:
-                                                              item.daysRemaining ==
-                                                                  0
-                                                              ? Colors
+                                                  child: item.daysRemaining == 0
+                                                      ? Text(
+                                                          'Hôm nay',
+                                                          style: Theme.of(context)
+                                                              .textTheme
+                                                              .labelSmall
+                                                              ?.copyWith(
+                                                                color: Colors
                                                                     .red
-                                                                    .shade800
-                                                              : Colors
+                                                                    .shade800,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                              ),
+                                                        )
+                                                      : AnimatedIntText(
+                                                          value: item
+                                                              .daysRemaining,
+                                                          suffix: ' ngày',
+                                                          delay:
+                                                              kNumberAnimStagger *
+                                                                  3,
+                                                          style: Theme.of(context)
+                                                              .textTheme
+                                                              .labelSmall
+                                                              ?.copyWith(
+                                                                color: Colors
                                                                     .orange
                                                                     .shade800,
-                                                          fontWeight:
-                                                              FontWeight.w600,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                              ),
                                                         ),
-                                                  ),
                                                 ),
                                               ],
                                             ),
@@ -528,13 +556,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ),
                               ),
                             ),
-                        ],
+                                ],
+                              ),
+                              const SizedBox(height: 24),
+                            ],
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 24),
-                    ],
-                  ),
-                ),
-              ),
+                    ),
                   ),
                 ],
               ),
@@ -543,16 +572,52 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
+class _DashboardSkeletonContent extends StatelessWidget {
+  const _DashboardSkeletonContent();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SkeletonGradientStatCard(),
+        const SizedBox(height: 12),
+        const SkeletonGradientStatCard(),
+        const SizedBox(height: 16),
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 1.8,
+          children: List.generate(
+            4,
+            (_) => const SkeletonGradientStatCard(),
+          ),
+        ),
+        const SizedBox(height: 20),
+        const SkeletonLine(height: 16, widthFactor: 0.48),
+        const SizedBox(height: 12),
+        const SkeletonListTile(),
+        const SizedBox(height: 12),
+        const SkeletonListTile(),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+}
+
 class _OrderStatConfig {
   const _OrderStatConfig({
     required this.icon,
     required this.title,
-    required this.value,
+    required this.count,
     required this.gradient,
   });
 
   final IconData icon;
   final String title;
-  final String value;
+  final int count;
   final Gradient gradient;
 }
