@@ -14,6 +14,7 @@ class AccountSlotService {
     String? serviceType,
     String? search,
     int? daysRemaining,
+    bool? isFreeSlot,
   }) {
     return _api.get<List<AccountMaster>>(
       '/account-slots',
@@ -23,6 +24,7 @@ class AccountSlotService {
         if (serviceType != null) 'service_type': serviceType.toLowerCase(),
         if (search != null) 'search': search,
         if (daysRemaining != null) 'days_remaining': daysRemaining,
+        if (isFreeSlot != null) 'is_free_slot': isFreeSlot,
       },
       parser: (json) => _parseAccountMasterList(json),
     );
@@ -60,10 +62,7 @@ class AccountSlotService {
   }) {
     return _api.get<PaginatedData<Auditable>>(
       '/account-slots/$slotId/audits',
-      queryParameters: {
-        'page': page,
-        'per_page': perPage,
-      },
+      queryParameters: {'page': page, 'per_page': perPage},
       parser: (json) => PaginatedData<Auditable>.fromJson(
         ensureMap(json),
         (item) => Auditable.fromJson(ensureMap(item)),

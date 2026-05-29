@@ -94,6 +94,31 @@ class FcodePosApp extends ConsumerWidget {
         elevation: 0,
         surfaceTintColor: Colors.transparent,
       ),
+      // Chip: viền tĩnh để luôn nhìn thấy; color theo state để phân biệt
+      // selected (primaryContainer) vs unselected (surfaceContainerLow).
+      chipTheme: base.chipTheme.copyWith(
+        side: BorderSide(color: colorScheme.outlineVariant, width: 0.5),
+        shape: RoundedRectangleBorder(borderRadius: br),
+        color: WidgetStateProperty.resolveWith<Color?>((states) {
+          if (states.contains(WidgetState.selected)) {
+            return colorScheme.primaryContainer;
+          }
+          return colorScheme.surfaceContainerLow;
+        }),
+      ),
+      // Switch ở trạng thái off có track outline rõ ràng.
+      switchTheme: base.switchTheme.copyWith(
+        trackOutlineColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return Colors.transparent;
+          }
+          return colorScheme.outline.withValues(alpha: 0.6);
+        }),
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return null;
+          return colorScheme.surfaceContainer;
+        }),
+      ),
       extensions: {palette.colors},
     );
   }

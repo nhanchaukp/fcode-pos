@@ -30,10 +30,10 @@ class InvoiceBuyer {
     return InvoiceBuyer(
       id: asIntOrNull(map['id']),
       name: map['name']?.toString() ?? '',
-      legalName: map['legal_name']?.toString(),
-      buyerCode: map['buyer_code']?.toString(),
-      nationalId: map['national_id']?.toString(),
-      taxCode: map['tax_code']?.toString(),
+      legalName: map['legalName']?.toString(),
+      buyerCode: map['buyerCode']?.toString(),
+      nationalId: map['nationalId']?.toString(),
+      taxCode: map['taxCode']?.toString(),
       address: map['address']?.toString(),
       email: map['email']?.toString(),
       phone: map['phone']?.toString(),
@@ -126,6 +126,8 @@ class Invoice {
     this.pdfUrl,
     this.xmlUrl,
     required this.status,
+    this.documentTypeValue,
+    this.providerStatusValue,
     required this.buyer,
     required this.totalBeforeTax,
     required this.taxAmount,
@@ -142,6 +144,14 @@ class Invoice {
 
   /// Known values: draft, issued, cancelled. May extend in the future.
   final String status;
+
+  final int? documentTypeValue;
+  final int? providerStatusValue;
+
+  InvoiceDocumentType? get invoiceDocumentType =>
+      InvoiceDocumentType.fromValue(documentTypeValue);
+  InvoiceProviderStatus? get invoiceProviderStatus =>
+      InvoiceProviderStatus.fromValue(providerStatusValue);
 
   final InvoiceBuyer buyer;
   final int totalBeforeTax;
@@ -165,6 +175,8 @@ class Invoice {
       pdfUrl: map['pdf_url']?.toString(),
       xmlUrl: map['xml_url']?.toString(),
       status: map['status']?.toString() ?? '',
+      documentTypeValue: asIntOrNull(map['document_type']),
+      providerStatusValue: asIntOrNull(map['provider_status']),
       buyer: InvoiceBuyer.fromJson(ensureMap(map['buyer'])),
       totalBeforeTax: asInt(map['total_before_tax']),
       taxAmount: asInt(map['tax_amount']),
@@ -186,6 +198,8 @@ class Invoice {
     'pdf_url': pdfUrl,
     'xml_url': xmlUrl,
     'status': status,
+    if (documentTypeValue != null) 'document_type': documentTypeValue,
+    if (providerStatusValue != null) 'provider_status': providerStatusValue,
     'buyer': buyer.toMap(),
     'total_before_tax': totalBeforeTax,
     'tax_amount': taxAmount,

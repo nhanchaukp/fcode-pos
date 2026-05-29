@@ -35,6 +35,7 @@ class _AccountSlotManagementScreenState
   // Filters
   enums.AccountMasterServiceType? _selectedServiceType;
   bool? _selectedIsActive;
+  bool _selectedIsFreeSlot = false;
   String _searchQuery = '';
   int? _selectedDaysRemaining; // null means "Tất cả"
 
@@ -76,6 +77,7 @@ class _AccountSlotManagementScreenState
         isActive: _selectedIsActive,
         search: _searchQuery.isEmpty ? null : _searchQuery,
         daysRemaining: _selectedDaysRemaining,
+        isFreeSlot: _selectedIsFreeSlot ? true : null,
       );
 
       if (!mounted) return;
@@ -130,6 +132,7 @@ class _AccountSlotManagementScreenState
     setState(() {
       _selectedServiceType = null;
       _selectedIsActive = null;
+      _selectedIsFreeSlot = false;
       _selectedDaysRemaining = null;
       _searchQuery = '';
       _searchController.clear();
@@ -140,158 +143,181 @@ class _AccountSlotManagementScreenState
   void _showFilterDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Bộ lọc'),
-        content: StatefulBuilder(
-          builder: (context, setDialogState) {
-            return SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Service Type Filter
-                  const Text(
-                    'Loại dịch vụ',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  DropdownButtonFormField<enums.AccountMasterServiceType>(
-                    initialValue: _selectedServiceType,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: 'Tất cả',
-                      isDense: true,
+      builder: (context) {
+        final cs = Theme.of(context).colorScheme;
+        final labelStyle = Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: cs.onSurfaceVariant,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.6,
+        );
+
+        return AlertDialog(
+          titlePadding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          contentPadding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          actionsPadding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+          title: Row(
+            children: [
+              Icon(Icons.filter_list, size: 18, color: cs.primary),
+              const SizedBox(width: 8),
+              const Text('Bộ lọc'),
+              const Spacer(),
+              TextButton(
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                onPressed: () {
+                  _resetFilters();
+                  Navigator.pop(context);
+                },
+                child: const Text('Đặt lại'),
+              ),
+            ],
+          ),
+          content: StatefulBuilder(
+            builder: (context, setDialogState) {
+              return SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Divider(height: 16),
+
+                    // ── Loại dịch vụ ──────────────────────────────────────
+                    Text('LOẠI DỊCH VỤ', style: labelStyle),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: [
+                        ChoiceChip(
+                          label: const Text('Tất cả'),
+                          selected: _selectedServiceType == null,
+                          showCheckmark: false,
+                          labelStyle: const TextStyle(fontSize: 12),
+                          visualDensity: VisualDensity.compact,
+                          onSelected: (_) =>
+                              setDialogState(() => _selectedServiceType = null),
+                        ),
+                        ...enums.AccountMasterServiceType.values.map(
+                          (type) => ChoiceChip(
+                            avatar: Icon(
+                              type.icon,
+                              size: 13,
+                              color: type.color,
+                            ),
+                            label: Text(type.label),
+                            selected: _selectedServiceType == type,
+                            showCheckmark: false,
+                            labelStyle: const TextStyle(fontSize: 12),
+                            visualDensity: VisualDensity.compact,
+                            onSelected: (_) => setDialogState(
+                              () => _selectedServiceType = type,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    items: [
-                      const DropdownMenuItem(
-                        value: null,
-                        child: Text('Tất cả'),
-                      ),
-                      ...enums.AccountMasterServiceType.values.map(
-                        (type) => DropdownMenuItem(
-                          value: type,
-                          child: Text(type.label),
+                    const SizedBox(height: 12),
+
+                    // ── Trạng thái ────────────────────────────────────────
+                    Text('TRẠNG THÁI', style: labelStyle),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 6,
+                      children: [
+                        ChoiceChip(
+                          label: const Text('Tất cả'),
+                          selected: _selectedIsActive == null,
+                          showCheckmark: false,
+                          labelStyle: const TextStyle(fontSize: 12),
+                          visualDensity: VisualDensity.compact,
+                          onSelected: (_) =>
+                              setDialogState(() => _selectedIsActive = null),
+                        ),
+                        ChoiceChip(
+                          label: const Text('Active'),
+                          selected: _selectedIsActive == true,
+                          showCheckmark: false,
+                          labelStyle: const TextStyle(fontSize: 12),
+                          visualDensity: VisualDensity.compact,
+                          onSelected: (_) =>
+                              setDialogState(() => _selectedIsActive = true),
+                        ),
+                        ChoiceChip(
+                          label: const Text('Inactive'),
+                          selected: _selectedIsActive == false,
+                          showCheckmark: false,
+                          labelStyle: const TextStyle(fontSize: 12),
+                          visualDensity: VisualDensity.compact,
+                          onSelected: (_) =>
+                              setDialogState(() => _selectedIsActive = false),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // ── Số ngày còn lại ───────────────────────────────────
+                    Text('SỐ NGÀY CÒN LẠI', style: labelStyle),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 6,
+                      children: [
+                        for (final entry in {
+                          'Tất cả': null,
+                          '≤ 1': 1,
+                          '≤ 3': 3,
+                          '≤ 5': 5,
+                        }.entries)
+                          ChoiceChip(
+                            label: Text(entry.key),
+                            selected: _selectedDaysRemaining == entry.value,
+                            showCheckmark: false,
+                            labelStyle: const TextStyle(fontSize: 12),
+                            visualDensity: VisualDensity.compact,
+                            onSelected: (_) => setDialogState(
+                              () => _selectedDaysRemaining = entry.value,
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+
+                    // ── Slot trống ────────────────────────────────────────
+                    SwitchListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(
+                        'Chỉ hiện TK còn slot trống',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ],
-                    onChanged: (value) {
-                      setDialogState(() {
-                        _selectedServiceType = value;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Active Status Filter
-                  const Text(
-                    'Trạng thái',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  DropdownButtonFormField<bool?>(
-                    initialValue: _selectedIsActive,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: 'Tất cả',
-                      isDense: true,
+                      value: _selectedIsFreeSlot,
+                      onChanged: (v) =>
+                          setDialogState(() => _selectedIsFreeSlot = v),
                     ),
-                    items: const [
-                      DropdownMenuItem(value: null, child: Text('Tất cả')),
-                      DropdownMenuItem(
-                        value: true,
-                        child: Text('Đang hoạt động'),
-                      ),
-                      DropdownMenuItem(
-                        value: false,
-                        child: Text('Không hoạt động'),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      setDialogState(() {
-                        _selectedIsActive = value;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Days Remaining Filter
-                  const Text(
-                    'Số ngày còn lại',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      ChoiceChip(
-                        label: const Text('Tất cả'),
-                        selected: _selectedDaysRemaining == null,
-                        onSelected: (selected) {
-                          setDialogState(() {
-                            _selectedDaysRemaining = null;
-                          });
-                        },
-                      ),
-                      ChoiceChip(
-                        label: const Text('≤ 1 ngày'),
-                        selected: _selectedDaysRemaining == 1,
-                        onSelected: (selected) {
-                          setDialogState(() {
-                            _selectedDaysRemaining = selected ? 1 : null;
-                          });
-                        },
-                      ),
-                      ChoiceChip(
-                        label: const Text('≤ 3 ngày'),
-                        selected: _selectedDaysRemaining == 3,
-                        onSelected: (selected) {
-                          setDialogState(() {
-                            _selectedDaysRemaining = selected ? 3 : null;
-                          });
-                        },
-                      ),
-                      ChoiceChip(
-                        label: const Text('≤ 5 ngày'),
-                        selected: _selectedDaysRemaining == 5,
-                        onSelected: (selected) {
-                          setDialogState(() {
-                            _selectedDaysRemaining = selected ? 5 : null;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              _resetFilters();
-              Navigator.pop(context);
+                  ],
+                ),
+              );
             },
-            child: const Text('Đặt lại'),
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: const Text('Hủy'),
-          ),
-          FilledButton(
-            onPressed: () {
-              setState(() {
-                // Apply the filter values from dialog
-              });
-              _applyFilters();
-              Navigator.pop(context);
-            },
-            child: const Text('Áp dụng'),
-          ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Hủy'),
+            ),
+            FilledButton(
+              onPressed: () {
+                _applyFilters();
+                Navigator.pop(context);
+              },
+              child: const Text('Áp dụng'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -326,7 +352,8 @@ class _AccountSlotManagementScreenState
                 isLabelVisible:
                     _selectedServiceType != null ||
                     _selectedIsActive != null ||
-                    _selectedDaysRemaining != null,
+                    _selectedDaysRemaining != null ||
+                    _selectedIsFreeSlot,
                 child: const Icon(Icons.filter_list),
               ),
               onPressed: _showFilterDialog,
@@ -364,7 +391,8 @@ class _AccountSlotManagementScreenState
           // Active filters display
           if (_selectedServiceType != null ||
               _selectedIsActive != null ||
-              _selectedDaysRemaining != null)
+              _selectedDaysRemaining != null ||
+              _selectedIsFreeSlot)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Wrap(
@@ -400,6 +428,16 @@ class _AccountSlotManagementScreenState
                       onDeleted: () {
                         setState(() {
                           _selectedDaysRemaining = null;
+                        });
+                        _loadAccountMasters();
+                      },
+                    ),
+                  if (_selectedIsFreeSlot)
+                    Chip(
+                      label: const Text('Còn slot trống'),
+                      onDeleted: () {
+                        setState(() {
+                          _selectedIsFreeSlot = false;
                         });
                         _loadAccountMasters();
                       },
@@ -484,6 +522,8 @@ class _AccountSlotManagementScreenState
         accountMaster.slots != null && accountMaster.slots!.isNotEmpty;
     final hasNotes =
         accountMaster.notes != null && accountMaster.notes!.isNotEmpty;
+    final hasCostNotes =
+        accountMaster.costNotes != null && accountMaster.costNotes!.isNotEmpty;
 
     return Card(
       margin: const EdgeInsets.only(top: 8),
@@ -501,8 +541,12 @@ class _AccountSlotManagementScreenState
                     AccountMasterDetailScreen(accountMaster: accountMaster),
               ),
             ),
-            contentPadding:
-                const EdgeInsets.only(left: 16, right: 4, top: 4, bottom: 4),
+            contentPadding: const EdgeInsets.only(
+              left: 16,
+              right: 4,
+              top: 4,
+              bottom: 4,
+            ),
             leading: ServiceBadge(serviceType: accountMaster.serviceType),
             title: Text(
               accountMaster.username,
@@ -518,8 +562,7 @@ class _AccountSlotManagementScreenState
                   accountMaster.isActive ? 'Active' : 'Inactive',
                   style: TextStyle(
                     fontSize: 12,
-                    color:
-                        accountMaster.isActive ? Colors.green : Colors.red,
+                    color: accountMaster.isActive ? Colors.green : Colors.red,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -583,7 +626,11 @@ class _AccountSlotManagementScreenState
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.notes, size: 14, color: colorScheme.onSurfaceVariant),
+                  Icon(
+                    Icons.notes,
+                    size: 14,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
@@ -597,9 +644,36 @@ class _AccountSlotManagementScreenState
                 ],
               ),
             ),
+          if (hasCostNotes)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.receipt_long_outlined,
+                    size: 14,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Chi phí: ${accountMaster.costNotes!}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
           // ── Slots ─────────────────────────────────────────────────────────
-          Divider(height: 1, color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
+          Divider(
+            height: 1,
+            color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
@@ -704,10 +778,8 @@ class _AccountSlotManagementScreenState
                   MaterialPageRoute(
                     builder: (context) => AuditLogScreen(
                       title: slot.name,
-                      fetcher: (page) => _accountSlotService.audits(
-                        slot.id,
-                        page: page,
-                      ),
+                      fetcher: (page) =>
+                          _accountSlotService.audits(slot.id, page: page),
                     ),
                   ),
                 );
@@ -795,15 +867,17 @@ class _AccountSlotManagementScreenState
     bool isLast = false,
   }) {
     final hasOrder = slot.shopOrderItem?.order != null;
-    final customerName = hasOrder ? slot.shopOrderItem?.order?.user?.name : null;
+    final customerName = hasOrder
+        ? slot.shopOrderItem?.order?.user?.name
+        : null;
     final days = slot.daysUntilExpiry;
     final expiryColor = days <= 0
         ? Colors.red
         : days <= 3
-            ? Colors.orange
-            : days <= 7
-                ? Colors.amber.shade700
-                : Colors.green;
+        ? Colors.orange
+        : days <= 7
+        ? Colors.amber.shade700
+        : Colors.green;
 
     final startStr = slot.startDate != null
         ? DateHelper.formatDateShort(slot.startDate!)
@@ -864,23 +938,28 @@ class _AccountSlotManagementScreenState
                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.vpn_key,
-                                      size: 11,
-                                      color: colorScheme.onSurfaceVariant),
+                                  Icon(
+                                    Icons.vpn_key,
+                                    size: 11,
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
                                   const SizedBox(width: 3),
                                   Text(
                                     slot.pin,
                                     style: const TextStyle(
-                                        fontWeight: FontWeight.w600),
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                                 ],
                               ),
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.date_range,
-                                    size: 11,
-                                    color: colorScheme.onSurfaceVariant),
+                                Icon(
+                                  Icons.date_range,
+                                  size: 11,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
                                 const SizedBox(width: 3),
                                 Text('$startStr → $endStr'),
                               ],
@@ -893,8 +972,11 @@ class _AccountSlotManagementScreenState
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            Icon(Icons.person,
-                                size: 11, color: colorScheme.onSurfaceVariant),
+                            Icon(
+                              Icons.person,
+                              size: 11,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
                             const SizedBox(width: 3),
                             Expanded(
                               child: GestureDetector(
@@ -902,8 +984,7 @@ class _AccountSlotManagementScreenState
                                   context,
                                   MaterialPageRoute(
                                     builder: (_) => CustomerDetailScreen(
-                                      user: slot
-                                          .shopOrderItem!.order!.user!,
+                                      user: slot.shopOrderItem!.order!.user!,
                                     ),
                                   ),
                                 ),
@@ -949,7 +1030,9 @@ class _AccountSlotManagementScreenState
                 // Expiry badge
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 6, vertical: 2),
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: expiryColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(6),
@@ -979,7 +1062,6 @@ class _AccountSlotManagementScreenState
 }
 
 // ── Helper widgets ────────────────────────────────────────────────────────────
-
 
 class _StatusDot extends StatelessWidget {
   const _StatusDot({required this.isActive});

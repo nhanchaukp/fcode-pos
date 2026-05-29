@@ -224,6 +224,13 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
   }
 
   Widget _buildInfoSection(BuildContext context, Invoice inv) {
+    final documentTypeLabel =
+        inv.invoiceDocumentType?.label ??
+        (inv.documentTypeValue?.toString() ?? '--');
+    final providerStatusLabel =
+        inv.invoiceProviderStatus?.label ??
+        (inv.providerStatusValue?.toString() ?? '--');
+
     return _DetailCard(
       title: 'Thông tin hóa đơn',
       icon: Icons.receipt_outlined,
@@ -238,6 +245,8 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
           label: 'Ngày phát hành',
           value: DateHelper.formatDate(inv.issuedDate),
         ),
+        _InfoRow(label: 'Loại chứng từ', value: documentTypeLabel),
+        _InfoRow(label: 'Trạng thái CQT', value: providerStatusLabel),
       ],
     );
   }
@@ -380,6 +389,16 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
                   ),
                 ),
               );
+            },
+          ),
+          _LinkTile(
+            label: 'Sao chép URL PDF',
+            icon: Icons.copy_outlined,
+            color: Colors.teal,
+            url: inv.pdfUrl!,
+            onTap: () {
+              Clipboard.setData(ClipboardData(text: inv.pdfUrl!));
+              Toastr.success('Đã sao chép URL PDF.');
             },
           ),
           _LinkTile(

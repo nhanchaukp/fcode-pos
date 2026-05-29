@@ -11,6 +11,8 @@ part 'enums/financial_transaction_category.dart';
 part 'enums/account_master_service_type.dart';
 part 'enums/invoice_currency.dart';
 part 'enums/invoice_status.dart';
+part 'enums/invoice_document_type.dart';
+part 'enums/invoice_provider_status.dart';
 part 'enums/invoice_payment_method.dart';
 part 'enums/invoice_unit.dart';
 part 'enums/mail_log_status.dart';
