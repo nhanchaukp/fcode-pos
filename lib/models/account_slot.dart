@@ -1,5 +1,61 @@
 part of '../models.dart';
 
+class AccessLink {
+  final int id;
+  final int accountSlotId;
+  final String slug;
+  final String url;
+  final bool isActive;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  final int? shopOrderId;
+  final int? accountMasterId;
+
+  AccessLink({
+    required this.id,
+    required this.accountSlotId,
+    required this.slug,
+    required this.url,
+    required this.isActive,
+    this.createdAt,
+    this.updatedAt,
+    this.shopOrderId,
+    this.accountMasterId,
+  });
+
+  factory AccessLink.fromJson(Map<String, dynamic> json) {
+    return AccessLink(
+      id: asInt(json['id']),
+      accountSlotId: asInt(json['account_slot_id']),
+      slug: json['slug']?.toString() ?? '',
+      url: json['url']?.toString() ?? '',
+      isActive: json['is_active'] == true || json['is_active'] == 1,
+      createdAt: json['created_at'] != null
+          ? DateTime.tryParse(json['created_at'].toString())
+          : null,
+      updatedAt: json['updated_at'] != null
+          ? DateTime.tryParse(json['updated_at'].toString())
+          : null,
+      shopOrderId: asIntOrNull(json['shop_order_id']),
+      accountMasterId: asIntOrNull(json['account_master_id']),
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'account_slot_id': accountSlotId,
+      'slug': slug,
+      'url': url,
+      'is_active': isActive,
+      'created_at': createdAt?.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
+      'shop_order_id': shopOrderId,
+      'account_master_id': accountMasterId,
+    };
+  }
+}
+
 class ShopOrderItem {
   final int orderId;
   final Order? order;
@@ -67,6 +123,8 @@ class AccountSlot {
 
   final int daysUntilExpiry;
 
+  final List<AccessLink>? accessLinks;
+
   AccountSlot({
     required this.id,
     required this.accountMasterId,
@@ -84,6 +142,7 @@ class AccountSlot {
     this.shopOrderItem,
     this.color,
     this.daysUntilExpiry = 0,
+    this.accessLinks,
   });
 
   factory AccountSlot.fromJson(Map<String, dynamic> map) {
@@ -118,6 +177,11 @@ class AccountSlot {
           : null,
       color: map['color']?.toString(),
       daysUntilExpiry: asInt(map['days_until_expiry']),
+      accessLinks: map['access_links'] != null
+          ? (map['access_links'] as List<dynamic>)
+                .map((item) => AccessLink.fromJson(ensureMap(item)))
+                .toList()
+          : <AccessLink>[],
     );
   }
 

@@ -54,6 +54,18 @@ class AccountSlotService {
     );
   }
 
+  /// Tạo access link
+  Future<ApiResponse<AccessLink>> createAccessLink(
+    String slotId, {
+    deactiveExisting = false,
+  }) {
+    return _api.post<AccessLink>(
+      '/account-slots/$slotId/access-links',
+      data: {'deactive_existing': deactiveExisting},
+      parser: (json) => AccessLink.fromJson(ensureMap(json)),
+    );
+  }
+
   /// Lấy lịch sử audit của một slot có phân trang.
   Future<ApiResponse<PaginatedData<Auditable>>> audits(
     int slotId, {

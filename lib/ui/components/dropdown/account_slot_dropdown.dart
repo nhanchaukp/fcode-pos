@@ -1,4 +1,5 @@
 import 'package:fcode_pos/models.dart';
+import 'package:fcode_pos/screens/account-master/account_slot_detail_screen.dart';
 import 'package:fcode_pos/services/account_slot_service.dart';
 import 'package:fcode_pos/services/account_master_service.dart';
 import 'package:fcode_pos/ui/components/loading_icon.dart';
@@ -114,37 +115,70 @@ class _AccountSlotDropdownState extends State<AccountSlotDropdown> {
       );
     }
 
-    return TextFormField(
-      controller: TextEditingController(
-        text: _selectedSlot != null
-            ? _buildSlotDisplayName(_selectedSlot!)
-            : '',
-      ),
-      readOnly: true,
-      enabled: widget.enabled,
-      decoration: InputDecoration(
-        labelText: '$label${widget.isRequired ? ' *' : ''}',
-        prefixIcon: const Icon(Icons.account_box_outlined),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        suffixIcon: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (_selectedSlot != null && widget.enabled)
-              IconButton(
-                icon: const Icon(Icons.clear),
-                onPressed: () {
-                  setState(() {
-                    _selectedSlot = null;
-                  });
-                  widget.onChanged?.call(null);
-                },
-              ),
-            if (widget.enabled)
-              IconButton(
-                icon: const Icon(Icons.add),
-                tooltip: 'Thêm slot mới',
-                onPressed: () async {
-                  final newSlot = await showModalBottomSheet<AccountSlot>(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        TextFormField(
+          controller: TextEditingController(
+            text: _selectedSlot != null
+                ? _buildSlotDisplayName(_selectedSlot!)
+                : '',
+          ),
+          readOnly: true,
+          enabled: widget.enabled,
+          decoration: InputDecoration(
+            labelText: '$label${widget.isRequired ? ' *' : ''}',
+            prefixIcon: const Icon(Icons.account_box_outlined),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            suffixIcon: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (_selectedSlot != null && widget.enabled)
+                  IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () {
+                      setState(() {
+                        _selectedSlot = null;
+                      });
+                      widget.onChanged?.call(null);
+                    },
+                  ),
+                if (widget.enabled)
+                  IconButton(
+                    icon: const Icon(Icons.add),
+                    tooltip: 'Thêm slot mới',
+                    onPressed: () async {
+                      final newSlot = await showModalBottomSheet<AccountSlot>(
+                        context: context,
+                        isScrollControlled: true,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(16),
+                          ),
+                        ),
+                        builder: (context) => const _AddSlotSheet(),
+                      );
+                      if (newSlot != null) {
+                        await _loadAvailableSlots(forceIncludeId: newSlot.id);
+                        setState(() {
+                          // Ưu tiên dùng bản slot từ danh sách vừa load (đủ accountMaster, label)
+                          final fromList = _availableSlots
+                              .where((s) => s.id == newSlot.id)
+                              .cast<AccountSlot?>()
+                              .firstOrNull;
+                          _selectedSlot = fromList ?? newSlot;
+                        });
+                        widget.onChanged?.call(_selectedSlot);
+                      }
+                    },
+                  ),
+              ],
+            ),
+          ),
+          onTap: widget.enabled
+              ? () async {
+                  final selected = await showModalBottomSheet<AccountSlot>(
                     context: context,
                     isScrollControlled: true,
                     shape: const RoundedRectangleBorder(
@@ -152,56 +186,62 @@ class _AccountSlotDropdownState extends State<AccountSlotDropdown> {
                         top: Radius.circular(16),
                       ),
                     ),
-                    builder: (context) => const _AddSlotSheet(),
+                    builder: (context) {
+                      return _AccountSlotSelectSheet(
+                        slots: _availableSlots,
+                        selected: _selectedSlot,
+                      );
+                    },
                   );
-                  if (newSlot != null) {
-                    await _loadAvailableSlots(forceIncludeId: newSlot.id);
+                  if (selected != null) {
                     setState(() {
-                      // Ưu tiên dùng bản slot từ danh sách vừa load (đủ accountMaster, label)
-                      final fromList = _availableSlots
-                          .where((s) => s.id == newSlot.id)
-                          .cast<AccountSlot?>()
-                          .firstOrNull;
-                      _selectedSlot = fromList ?? newSlot;
+                      _selectedSlot = selected;
                     });
-                    widget.onChanged?.call(_selectedSlot);
+                    widget.onChanged?.call(selected);
                   }
-                },
+                }
+              : null,
+          validator: (value) {
+            if (widget.validator != null) {
+              return widget.validator!(_selectedSlot);
+            } else if (widget.isRequired && _selectedSlot == null) {
+              return 'Vui lòng chọn account slot';
+            }
+            return null;
+          },
+        ),
+        if (_selectedSlot != null) _buildDetailLink(context),
+      ],
+    );
+  }
+
+  Widget _buildDetailLink(BuildContext context) {
+    final slot = _selectedSlot!;
+    final cs = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => AccountSlotDetailScreen(slot: slot)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.only(top: 4, left: 2),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.open_in_new, size: 12, color: cs.primary),
+            const SizedBox(width: 4),
+            Text(
+              'Xem chi tiết',
+              style: TextStyle(
+                fontSize: 12,
+                color: cs.primary,
+                decoration: TextDecoration.underline,
+                decorationColor: cs.primary,
               ),
+            ),
           ],
         ),
       ),
-      onTap: widget.enabled
-          ? () async {
-              final selected = await showModalBottomSheet<AccountSlot>(
-                context: context,
-                isScrollControlled: true,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                ),
-                builder: (context) {
-                  return _AccountSlotSelectSheet(
-                    slots: _availableSlots,
-                    selected: _selectedSlot,
-                  );
-                },
-              );
-              if (selected != null) {
-                setState(() {
-                  _selectedSlot = selected;
-                });
-                widget.onChanged?.call(selected);
-              }
-            }
-          : null,
-      validator: (value) {
-        if (widget.validator != null) {
-          return widget.validator!(_selectedSlot);
-        } else if (widget.isRequired && _selectedSlot == null) {
-          return 'Vui lòng chọn account slot';
-        }
-        return null;
-      },
     );
   }
 }

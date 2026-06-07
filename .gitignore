@@ -84,3 +84,5 @@ fastlane/sign&cert
 ._*
 *.bak
 .claude/
+# Environment dart defines
+dart_defines/

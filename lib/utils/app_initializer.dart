@@ -8,7 +8,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:toastr_flutter/toastr.dart'
     show
-        ToastrHelper,
+        Toastr,
         ToastrHideMethod,
         ToastrPosition,
         ToastrShowMethod,
@@ -41,7 +41,7 @@ class AppInitializer {
         WidgetsBinding.instance.platformDispatcher.platformBrightness ==
             Brightness.dark,
     };
-    ToastrHelper.configure(
+    Toastr.configure(
       position: ToastrPosition.topCenter,
       showMethod: ToastrShowMethod.slideDown,
       hideMethod: ToastrHideMethod.slideUp,

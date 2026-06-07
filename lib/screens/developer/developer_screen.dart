@@ -1,8 +1,8 @@
-import 'package:fcode_pos/utils/snackbar_helper.dart';
+import 'package:fcode_pos/utils/snackbar_helper.dart' hide Toastr;
 import 'package:flutter/material.dart';
 import 'package:toastr_flutter/toastr.dart'
     show
-        ToastrHelper,
+        Toastr,
         ToastrPosition,
         ToastrShowMethod,
         ToastrHideMethod,
@@ -26,7 +26,7 @@ class _DeveloperScreenState extends State<DeveloperScreen> {
   Duration _duration = const Duration(seconds: 3);
 
   void _applyGlobal() {
-    ToastrHelper.configure(
+    Toastr.configure(
       position: _position,
       showMethod: _showMethod,
       hideMethod: _hideMethod,
@@ -101,8 +101,7 @@ class _DeveloperScreenState extends State<DeveloperScreen> {
                   icon: Icons.text_fields,
                   label: 'Blank',
                   color: colorScheme.onSurfaceVariant,
-                  onTap: () =>
-                      ToastrHelper.blank('Đây là toast không có icon.'),
+                  onTap: () => Toastr.blank('Đây là toast không có icon.'),
                 ),
               ],
             ),
@@ -192,7 +191,7 @@ class _DeveloperScreenState extends State<DeveloperScreen> {
               Expanded(
                 child: FilledButton.icon(
                   onPressed: () {
-                    ToastrHelper.custom(
+                    Toastr.custom(
                       ToastrConfig(
                         type: ToastrType.success,
                         message: 'Preview với config hiện tại',
@@ -226,13 +225,13 @@ class _DeveloperScreenState extends State<DeveloperScreen> {
                 _actionTile(
                   icon: Icons.clear,
                   label: 'Xóa toast cuối',
-                  onTap: ToastrHelper.clearLast,
+                  onTap: Toastr.clearLast,
                 ),
                 _divider(),
                 _actionTile(
                   icon: Icons.clear_all,
                   label: 'Xóa tất cả toast',
-                  onTap: ToastrHelper.clearAll,
+                  onTap: Toastr.clearAll,
                 ),
               ],
             ),

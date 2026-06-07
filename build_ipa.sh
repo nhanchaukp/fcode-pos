@@ -8,8 +8,15 @@ cd "$PROJECT_ROOT"
 echo "==> Bump pub version (patch)"
 pubversion patch
 
-echo "==> Build Flutter IPA"
-flutter build ipa
+echo "==> Flutter pub get"
+flutter pub get
+
+echo "==> Pod install"
+(cd ios && pod install)
+
+echo "==> Build Flutter IPA (production)"
+DART_DEFINES=$(jq -r 'to_entries[] | "--dart-define=\(.key)=\(.value)"' "$PROJECT_ROOT/dart_defines/prod.json" | tr '\n' ' ')
+flutter build ipa --no-pub $DART_DEFINES
 
 ARCHIVE_PRODUCTS_DIR="build/ios/archive/Runner.xcarchive/Products"
 APPLICATIONS_DIR="$ARCHIVE_PRODUCTS_DIR/Applications"
@@ -26,7 +33,6 @@ if [[ -d "$PAYLOAD_DIR" ]]; then
 fi
 mv "$APPLICATIONS_DIR" "$PAYLOAD_DIR"
 
-APP_VERSION="$(grep '^version:' pubspec.yaml | awk '{print $2}')"
 IPA_NAME="fcodepos.ipa"
 IPA_TMP_ZIP="${IPA_NAME}.zip"
 

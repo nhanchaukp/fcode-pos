@@ -4,6 +4,7 @@ import 'package:fcode_pos/screens/audit/audit_log_screen.dart';
 import 'package:fcode_pos/screens/customer/customer_detail_screen.dart';
 import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/screens/account-master/account_master_detail_screen.dart';
+import 'package:fcode_pos/screens/account-master/account_slot_detail_screen.dart';
 import 'package:fcode_pos/screens/account-master/account_master_expense_create_screen.dart';
 import 'package:fcode_pos/screens/account-master/account_master_upsert_screen.dart';
 import 'package:fcode_pos/services/account_slot_service.dart';
@@ -727,6 +728,19 @@ class _AccountSlotManagementScreenState
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            ListTile(
+              leading: const Icon(Icons.open_in_new),
+              title: const Text('Xem chi tiết slot'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => AccountSlotDetailScreen(slot: slot),
+                  ),
+                );
+              },
+            ),
             if (hasOrder)
               ListTile(
                 leading: const Icon(Icons.link_off),
@@ -890,6 +904,12 @@ class _AccountSlotManagementScreenState
       mainAxisSize: MainAxisSize.min,
       children: [
         InkWell(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => AccountSlotDetailScreen(slot: slot),
+            ),
+          ),
           onLongPress: () => _showSlotItemMenu(context, slot, accountMaster),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),

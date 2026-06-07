@@ -15,7 +15,7 @@ class ServiceBadge extends StatelessWidget {
   final double iconSize;
   final double borderRadius;
 
-  static (IconData, Color) getServiceStyle(String serviceType) {
+  static (FaIconData, Color) getServiceStyle(String serviceType) {
     switch (serviceType.toLowerCase()) {
       case 'netflix':
         return (FontAwesomeIcons.tv, const Color(0xFFE50914));

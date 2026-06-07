@@ -2,6 +2,7 @@ import 'package:fcode_pos/enums.dart' as enums;
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/account-master/account_master_expense_create_screen.dart';
 import 'package:fcode_pos/screens/account-master/account_master_upsert_screen.dart';
+import 'package:fcode_pos/screens/account-master/account_slot_detail_screen.dart';
 import 'package:fcode_pos/screens/customer/customer_detail_screen.dart';
 import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/services/account_master_service.dart';
@@ -26,6 +27,10 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
   late TabController _tabController;
   late AccountMasterService _accountMasterService;
 
+  // Fresh account master data
+  late AccountMaster _accountMaster;
+  bool _accountMasterLoading = false;
+
   // Tab 0: Slots
   List<AccountSlot> _slots = [];
   bool _slotsLoading = false;
@@ -41,6 +46,7 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
   @override
   void initState() {
     super.initState();
+    _accountMaster = widget.accountMaster;
     _tabController = TabController(length: 2, vsync: this);
     _accountMasterService = AccountMasterService();
 
@@ -53,14 +59,35 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
       }
     });
 
-    // Load slots initially (first tab is active)
-    _loadSlots();
+    // Fetch fresh data from service, then load slots
+    _fetchAccountMaster();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchAccountMaster() async {
+    if (!mounted) return;
+    setState(() => _accountMasterLoading = true);
+
+    try {
+      final response = await _accountMasterService.getById(
+        widget.accountMaster.id,
+      );
+      if (!mounted) return;
+      setState(() {
+        _accountMaster = response.data ?? _accountMaster;
+        _accountMasterLoading = false;
+      });
+      _loadSlots();
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _accountMasterLoading = false);
+      _loadSlots();
+    }
   }
 
   Future<void> _loadSlots() async {
@@ -74,7 +101,7 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
 
     try {
       setState(() {
-        _slots = widget.accountMaster.slots ?? [];
+        _slots = _accountMaster.slots ?? [];
         _slotsLoading = false;
         _slotsLoaded = true;
       });
@@ -125,7 +152,7 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
       context,
       MaterialPageRoute(
         builder: (context) => AccountMasterExpenseCreateScreen(
-          accountMaster: widget.accountMaster,
+          accountMaster: _accountMaster,
         ),
       ),
     );
@@ -145,7 +172,7 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
       context,
       MaterialPageRoute(
         builder: (context) =>
-            AccountMasterUpsertScreen(accountMaster: widget.accountMaster),
+            AccountMasterUpsertScreen(accountMaster: _accountMaster),
       ),
     );
     if (result == true) {
@@ -162,7 +189,7 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (context) => _AddSlotSheet(accountMaster: widget.accountMaster),
+      builder: (context) => _AddSlotSheet(accountMaster: _accountMaster),
     );
     if (newSlot != null) {
       // Reload slots
@@ -177,7 +204,7 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.accountMaster.name),
+        title: Text(_accountMaster.name),
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
@@ -249,7 +276,10 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
       child: Column(
         children: [
           // Account Master Details Section
-          _buildAccountDetailsCard(),
+          if (_accountMasterLoading)
+            const LinearProgressIndicator()
+          else
+            _buildAccountDetailsCard(),
           const SizedBox(height: 16),
           // Slots Section
           Padding(
@@ -301,7 +331,7 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
   }
 
   Widget _buildAccountDetailsCard() {
-    final accountMaster = widget.accountMaster;
+    final accountMaster = _accountMaster;
     final serviceTypeLabel = enums.AccountMasterServiceType.values
         .firstWhere(
           (type) => type.value == accountMaster.serviceType,
@@ -375,7 +405,15 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
         ? slot.shopOrderItem?.order?.user?.name
         : null;
 
-    return Container(
+    return InkWell(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AccountSlotDetailScreen(slot: slot),
+        ),
+      ),
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -498,6 +536,7 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
             ),
           ],
         ],
+      ),
       ),
     );
   }

@@ -23,6 +23,13 @@ class AccountMasterService {
     );
   }
 
+  Future<ApiResponse<AccountMaster>> getById(int id) {
+    return _api.get<AccountMaster>(
+      '/account-master/$id',
+      parser: (json) => AccountMaster.fromJson(json as Map<String, dynamic>),
+    );
+  }
+
   Future<ApiResponse<AccountMaster>> create(AccountMaster accountMaster) {
     return _api.post<AccountMaster>(
       '/account-master',
