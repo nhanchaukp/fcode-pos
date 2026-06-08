@@ -1,4 +1,5 @@
 import 'package:fcode_pos/models.dart';
+import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:fcode_pos/services/invoice_service.dart';
 import 'package:fcode_pos/utils/extensions.dart';
 import 'package:flutter/material.dart';
@@ -150,12 +151,7 @@ class _InvoiceProviderDetailScreenState
                   trailing: GestureDetector(
                     onTap: () {
                       Clipboard.setData(ClipboardData(text: a.id));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Đã sao chép ID'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
+                      Toastr.success('Đã sao chép ID', context: context);
                     },
                     child: Icon(
                       Icons.copy_outlined,

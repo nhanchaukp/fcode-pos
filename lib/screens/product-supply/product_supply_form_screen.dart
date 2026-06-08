@@ -102,10 +102,9 @@ class _ProductSupplyFormScreenState extends State<ProductSupplyFormScreen> {
 
       if (!mounted) return;
 
-      _showSuccessSnackBar(
-        _isEditMode
-            ? 'Cập nhật giá nhập thành công'
-            : 'Thêm giá nhập thành công',
+      Toastr.success(
+        _isEditMode ? 'Cập nhật giá nhập thành công' : 'Thêm giá nhập thành công',
+        context: context,
       );
 
       Navigator.of(context).pop(true);
@@ -123,12 +122,6 @@ class _ProductSupplyFormScreenState extends State<ProductSupplyFormScreen> {
         setState(() => _isSaving = false);
       }
     }
-  }
-
-  void _showSuccessSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.green),
-    );
   }
 
   @override

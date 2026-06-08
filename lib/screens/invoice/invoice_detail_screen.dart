@@ -80,12 +80,7 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
               tooltip: 'Sao chép mã tham chiếu',
               onPressed: () {
                 Clipboard.setData(ClipboardData(text: _invoice!.referenceCode));
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Đã sao chép mã tham chiếu'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
+                Toastr.success('Đã sao chép mã tham chiếu', context: context);
               },
             ),
           IconButton(
@@ -567,12 +562,7 @@ class _InfoRow extends StatelessWidget {
                   GestureDetector(
                     onTap: () {
                       Clipboard.setData(ClipboardData(text: value));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Đã sao chép'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
+                      Toastr.success('Đã sao chép', context: context);
                     },
                     child: Icon(
                       Icons.copy_outlined,

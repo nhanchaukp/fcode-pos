@@ -6,7 +6,7 @@ import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/services/account_master_service.dart';
 import 'package:fcode_pos/services/account_slot_service.dart';
 import 'package:fcode_pos/ui/components/app_tab.dart';
-import 'package:fcode_pos/ui/components/loading_icon.dart';
+import 'package:fcode_pos/ui/components/slot_edit_sheet.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:fcode_pos/utils/string_helper.dart';
@@ -193,14 +193,10 @@ class _AccountSlotDetailScreenState extends State<AccountSlotDetailScreen>
   }
 
   void _showEditSlot() async {
-    final result = await showModalBottomSheet<AccountSlot>(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) =>
-          _EditSlotSheet(slot: _slot, accountMasterService: _masterService),
+    final result = await showSlotEditSheet(
+      context,
+      slot: _slot,
+      service: _masterService,
     );
     if (result != null && mounted) {
       setState(() => _slot = result);
@@ -216,13 +212,25 @@ class _AccountSlotDetailScreenState extends State<AccountSlotDetailScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          _loading
-              ? 'Đang tải...'
-              : _slot.accountMaster != null
-              ? '${_slot.name} • ${_slot.accountMaster!.name}'
-              : _slot.name,
-        ),
+        title: _loading
+            ? const Text('Đang tải...')
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_slot.accountMaster != null)
+                    Text(
+                      _slot.accountMaster!.name,
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  Text(
+                    _slot.name,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
         actions: [
           if (_loading)
             const Padding(
@@ -1139,149 +1147,6 @@ class _CreateAccessLinkSheetState extends State<_CreateAccessLinkSheet> {
             ),
             const SizedBox(height: 16),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── Edit Slot Sheet ───────────────────────────────────────────────────────────
-
-class _EditSlotSheet extends StatefulWidget {
-  final AccountSlot slot;
-  final AccountMasterService accountMasterService;
-
-  const _EditSlotSheet({
-    required this.slot,
-    required this.accountMasterService,
-  });
-
-  @override
-  State<_EditSlotSheet> createState() => _EditSlotSheetState();
-}
-
-class _EditSlotSheetState extends State<_EditSlotSheet> {
-  final _formKey = GlobalKey<FormState>();
-  late TextEditingController _nameController;
-  late TextEditingController _pinController;
-  bool _isSubmitting = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _nameController = TextEditingController(text: widget.slot.name);
-    _pinController = TextEditingController(text: widget.slot.pin);
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _pinController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _handleSubmit() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() => _isSubmitting = true);
-    try {
-      final response = await widget.accountMasterService.updateSlot(
-        widget.slot.id,
-        name: _nameController.text.trim(),
-        pin: _pinController.text.trim().isEmpty
-            ? null
-            : _pinController.text.trim(),
-      );
-      if (!mounted) return;
-      if (response.success && response.data != null) {
-        Toastr.success('Cập nhật slot thành công', context: context);
-        Navigator.of(context).pop(response.data);
-      } else {
-        Toastr.error(response.message ?? 'Cập nhật thất bại', context: context);
-      }
-    } catch (e) {
-      if (!mounted) return;
-      Toastr.error('Lỗi: ${e.toString()}', context: context);
-    } finally {
-      if (mounted) setState(() => _isSubmitting = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-          left: 16,
-          right: 16,
-          top: 16,
-        ),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  const Text(
-                    'Chỉnh sửa slot',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: 'Tên slot *',
-                  hintText: 'Nhập tên slot',
-                  prefixIcon: const Icon(Icons.label_outline),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Vui lòng nhập tên slot';
-                  }
-                  return null;
-                },
-                textInputAction: TextInputAction.next,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _pinController,
-                decoration: InputDecoration(
-                  labelText: 'PIN',
-                  hintText: 'Nhập PIN (không bắt buộc)',
-                  prefixIcon: const Icon(Icons.pin_outlined),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                textInputAction: TextInputAction.done,
-              ),
-              const SizedBox(height: 24),
-              FilledButton.icon(
-                onPressed: _isSubmitting ? null : _handleSubmit,
-                icon: LoadingIcon(
-                  icon: Icons.check_circle_outline_outlined,
-                  loading: _isSubmitting,
-                ),
-                label: Text(_isSubmitting ? 'Đang cập nhật...' : 'Cập nhật'),
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-          ),
         ),
       ),
     );

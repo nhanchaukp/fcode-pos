@@ -83,10 +83,15 @@ class AccountMasterService {
     int slotId, {
     required String name,
     String? pin,
+    bool isActive = true,
   }) {
     return _api.post<AccountSlot>(
       '/account-master/slots/$slotId',
-      data: {'name': name, if (pin != null && pin.isNotEmpty) 'pin': pin},
+      data: {
+        'name': name,
+        if (pin != null && pin.isNotEmpty) 'pin': pin,
+        'is_active': isActive,
+      },
       parser: (json) => AccountSlot.fromJson(json as Map<String, dynamic>),
     );
   }

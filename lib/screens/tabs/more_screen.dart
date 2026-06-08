@@ -2,6 +2,7 @@ import 'package:fcode_pos/config/theme_colors.dart';
 import 'package:fcode_pos/providers/auth_provider.dart';
 import 'package:fcode_pos/providers/theme_provider.dart';
 import 'package:fcode_pos/screens/developer/developer_screen.dart';
+import 'package:fcode_pos/ui/components/app_switch_tile.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -120,30 +121,16 @@ class MoreScreen extends ConsumerWidget {
               ),
             ),
           ),
-          Card(
-            elevation: 0,
-            margin: EdgeInsets.zero,
-            clipBehavior: Clip.antiAlias,
-            child: SwitchListTile(
-              dense: true,
-              visualDensity: VisualDensity.compact,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 2,
-              ),
-              secondary: Icon(
-                isDarkMode ? Icons.dark_mode : Icons.light_mode,
-                color: colorScheme.primary,
-              ),
-              title: const Text('Chế độ tối'),
-              subtitle: const Text('Bật chế độ giao diện tối'),
-              value: isDarkMode,
-              onChanged: (value) {
-                themeNotifier.setThemeMode(
-                  value ? ThemeMode.dark : ThemeMode.light,
-                );
-              },
-            ),
+          AppSwitchTile(
+            icon: isDarkMode ? Icons.dark_mode : Icons.light_mode,
+            title: 'Chế độ tối',
+            subtitle: 'Bật chế độ giao diện tối',
+            value: isDarkMode,
+            onChanged: (value) {
+              themeNotifier.setThemeMode(
+                value ? ThemeMode.dark : ThemeMode.light,
+              );
+            },
           ),
 
           const SizedBox(height: 12),

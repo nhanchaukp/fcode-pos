@@ -1,4 +1,5 @@
 import 'package:fcode_pos/api/api_exception.dart';
+import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/customer/customer_detail_screen.dart';
 import 'package:fcode_pos/services/customer_service.dart';
@@ -190,9 +191,7 @@ class _CustomerStatsScreenState extends State<CustomerStatsScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Không thể tải thông tin khách hàng: $e')),
-        );
+        Toastr.error('Không thể tải thông tin khách hàng: $e', context: context);
       }
     }
   }

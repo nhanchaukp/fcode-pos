@@ -151,9 +151,8 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => AccountMasterExpenseCreateScreen(
-          accountMaster: _accountMaster,
-        ),
+        builder: (context) =>
+            AccountMasterExpenseCreateScreen(accountMaster: _accountMaster),
       ),
     );
     if (result == true) {
@@ -408,135 +407,135 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
     return InkWell(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (_) => AccountSlotDetailScreen(slot: slot),
-        ),
+        MaterialPageRoute(builder: (_) => AccountSlotDetailScreen(slot: slot)),
       ),
       borderRadius: BorderRadius.circular(8),
       child: Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: colorScheme.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Slot name and days until expiry
-          Row(
-            children: [
-              Icon(Icons.label, size: 14, color: colorScheme.primary),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  slot.name,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Text(
-                slot.daysUntilExpiry <= 0
-                    ? 'Hết hạn'
-                    : 'Còn ${slot.daysUntilExpiry} ngày',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: slot.daysUntilExpiry <= 3
-                      ? Colors.red
-                      : slot.daysUntilExpiry <= 0
-                      ? Colors.red
-                      : colorScheme.primary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          // Date information
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              if (slot.pin.isNotEmpty) ...[
-                Expanded(child: _buildSlotInfo(Icons.vpn_key, 'PIN', slot.pin)),
-              ],
-              Expanded(
-                child: _buildSlotInfo(
-                  Icons.calendar_today,
-                  'Từ',
-                  slot.startDate != null
-                      ? DateHelper.formatDateShort(slot.startDate!)
-                      : 'N/A',
-                ),
-              ),
-              Expanded(
-                child: _buildSlotInfo(
-                  Icons.event_busy,
-                  'Đến',
-                  slot.expiryDate != null
-                      ? DateHelper.formatDateShort(slot.expiryDate!)
-                      : 'N/A',
-                ),
-              ),
-            ],
-          ),
-
-          // Customer name (if available)
-          if (customerName != null && customerName.isNotEmpty) ...[
-            const SizedBox(height: 8),
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: colorScheme.outlineVariant),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Slot name and days until expiry
             Row(
               children: [
+                Icon(Icons.label, size: 14, color: colorScheme.primary),
+                const SizedBox(width: 6),
                 Expanded(
-                  child: InkWell(
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => CustomerDetailScreen(
-                          user: slot.shopOrderItem!.order!.user!,
-                        ),
-                      ),
+                  child: Text(
+                    slot.name,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
                     ),
-                    child: _buildSlotInfo(Icons.person, '', customerName),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                if (hasOrder)
-                  TextButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => OrderDetailScreen(
-                            orderId: slot.shopOrderItem!.orderId.toString(),
-                          ),
-                        ),
-                      );
-                    },
-                    label: Text(
-                      'Xem đơn hàng',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                    icon: const Icon(Icons.receipt_long, size: 14),
-                    style: TextButton.styleFrom(
-                      minimumSize: Size.zero,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
+                Text(
+                  slot.daysUntilExpiry <= 0
+                      ? 'Hết hạn'
+                      : 'Còn ${slot.daysUntilExpiry} ngày',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: slot.daysUntilExpiry <= 3
+                        ? Colors.red
+                        : slot.daysUntilExpiry <= 0
+                        ? Colors.red
+                        : colorScheme.primary,
                   ),
+                ),
               ],
             ),
+            const SizedBox(height: 8),
+
+            // Date information
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                if (slot.pin.isNotEmpty) ...[
+                  Expanded(
+                    child: _buildSlotInfo(Icons.vpn_key, 'PIN', slot.pin),
+                  ),
+                ],
+                Expanded(
+                  child: _buildSlotInfo(
+                    Icons.calendar_today,
+                    'Từ',
+                    slot.startDate != null
+                        ? DateHelper.formatDateShort(slot.startDate!)
+                        : 'N/A',
+                  ),
+                ),
+                Expanded(
+                  child: _buildSlotInfo(
+                    Icons.event_busy,
+                    'Đến',
+                    slot.expiryDate != null
+                        ? DateHelper.formatDateShort(slot.expiryDate!)
+                        : 'N/A',
+                  ),
+                ),
+              ],
+            ),
+
+            // Customer name (if available)
+            if (customerName != null && customerName.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CustomerDetailScreen(
+                            user: slot.shopOrderItem!.order!.user!,
+                          ),
+                        ),
+                      ),
+                      child: _buildSlotInfo(Icons.person, '', customerName),
+                    ),
+                  ),
+                  if (hasOrder)
+                    TextButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => OrderDetailScreen(
+                              orderId: slot.shopOrderItem!.orderId.toString(),
+                            ),
+                          ),
+                        );
+                      },
+                      label: Text(
+                        'Xem đơn hàng',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                      icon: const Icon(Icons.receipt_long, size: 14),
+                      style: TextButton.styleFrom(
+                        minimumSize: Size.zero,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ),
+                ],
+              ),
+            ],
           ],
-        ],
-      ),
+        ),
       ),
     );
   }

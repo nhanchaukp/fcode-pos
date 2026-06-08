@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:fcode_pos/utils/snackbar_helper.dart';
+
 import 'package:fcode_pos/models/adsense_models.dart';
 import 'package:fcode_pos/services/adsense_service.dart';
 import 'package:fcode_pos/utils/extensions.dart';
@@ -282,9 +284,7 @@ class _AdsenseScreenState extends State<AdsenseScreen> {
 
   void _showError(String msg) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: Colors.red.shade700),
-    );
+    Toastr.error(msg, context: context);
   }
 
   // ── Build ───────────────────────────────────────────────────────────────────
