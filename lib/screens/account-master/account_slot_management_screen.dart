@@ -12,6 +12,7 @@ import 'package:fcode_pos/services/account_master_service.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/string_helper.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
+import 'package:fcode_pos/ui/components/app_switch_tile.dart';
 import 'package:fcode_pos/ui/components/slot_edit_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -286,15 +287,8 @@ class _AccountSlotManagementScreenState
                     const SizedBox(height: 4),
 
                     // ── Slot trống ────────────────────────────────────────
-                    SwitchListTile(
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(
-                        'Chỉ hiện TK còn slot trống',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                    AppSwitchTile(
+                      title: 'Chỉ hiện TK còn slot trống',
                       value: _selectedIsFreeSlot,
                       onChanged: (v) =>
                           setDialogState(() => _selectedIsFreeSlot = v),

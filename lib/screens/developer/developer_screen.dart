@@ -1,4 +1,4 @@
-import 'package:fcode_pos/utils/snackbar_helper.dart' hide Toastr;
+import 'package:fcode_pos/ui/components/app_switch_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:toastr_flutter/toastr.dart'
     show
@@ -336,12 +336,6 @@ class _DeveloperScreenState extends State<DeveloperScreen> {
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
-    return SwitchListTile(
-      dense: true,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-      title: Text(label),
-      value: value,
-      onChanged: onChanged,
-    );
+    return AppSwitchTile(title: label, value: value, onChanged: onChanged);
   }
 }

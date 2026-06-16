@@ -3,6 +3,7 @@ import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/product_supply_service.dart';
 import 'package:fcode_pos/ui/components/dropdown/product_dropdown.dart';
 import 'package:fcode_pos/ui/components/dropdown/supply_dropdown.dart';
+import 'package:fcode_pos/ui/components/app_switch_tile.dart';
 import 'package:fcode_pos/ui/components/loading_icon.dart';
 import 'package:fcode_pos/ui/components/money_form_field.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
@@ -238,23 +239,12 @@ class _ProductSupplyFormScreenState extends State<ProductSupplyFormScreen> {
   }
 
   Widget _buildPreferredSwitch() {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
-      ),
-      child: SwitchListTile(
-        title: const Text('Nhà cung cấp ưu tiên'),
-        subtitle: const Text(
-          'Đánh dấu đây là nhà cung cấp ưu tiên cho sản phẩm này',
-        ),
-        value: _isPreferred,
-        onChanged: (value) {
-          setState(() => _isPreferred = value);
-        },
-        secondary: const Icon(Icons.star_outline),
-      ),
+    return AppSwitchTile(
+      icon: Icons.star_outline,
+      title: 'Nhà cung cấp ưu tiên',
+      subtitle: 'Đánh dấu đây là nhà cung cấp ưu tiên cho sản phẩm này',
+      value: _isPreferred,
+      onChanged: (v) => setState(() => _isPreferred = v),
     );
   }
 

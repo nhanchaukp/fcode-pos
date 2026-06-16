@@ -6,6 +6,7 @@ import 'package:fcode_pos/screens/order/order_invoice_preview_screen.dart';
 import 'package:fcode_pos/services/order_service.dart';
 import 'package:fcode_pos/ui/components/dropdown/invoice_provider_account_dropdown.dart';
 import 'package:fcode_pos/ui/components/dropdown/invoice_template_dropdown.dart';
+import 'package:fcode_pos/ui/components/app_switch_tile.dart';
 import 'package:fcode_pos/ui/components/loading_icon.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
@@ -266,15 +267,13 @@ class _OrderCreateInvoiceScreenState extends State<OrderCreateInvoiceScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    SwitchListTile(
-                      title: const Text('Lưu dưới dạng nháp'),
-                      subtitle: Text(
-                        _isDraft
-                            ? 'Đang gửi is_draft: true'
-                            : 'Đang gửi is_draft: false',
-                      ),
+                    AppSwitchTile(
+                      icon: Icons.drafts_outlined,
+                      title: 'Lưu dưới dạng nháp',
+                      subtitle: _isDraft
+                          ? 'Đang gửi is_draft: true'
+                          : 'Đang gửi is_draft: false',
                       value: _isDraft,
-                      contentPadding: EdgeInsets.zero,
                       onChanged: (v) => setState(() => _isDraft = v),
                     ),
                     const SizedBox(height: 4),

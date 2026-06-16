@@ -1,5 +1,6 @@
 import 'package:fcode_pos/enums.dart' as enums;
 import 'package:fcode_pos/models.dart';
+import 'package:fcode_pos/screens/account-master/account_master_browser_screen.dart';
 import 'package:fcode_pos/screens/account-master/account_master_expense_create_screen.dart';
 import 'package:fcode_pos/screens/account-master/account_master_upsert_screen.dart';
 import 'package:fcode_pos/screens/account-master/account_slot_detail_screen.dart';
@@ -30,6 +31,7 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
   // Fresh account master data
   late AccountMaster _accountMaster;
   bool _accountMasterLoading = false;
+  bool _syncingNetflix = false;
 
   // Tab 0: Slots
   List<AccountSlot> _slots = [];
@@ -147,6 +149,35 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
 
   ColorScheme get colorScheme => Theme.of(context).colorScheme;
 
+  bool get _isNetflix =>
+      _accountMaster.serviceType == enums.AccountMasterServiceType.netflix.value;
+
+  Future<void> _syncNetflixInfo() async {
+    if (_syncingNetflix) return;
+
+    setState(() => _syncingNetflix = true);
+    try {
+      final response = await _accountMasterService.syncNetflixInfo(
+        _accountMaster.id,
+      );
+      if (!mounted) return;
+
+      setState(() {
+        _accountMaster = response.data ?? _accountMaster;
+        _slots = _accountMaster.slots ?? _slots;
+        _slotsLoaded = true;
+      });
+      Toastr.success('Đồng bộ thông tin Netflix thành công', context: context);
+    } catch (e) {
+      if (!mounted) return;
+      Toastr.error('Lỗi: $e', context: context);
+    } finally {
+      if (mounted) {
+        setState(() => _syncingNetflix = false);
+      }
+    }
+  }
+
   void _showCreateExpenseSheet() async {
     final result = await Navigator.push(
       context,
@@ -181,6 +212,20 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
     }
   }
 
+  void _openInAppBrowser() async {
+    final result = await Navigator.push<AccountMaster>(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            AccountMasterBrowserScreen(accountMaster: _accountMaster),
+      ),
+    );
+
+    if (result != null && mounted) {
+      setState(() => _accountMaster = result);
+    }
+  }
+
   void _showAddSlotSheet() async {
     final newSlot = await showModalBottomSheet<AccountSlot>(
       context: context,
@@ -205,6 +250,23 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
       appBar: AppBar(
         title: Text(_accountMaster.name),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.language),
+            tooltip: 'Mở trình duyệt',
+            onPressed: _openInAppBrowser,
+          ),
+          if (_syncingNetflix)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12),
+              child: SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              ),
+            ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
             onSelected: (value) {
@@ -214,6 +276,8 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
                 _showEditAccountScreen();
               } else if (value == 'add_slot') {
                 _showAddSlotSheet();
+              } else if (value == 'sync_netflix') {
+                _syncNetflixInfo();
               }
             },
             itemBuilder: (context) => [
@@ -227,6 +291,18 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
                   ],
                 ),
               ),
+              if (_isNetflix)
+                PopupMenuItem(
+                  value: 'sync_netflix',
+                  enabled: !_syncingNetflix,
+                  child: const Row(
+                    children: [
+                      Icon(Icons.sync, size: 16),
+                      SizedBox(width: 12),
+                      Text('Đồng bộ thông tin Netflix'),
+                    ],
+                  ),
+                ),
               const PopupMenuItem(
                 value: 'edit_account',
                 child: Row(

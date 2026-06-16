@@ -2,6 +2,7 @@ import 'package:fcode_pos/api/api_exception.dart';
 import 'package:fcode_pos/enums.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/coupon_service.dart';
+import 'package:fcode_pos/ui/components/app_switch_tile.dart';
 import 'package:fcode_pos/ui/components/loading_icon.dart';
 import 'package:fcode_pos/ui/components/money_form_field.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
@@ -289,9 +290,8 @@ class _CouponUpsertScreenState extends State<CouponUpsertScreen> {
                         keyboardType: TextInputType.number,
                       ),
                       const SizedBox(height: 12),
-                      SwitchListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: const Text('Kích hoạt'),
+                      AppSwitchTile(
+                        title: 'Kích hoạt',
                         value: _isEnabled,
                         onChanged: (v) => setState(() => _isEnabled = v),
                       ),

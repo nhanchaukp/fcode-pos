@@ -1,6 +1,7 @@
 import 'package:fcode_pos/enums.dart' as enums;
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/account_master_service.dart';
+import 'package:fcode_pos/ui/components/app_switch_tile.dart';
 import 'package:fcode_pos/ui/components/dropdown/account_master_service_type_dropdown.dart';
 import 'package:fcode_pos/ui/components/money_form_field.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
@@ -291,16 +292,11 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
             const SizedBox(height: 16),
 
             // Active Status
-            SwitchListTile(
-              title: const Text('Trạng thái hoạt động'),
-              subtitle: Text(_isActive ? 'Active' : 'Inactive'),
+            AppSwitchTile(
+              title: 'Trạng thái hoạt động',
+              subtitle: _isActive ? 'Active' : 'Inactive',
               value: _isActive,
-              onChanged: (value) {
-                setState(() {
-                  _isActive = value;
-                });
-              },
-              contentPadding: EdgeInsets.zero,
+              onChanged: (v) => setState(() => _isActive = v),
             ),
             const SizedBox(height: 24),
 
