@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
+import 'package:fcode_pos/api/api_error_parser.dart';
 import 'package:fcode_pos/api/api_exception.dart';
 import 'package:fcode_pos/config/environment.dart';
 import 'package:fcode_pos/services/api/api_response.dart';
@@ -205,56 +206,6 @@ class BaseApiService {
   }
 
   String _extractErrorMessage(dynamic data, int statusCode) {
-    if (data is Map<String, dynamic>) {
-      final message =
-          data['message'] ??
-          data['error'] ??
-          data['detail'] ??
-          data['msg'] ??
-          data['errors'];
-
-      if (message != null) {
-        if (message is String) return message;
-        if (message is List) return message.join(', ');
-        return message.toString();
-      }
-    } else if (data is String && data.isNotEmpty) {
-      return data;
-    }
-
-    return _defaultErrorMessage(statusCode);
-  }
-
-  String _defaultErrorMessage(int statusCode) {
-    switch (statusCode) {
-      case 400:
-        return 'Yêu cầu không hợp lệ';
-      case 401:
-        return 'Phiên đăng nhập đã hết hạn';
-      case 403:
-        return 'Bạn không có quyền truy cập';
-      case 404:
-        return 'Không tìm thấy tài nguyên';
-      case 405:
-        return 'Phương thức không được hỗ trợ';
-      case 408:
-        return 'Hết thời gian chờ';
-      case 409:
-        return 'Dữ liệu bị xung đột';
-      case 422:
-        return 'Dữ liệu không hợp lệ';
-      case 429:
-        return 'Quá nhiều yêu cầu. Vui lòng thử lại sau';
-      case 500:
-        return 'Lỗi máy chủ';
-      case 502:
-        return 'Máy chủ không phản hồi';
-      case 503:
-        return 'Dịch vụ tạm thời không khả dụng';
-      case 504:
-        return 'Máy chủ quá tải';
-      default:
-        return 'Đã xảy ra lỗi ($statusCode)';
-    }
+    return extractApiErrorMessage(data, statusCode);
   }
 }

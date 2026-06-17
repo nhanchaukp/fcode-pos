@@ -1,59 +1,76 @@
+import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:flutter/material.dart';
 
+/// Xử lý URL mở app và điều hướng tới màn hình tương ứng.
+///
+/// Định dạng hỗ trợ:
+/// - `fcode://order/{orderId}`
+/// - `https://fcode.vn/ahihi/shop-orders/{orderId}/edit`
 class DeepLinkService {
-  /// Handle deep link URLs
-  /// Examples:
-  /// - fcode://order/1396 -> mở đơn 1396
-  /// - https://fcode.vn/ahihi/shop-orders/1369/edit -> mở đơn 1369
-  static Future<void> handleDeepLink(String? deepLink) async {
+  static String? _pendingOrderId;
+
+  static void handleDeepLink(String? deepLink) {
     if (deepLink == null || deepLink.isEmpty) return;
 
-    debugPrint('🔗 Handling deep link: $deepLink');
+    debugPrint('🔗 Deep link: $deepLink');
 
     try {
-      final uri = Uri.parse(deepLink);
-      final pathSegments = uri.pathSegments;
-
-      // Match pattern: fcode://order/{orderId}
-      if (uri.scheme == 'fcode' && uri.host == 'order') {
-        if (pathSegments.isNotEmpty && pathSegments[0].isNotEmpty) {
-          final orderId = pathSegments[0];
-          _navigateToOrderDetail(orderId);
-          return;
-        }
+      final orderId = _parseOrderId(deepLink);
+      if (orderId != null) {
+        _navigateToOrderDetail(orderId);
+      } else {
+        debugPrint('⚠️ Không nhận dạng được deep link: $deepLink');
       }
-
-      // Match pattern: https://fcode.vn/ahihi/shop-orders/{orderId}/edit
-      if (uri.scheme == 'https' && uri.host == 'fcode.vn') {
-        // Check if this is a shop-orders URL
-        final shopOrdersIndex = pathSegments.indexOf('shop-orders');
-        if (shopOrdersIndex >= 0 && shopOrdersIndex + 2 < pathSegments.length) {
-          final orderId = pathSegments[shopOrdersIndex + 1];
-          if (orderId.isNotEmpty) {
-            _navigateToOrderDetail(orderId);
-            return;
-          }
-        }
-      }
-
-      debugPrint('⚠️ Unknown deep link pattern: $deepLink');
     } catch (e, st) {
-      debugPrintStack(stackTrace: st, label: '❌ Error handling deep link: $e');
+      debugPrintStack(stackTrace: st, label: '❌ Deep link error: $e');
     }
+  }
+
+  /// Gọi sau khi app đã đăng nhập và navigator sẵn sàng.
+  static void processPendingNavigation() {
+    final orderId = _pendingOrderId;
+    if (orderId == null) return;
+    _pendingOrderId = null;
+    _navigateToOrderDetail(orderId);
+  }
+
+  static String? _parseOrderId(String deepLink) {
+    final uri = Uri.parse(deepLink);
+    final segments = uri.pathSegments;
+
+    if (uri.scheme == 'fcode' && uri.host == 'order') {
+      if (segments.isNotEmpty && segments.first.isNotEmpty) {
+        return segments.first;
+      }
+      return null;
+    }
+
+    if (uri.scheme == 'https' && uri.host == 'fcode.vn') {
+      final index = segments.indexOf('shop-orders');
+      if (index >= 0 && index + 1 < segments.length) {
+        final orderId = segments[index + 1];
+        if (orderId.isNotEmpty) return orderId;
+      }
+    }
+
+    return null;
   }
 
   static void _navigateToOrderDetail(String orderId) {
-    debugPrint('📋 Navigating to order: $orderId');
-    final navigatorKey = _getNavigatorKey();
-    if (navigatorKey.currentContext != null) {
-      navigatorKey.currentState?.pushNamed('/order-detail', arguments: orderId);
+    final state = navigatorKey.currentState;
+    if (state == null) {
+      _pendingOrderId = orderId;
+      debugPrint('📋 Queued order deep link: $orderId');
+      return;
     }
-  }
 
-  static GlobalKey<NavigatorState> _getNavigatorKey() {
-    return navigatorKey;
+    debugPrint('📋 Open order: $orderId');
+    state.push(
+      MaterialPageRoute<void>(
+        builder: (_) => OrderDetailScreen(orderId: orderId),
+      ),
+    );
   }
 }
 
-// Global navigator key for deep linking
 final navigatorKey = GlobalKey<NavigatorState>();

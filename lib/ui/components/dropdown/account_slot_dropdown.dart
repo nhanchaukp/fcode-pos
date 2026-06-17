@@ -305,7 +305,7 @@ class _AccountSlotSelectSheetState extends State<_AccountSlotSelectSheet> {
               DebouncedSearchInput(
                 controller: _searchController,
                 autofocus: true,
-                hintText: 'Tìm kiếm account slot...',
+                hintText: 'Tìm kiếm...',
                 onChanged: (query) {
                   if (!mounted) return;
                   final q = query.toLowerCase();

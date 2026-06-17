@@ -5,7 +5,6 @@ import 'package:fcode_pos/services/coupon_service.dart';
 import 'package:fcode_pos/ui/components/app_switch_tile.dart';
 import 'package:fcode_pos/ui/components/loading_icon.dart';
 import 'package:fcode_pos/ui/components/money_form_field.dart';
-import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
@@ -115,7 +114,7 @@ class _CouponUpsertScreenState extends State<CouponUpsertScreen> {
       'type': _type.value,
       'value': _type == CouponType.percentage
           ? num.tryParse(_valueController.text.trim()) ?? 0
-          : CurrencyHelper.parseCurrency(_valueController.text),
+          : _valueController.moneyValue,
       'is_enabled': _isEnabled,
       'expires_at': DateFormat('yyyy-MM-dd HH:mm:ss').format(_expiresAt!),
     };
@@ -127,9 +126,7 @@ class _CouponUpsertScreenState extends State<CouponUpsertScreen> {
     if (limit != null) data['limit'] = limit;
 
     if (_type == CouponType.percentage) {
-      final maxDiscount =
-          CurrencyHelper.parseCurrency(_maxDiscountController.text);
-      data['data'] = {'maxDiscount': maxDiscount};
+      data['data'] = {'maxDiscount': _maxDiscountController.moneyValue};
     }
 
     try {
@@ -191,7 +188,9 @@ class _CouponUpsertScreenState extends State<CouponUpsertScreen> {
                     children: [
                       TextFormField(
                         controller: _codeController,
-                        decoration: const InputDecoration(labelText: 'Mã giảm giá'),
+                        decoration: const InputDecoration(
+                          labelText: 'Mã giảm giá',
+                        ),
                         textCapitalization: TextCapitalization.characters,
                         validator: (v) =>
                             (v == null || v.trim().isEmpty) ? 'Bắt buộc' : null,
@@ -222,7 +221,8 @@ class _CouponUpsertScreenState extends State<CouponUpsertScreen> {
                           ),
                           keyboardType: TextInputType.number,
                           validator: (v) {
-                            if (v == null || v.trim().isEmpty) return 'Bắt buộc';
+                            if (v == null || v.trim().isEmpty)
+                              return 'Bắt buộc';
                             final n = num.tryParse(v.trim());
                             if (n == null || n <= 0 || n > 100) {
                               return 'Từ 1 đến 100';
@@ -234,16 +234,34 @@ class _CouponUpsertScreenState extends State<CouponUpsertScreen> {
                         MoneyFormField(
                           controller: _valueController,
                           labelText: 'Giá trị (VND)',
-                          validator: (v) =>
-                              (v == null || v.trim().isEmpty) ? 'Bắt buộc' : null,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Bắt buộc';
+                            }
+                            final raw = value.replaceAll('.', '').trim();
+                            final parsed = int.tryParse(raw);
+                            if (parsed == null || parsed < 0) {
+                              return 'Giá trị không hợp lệ';
+                            }
+                            return null;
+                          },
                         ),
                       if (_type == CouponType.percentage) ...[
                         const SizedBox(height: 12),
                         MoneyFormField(
                           controller: _maxDiscountController,
                           labelText: 'Giảm tối đa (VND)',
-                          validator: (v) =>
-                              (v == null || v.trim().isEmpty) ? 'Bắt buộc' : null,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Bắt buộc';
+                            }
+                            final raw = value.replaceAll('.', '').trim();
+                            final parsed = int.tryParse(raw);
+                            if (parsed == null || parsed < 0) {
+                              return 'Giá trị không hợp lệ';
+                            }
+                            return null;
+                          },
                         ),
                       ],
                     ],
@@ -301,10 +319,7 @@ class _CouponUpsertScreenState extends State<CouponUpsertScreen> {
                   const SizedBox(height: 24),
                   FilledButton.icon(
                     onPressed: _isLoading ? null : _submit,
-                    icon: LoadingIcon(
-                      loading: _isLoading,
-                      icon: Icons.check,
-                    ),
+                    icon: LoadingIcon(loading: _isLoading, icon: Icons.check),
                     label: Text(widget.isEditing ? 'Cập nhật' : 'Tạo mới'),
                   ),
                 ],

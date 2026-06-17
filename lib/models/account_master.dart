@@ -51,6 +51,11 @@ class AccountMaster {
 
   final int? slotsCount;
 
+  final String? externalSrc;
+  final Map<String, dynamic>? externalConfig;
+
+  final Supply? supply;
+
   AccountMaster({
     required this.id,
     required this.name,
@@ -69,6 +74,9 @@ class AccountMaster {
     this.details,
     this.slots,
     this.slotsCount,
+    this.externalSrc,
+    this.externalConfig,
+    this.supply,
   });
 
   factory AccountMaster.fromJson(Map<String, dynamic> map) {
@@ -100,6 +108,13 @@ class AccountMaster {
                 .toList(growable: false)
           : null,
       slotsCount: asInt(map['slots_count']),
+      externalSrc: map['external_src']?.toString(),
+      externalConfig: map['external_config'] != null
+          ? map['external_config'] as Map<String, dynamic>
+          : null,
+      supply: map['supply'] != null
+          ? Supply.fromJson(map['supply'] as Map<String, dynamic>)
+          : null,
     );
   }
 
@@ -122,6 +137,9 @@ class AccountMaster {
       'details': details,
       'slots': slots?.map((slot) => slot.toMap()).toList(),
       'slots_count': slotsCount,
+      'external_src': externalSrc,
+      'external_config': externalConfig,
+      'supply': supply?.toMap(),
     };
   }
 }

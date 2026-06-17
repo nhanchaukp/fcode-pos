@@ -13,6 +13,7 @@ import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/string_helper.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:fcode_pos/ui/components/app_switch_tile.dart';
+import 'package:fcode_pos/ui/components/dropdown/supply_dropdown.dart';
 import 'package:fcode_pos/ui/components/slot_edit_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -38,6 +39,7 @@ class _AccountSlotManagementScreenState
   enums.AccountMasterServiceType? _selectedServiceType;
   bool? _selectedIsActive;
   bool _selectedIsFreeSlot = false;
+  Supply? _selectedSupply;
   String _searchQuery = '';
   int? _selectedDaysRemaining; // null means "Tất cả"
 
@@ -80,6 +82,7 @@ class _AccountSlotManagementScreenState
         search: _searchQuery.isEmpty ? null : _searchQuery,
         daysRemaining: _selectedDaysRemaining,
         isFreeSlot: _selectedIsFreeSlot ? true : null,
+        supplyId: _selectedSupply?.id,
       );
 
       if (!mounted) return;
@@ -135,6 +138,7 @@ class _AccountSlotManagementScreenState
       _selectedServiceType = null;
       _selectedIsActive = null;
       _selectedIsFreeSlot = false;
+      _selectedSupply = null;
       _selectedDaysRemaining = null;
       _searchQuery = '';
       _searchController.clear();
@@ -142,175 +146,216 @@ class _AccountSlotManagementScreenState
     _loadAccountMasters();
   }
 
-  void _showFilterDialog() {
-    showDialog(
+  void _showFilterBottomSheet() {
+    showModalBottomSheet<void>(
       context: context,
-      builder: (context) {
-        final cs = Theme.of(context).colorScheme;
-        final labelStyle = Theme.of(context).textTheme.labelSmall?.copyWith(
+      isScrollControlled: true,
+      showDragHandle: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (sheetContext) {
+        final cs = Theme.of(sheetContext).colorScheme;
+        final labelStyle = Theme.of(sheetContext).textTheme.labelSmall?.copyWith(
           color: cs.onSurfaceVariant,
           fontWeight: FontWeight.w700,
           letterSpacing: 0.6,
         );
 
-        return AlertDialog(
-          titlePadding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-          contentPadding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-          actionsPadding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-          title: Row(
-            children: [
-              Icon(Icons.filter_list, size: 18, color: cs.primary),
-              const SizedBox(width: 8),
-              const Text('Bộ lọc'),
-              const Spacer(),
-              TextButton(
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                onPressed: () {
-                  _resetFilters();
-                  Navigator.pop(context);
-                },
-                child: const Text('Đặt lại'),
-              ),
-            ],
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 16,
           ),
-          content: StatefulBuilder(
-            builder: (context, setDialogState) {
-              return SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Divider(height: 16),
-
-                    // ── Loại dịch vụ ──────────────────────────────────────
-                    Text('LOẠI DỊCH VỤ', style: labelStyle),
-                    const SizedBox(height: 6),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 4,
-                      children: [
-                        ChoiceChip(
-                          label: const Text('Tất cả'),
-                          selected: _selectedServiceType == null,
-                          showCheckmark: false,
-                          labelStyle: const TextStyle(fontSize: 12),
-                          visualDensity: VisualDensity.compact,
-                          onSelected: (_) =>
-                              setDialogState(() => _selectedServiceType = null),
+          child: StatefulBuilder(
+            builder: (context, setSheetState) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.filter_list, size: 18, color: cs.primary),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Bộ lọc',
+                        style: Theme.of(sheetContext)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const Spacer(),
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
-                        ...enums.AccountMasterServiceType.values.map(
-                          (type) => ChoiceChip(
-                            avatar: Icon(
-                              type.icon,
-                              size: 13,
-                              color: type.color,
-                            ),
-                            label: Text(type.label),
-                            selected: _selectedServiceType == type,
-                            showCheckmark: false,
-                            labelStyle: const TextStyle(fontSize: 12),
-                            visualDensity: VisualDensity.compact,
-                            onSelected: (_) => setDialogState(
-                              () => _selectedServiceType = type,
+                        onPressed: () {
+                          _resetFilters();
+                          Navigator.pop(sheetContext);
+                        },
+                        child: const Text('Đặt lại'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(sheetContext).size.height * 0.65,
+                    ),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('LOẠI DỊCH VỤ', style: labelStyle),
+                          const SizedBox(height: 6),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 4,
+                            children: [
+                              ChoiceChip(
+                                label: const Text('Tất cả'),
+                                selected: _selectedServiceType == null,
+                                showCheckmark: false,
+                                labelStyle: const TextStyle(fontSize: 12),
+                                visualDensity: VisualDensity.compact,
+                                onSelected: (_) => setSheetState(
+                                  () => _selectedServiceType = null,
+                                ),
+                              ),
+                              ...enums.AccountMasterServiceType.values.map(
+                                (type) => ChoiceChip(
+                                  avatar: Icon(
+                                    type.icon,
+                                    size: 13,
+                                    color: type.color,
+                                  ),
+                                  label: Text(type.label),
+                                  selected: _selectedServiceType == type,
+                                  showCheckmark: false,
+                                  labelStyle: const TextStyle(fontSize: 12),
+                                  visualDensity: VisualDensity.compact,
+                                  onSelected: (_) => setSheetState(
+                                    () => _selectedServiceType = type,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Text('TRẠNG THÁI', style: labelStyle),
+                          const SizedBox(height: 6),
+                          Wrap(
+                            spacing: 6,
+                            children: [
+                              ChoiceChip(
+                                label: const Text('Tất cả'),
+                                selected: _selectedIsActive == null,
+                                showCheckmark: false,
+                                labelStyle: const TextStyle(fontSize: 12),
+                                visualDensity: VisualDensity.compact,
+                                onSelected: (_) => setSheetState(
+                                  () => _selectedIsActive = null,
+                                ),
+                              ),
+                              ChoiceChip(
+                                label: const Text('Active'),
+                                selected: _selectedIsActive == true,
+                                showCheckmark: false,
+                                labelStyle: const TextStyle(fontSize: 12),
+                                visualDensity: VisualDensity.compact,
+                                onSelected: (_) => setSheetState(
+                                  () => _selectedIsActive = true,
+                                ),
+                              ),
+                              ChoiceChip(
+                                label: const Text('Inactive'),
+                                selected: _selectedIsActive == false,
+                                showCheckmark: false,
+                                labelStyle: const TextStyle(fontSize: 12),
+                                visualDensity: VisualDensity.compact,
+                                onSelected: (_) => setSheetState(
+                                  () => _selectedIsActive = false,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Text('SỐ NGÀY CÒN LẠI', style: labelStyle),
+                          const SizedBox(height: 6),
+                          Wrap(
+                            spacing: 6,
+                            children: [
+                              for (final entry in {
+                                'Tất cả': null,
+                                '≤ 1': 1,
+                                '≤ 3': 3,
+                                '≤ 5': 5,
+                              }.entries)
+                                ChoiceChip(
+                                  label: Text(entry.key),
+                                  selected:
+                                      _selectedDaysRemaining == entry.value,
+                                  showCheckmark: false,
+                                  labelStyle: const TextStyle(fontSize: 12),
+                                  visualDensity: VisualDensity.compact,
+                                  onSelected: (_) => setSheetState(
+                                    () => _selectedDaysRemaining = entry.value,
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Text('NHÀ CUNG CẤP', style: labelStyle),
+                          const SizedBox(height: 6),
+                          SupplyDropdown(
+                            selectedSupply: _selectedSupply,
+                            onChanged: (supply) {
+                              setSheetState(() {
+                                _selectedSupply = supply;
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 4),
+                          AppSwitchTile(
+                            title: 'Chỉ hiện TK còn slot trống',
+                            value: _selectedIsFreeSlot,
+                            onChanged: (v) => setSheetState(
+                              () => _selectedIsFreeSlot = v,
                             ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 8),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 12),
-
-                    // ── Trạng thái ────────────────────────────────────────
-                    Text('TRẠNG THÁI', style: labelStyle),
-                    const SizedBox(height: 6),
-                    Wrap(
-                      spacing: 6,
-                      children: [
-                        ChoiceChip(
-                          label: const Text('Tất cả'),
-                          selected: _selectedIsActive == null,
-                          showCheckmark: false,
-                          labelStyle: const TextStyle(fontSize: 12),
-                          visualDensity: VisualDensity.compact,
-                          onSelected: (_) =>
-                              setDialogState(() => _selectedIsActive = null),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => Navigator.pop(sheetContext),
+                          child: const Text('Hủy'),
                         ),
-                        ChoiceChip(
-                          label: const Text('Active'),
-                          selected: _selectedIsActive == true,
-                          showCheckmark: false,
-                          labelStyle: const TextStyle(fontSize: 12),
-                          visualDensity: VisualDensity.compact,
-                          onSelected: (_) =>
-                              setDialogState(() => _selectedIsActive = true),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: FilledButton(
+                          onPressed: () {
+                            _applyFilters();
+                            Navigator.pop(sheetContext);
+                          },
+                          child: const Text('Áp dụng'),
                         ),
-                        ChoiceChip(
-                          label: const Text('Inactive'),
-                          selected: _selectedIsActive == false,
-                          showCheckmark: false,
-                          labelStyle: const TextStyle(fontSize: 12),
-                          visualDensity: VisualDensity.compact,
-                          onSelected: (_) =>
-                              setDialogState(() => _selectedIsActive = false),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-
-                    // ── Số ngày còn lại ───────────────────────────────────
-                    Text('SỐ NGÀY CÒN LẠI', style: labelStyle),
-                    const SizedBox(height: 6),
-                    Wrap(
-                      spacing: 6,
-                      children: [
-                        for (final entry in {
-                          'Tất cả': null,
-                          '≤ 1': 1,
-                          '≤ 3': 3,
-                          '≤ 5': 5,
-                        }.entries)
-                          ChoiceChip(
-                            label: Text(entry.key),
-                            selected: _selectedDaysRemaining == entry.value,
-                            showCheckmark: false,
-                            labelStyle: const TextStyle(fontSize: 12),
-                            visualDensity: VisualDensity.compact,
-                            onSelected: (_) => setDialogState(
-                              () => _selectedDaysRemaining = entry.value,
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-
-                    // ── Slot trống ────────────────────────────────────────
-                    AppSwitchTile(
-                      title: 'Chỉ hiện TK còn slot trống',
-                      value: _selectedIsFreeSlot,
-                      onChanged: (v) =>
-                          setDialogState(() => _selectedIsFreeSlot = v),
-                    ),
-                  ],
-                ),
+                      ),
+                    ],
+                  ),
+                ],
               );
             },
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Hủy'),
-            ),
-            FilledButton(
-              onPressed: () {
-                _applyFilters();
-                Navigator.pop(context);
-              },
-              child: const Text('Áp dụng'),
-            ),
-          ],
         );
       },
     );
@@ -348,10 +393,11 @@ class _AccountSlotManagementScreenState
                     _selectedServiceType != null ||
                     _selectedIsActive != null ||
                     _selectedDaysRemaining != null ||
-                    _selectedIsFreeSlot,
+                    _selectedIsFreeSlot ||
+                    _selectedSupply != null,
                 child: const Icon(Icons.filter_list),
               ),
-              onPressed: _showFilterDialog,
+              onPressed: _showFilterBottomSheet,
               tooltip: 'Bộ lọc',
             ),
             IconButton(
@@ -387,7 +433,8 @@ class _AccountSlotManagementScreenState
           if (_selectedServiceType != null ||
               _selectedIsActive != null ||
               _selectedDaysRemaining != null ||
-              _selectedIsFreeSlot)
+              _selectedIsFreeSlot ||
+              _selectedSupply != null)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Wrap(
@@ -433,6 +480,16 @@ class _AccountSlotManagementScreenState
                       onDeleted: () {
                         setState(() {
                           _selectedIsFreeSlot = false;
+                        });
+                        _loadAccountMasters();
+                      },
+                    ),
+                  if (_selectedSupply != null)
+                    Chip(
+                      label: Text('NCC: ${_selectedSupply!.name}'),
+                      onDeleted: () {
+                        setState(() {
+                          _selectedSupply = null;
                         });
                         _loadAccountMasters();
                       },
@@ -577,6 +634,29 @@ class _AccountSlotManagementScreenState
                     style: TextStyle(
                       fontSize: 12,
                       color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+                if (accountMaster.supply != null) ...[
+                  Text(
+                    '  ·  ',
+                    style: TextStyle(color: colorScheme.outlineVariant),
+                  ),
+                  Icon(
+                    Icons.local_shipping_outlined,
+                    size: 11,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 3),
+                  Expanded(
+                    child: Text(
+                      accountMaster.supply!.name,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],

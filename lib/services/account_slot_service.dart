@@ -15,16 +15,18 @@ class AccountSlotService {
     String? search,
     int? daysRemaining,
     bool? isFreeSlot,
+    int? supplyId,
   }) {
     return _api.get<List<AccountMaster>>(
       '/account-slots',
       queryParameters: {
-        if (accountMasterId != null) 'account_master_id': accountMasterId,
-        if (isActive != null) 'is_active': isActive,
+        'account_master_id': ?accountMasterId,
+        'is_active': ?isActive,
         if (serviceType != null) 'service_type': serviceType.toLowerCase(),
-        if (search != null) 'search': search,
-        if (daysRemaining != null) 'days_remaining': daysRemaining,
-        if (isFreeSlot != null) 'is_free_slot': isFreeSlot,
+        'search': ?search,
+        'days_remaining': ?daysRemaining,
+        'is_free_slot': ?isFreeSlot,
+        'supply_id': ?supplyId,
       },
       parser: (json) => _parseAccountMasterList(json),
     );

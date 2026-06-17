@@ -1,6 +1,8 @@
 import 'package:fcode_pos/enums.dart' as enums;
+import 'package:fcode_pos/models/dto/account_master_data.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/account_master_browser_service.dart';
+import 'package:fcode_pos/services/account_master_browser_session.dart';
 import 'package:fcode_pos/services/account_master_service.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
@@ -21,9 +23,9 @@ class _BrowserConsoleLog {
 }
 
 class AccountMasterBrowserScreen extends StatefulWidget {
-  final AccountMaster accountMaster;
+  final AccountMasterBrowserSession session;
 
-  const AccountMasterBrowserScreen({super.key, required this.accountMaster});
+  const AccountMasterBrowserScreen({super.key, required this.session});
 
   @override
   State<AccountMasterBrowserScreen> createState() =>
@@ -35,59 +37,60 @@ class _AccountMasterBrowserScreenState extends State<AccountMasterBrowserScreen>
   final _accountMasterService = AccountMasterService();
 
   InAppWebViewController? _webController;
+  Widget? _webViewWidget;
+  bool _webViewAttached = false;
 
   late AccountMaster _accountMaster;
   late String _initialUrl;
   String? _pageTitle;
-  bool _sessionCleared = false;
   int _loadProgress = 0;
   bool _isSaving = false;
   bool _canGoBack = false;
   bool _canGoForward = false;
+  double _headerDragDelta = 0;
   final List<_BrowserConsoleLog> _consoleLogs = [];
+
+  AccountMasterBrowserSession get _session => widget.session;
 
   @override
   void initState() {
     super.initState();
-    _accountMaster = widget.accountMaster;
-    _initialUrl = AccountMasterBrowserService.resolveInitialUrl(
-      serviceType: _accountMaster.serviceType,
-      details: _accountMaster.details,
-    );
-    _prepareBrowser();
-  }
-
-  Future<void> _prepareBrowser() async {
-    await _browserService.clearSession();
-    if (mounted) {
-      setState(() => _sessionCleared = true);
-    }
+    _accountMaster = _session.accountMaster;
+    _initialUrl = _session.initialUrl;
+    _pageTitle = _session.pageTitle;
+    _loadProgress = _session.webPageReady ? 100 : _session.loadProgress;
+    _webController = _session.webController;
   }
 
   Future<void> _onWebViewCreated(InAppWebViewController controller) async {
     _webController = controller;
-    await _browserService.injectCookies(
-      cookies: _accountMaster.cookies,
-      url: _initialUrl,
-      webViewController: controller,
-    );
-    await controller.loadUrl(
-      urlRequest: URLRequest(url: WebUri(_initialUrl)),
-    );
+    _session.webController = controller;
+
+    final isRestoredSession = _session.webPageReady;
+    if (mounted) {
+      setState(() {
+        _webViewAttached = true;
+        _loadProgress = isRestoredSession ? 100 : _session.loadProgress;
+      });
+    }
+    await _updateNavigationState();
   }
 
   void _onLoadStart(InAppWebViewController _, WebUri? url) {
     if (!mounted) return;
+    _session.loadProgress = 0;
     setState(() => _loadProgress = 0);
   }
 
   void _onProgressChanged(InAppWebViewController _, int progress) {
     if (!mounted) return;
+    _session.loadProgress = progress;
     setState(() => _loadProgress = progress);
   }
 
   void _onLoadStop(InAppWebViewController _, WebUri? url) {
     if (!mounted) return;
+    _session.markPageReady();
     setState(() => _loadProgress = 100);
     _updateNavigationState();
   }
@@ -98,6 +101,7 @@ class _AccountMasterBrowserScreenState extends State<AccountMasterBrowserScreen>
     final trimmed = title?.trim() ?? '';
     if (trimmed.isEmpty) return;
 
+    _session.pageTitle = trimmed;
     setState(() => _pageTitle = trimmed);
   }
 
@@ -127,8 +131,31 @@ class _AccountMasterBrowserScreenState extends State<AccountMasterBrowserScreen>
     await _updateNavigationState();
   }
 
-  void _exitBrowser() {
+  Future<void> _exitBrowser() async {
+    await AccountMasterBrowserSession.closeActive();
+    if (!mounted) return;
     Navigator.of(context).pop(_accountMaster);
+  }
+
+  Future<void> _minimizeBrowser() async {
+    await _session.minimize(context);
+    if (!mounted) return;
+    Navigator.of(context).pop(_accountMaster);
+  }
+
+  void _onHeaderDragUpdate(DragUpdateDetails details) {
+    if (details.delta.dy <= 0) return;
+    _headerDragDelta += details.delta.dy;
+  }
+
+  void _onHeaderDragEnd(DragEndDetails details) {
+    final shouldMinimize =
+        _headerDragDelta > 56 || details.velocity.pixelsPerSecond.dy > 700;
+    _headerDragDelta = 0;
+
+    if (shouldMinimize) {
+      _minimizeBrowser();
+    }
   }
 
   void _onConsoleMessage(InAppWebViewController _, ConsoleMessage message) {
@@ -156,6 +183,8 @@ class _AccountMasterBrowserScreenState extends State<AccountMasterBrowserScreen>
         _saveCookies();
       case 'reload':
         _webController?.reload();
+      case 'minimize':
+        _minimizeBrowser();
       case 'console_log':
         _showConsoleLog();
       case 'exit':
@@ -177,8 +206,7 @@ class _AccountMasterBrowserScreenState extends State<AccountMasterBrowserScreen>
       }
 
       final account = _accountMaster;
-      final updated = AccountMaster(
-        id: account.id,
+      final data = AccountMasterData(
         name: account.name,
         username: account.username,
         password: account.password,
@@ -191,12 +219,37 @@ class _AccountMasterBrowserScreenState extends State<AccountMasterBrowserScreen>
         isActive: account.isActive,
         cookies: cookies,
         details: account.details,
+        supplyId: account.supply?.id,
       );
 
-      await _accountMasterService.update(account.id, updated);
+      final response = await _accountMasterService.update(account.id, data);
       if (!mounted) return;
 
+      final updated = response.data ??
+          AccountMaster(
+            id: account.id,
+            name: account.name,
+            username: account.username,
+            password: account.password,
+            serviceType: account.serviceType,
+            maxSlots: account.maxSlots,
+            notes: account.notes,
+            paymentDate: account.paymentDate,
+            monthlyCost: account.monthlyCost,
+            costNotes: account.costNotes,
+            isActive: account.isActive,
+            createdAt: account.createdAt,
+            updatedAt: account.updatedAt,
+            cookies: cookies,
+            details: account.details,
+            slots: account.slots,
+            slotsCount: account.slotsCount,
+            externalSrc: account.externalSrc,
+            externalConfig: account.externalConfig,
+            supply: account.supply,
+          );
       setState(() => _accountMaster = updated);
+      _session.updateAccountMaster(updated);
       Toastr.success('Đã lưu cookie cho tài khoản', context: context);
     } catch (e) {
       if (!mounted) return;
@@ -489,9 +542,220 @@ class _AccountMasterBrowserScreenState extends State<AccountMasterBrowserScreen>
     );
   }
 
+  PreferredSizeWidget _buildBrowserAppBar() {
+    final account = _accountMaster;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(kToolbarHeight + 10),
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onVerticalDragUpdate: _onHeaderDragUpdate,
+        onVerticalDragEnd: _onHeaderDragEnd,
+        child: Material(
+          color: colorScheme.surface,
+          child: SafeArea(
+            bottom: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 6),
+                Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: colorScheme.outlineVariant,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                AppBar(
+                  automaticallyImplyLeading: false,
+                  leadingWidth: 96,
+                  leading: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        tooltip: 'Quay lại trang trước',
+                        onPressed: _canGoBack ? _goBack : null,
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.arrow_forward),
+                        tooltip: 'Tiến tới trang sau',
+                        onPressed: _canGoForward ? _goForward : null,
+                      ),
+                    ],
+                  ),
+                  title: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        account.name,
+                        style: const TextStyle(fontSize: 16),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        _pageTitle ?? _initialUrl,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.normal,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                  actions: _buildAppBarActions(),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildAppBarActions() {
+    return [
+      if (_isSaving)
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12),
+          child: SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      PopupMenuButton<String>(
+        icon: const Icon(Icons.more_vert),
+        onSelected: _handleMenuAction,
+        itemBuilder: (context) => [
+          const PopupMenuItem(
+            value: 'account_info',
+            child: Row(
+              children: [
+                Icon(Icons.info_outline, size: 18),
+                SizedBox(width: 12),
+                Text('Thông tin tài khoản'),
+              ],
+            ),
+          ),
+          PopupMenuItem(
+            value: 'save_cookie',
+            enabled: !_isSaving,
+            child: const Row(
+              children: [
+                Icon(Icons.save_outlined, size: 18),
+                SizedBox(width: 12),
+                Text('Lưu cookie'),
+              ],
+            ),
+          ),
+          const PopupMenuItem(
+            value: 'minimize',
+            child: Row(
+              children: [
+                Icon(Icons.picture_in_picture_alt, size: 18),
+                SizedBox(width: 12),
+                Text('Thu nhỏ'),
+              ],
+            ),
+          ),
+          const PopupMenuItem(
+            value: 'reload',
+            child: Row(
+              children: [
+                Icon(Icons.refresh, size: 18),
+                SizedBox(width: 12),
+                Text('Tải lại'),
+              ],
+            ),
+          ),
+          PopupMenuItem(
+            value: 'console_log',
+            child: Row(
+              children: [
+                const Icon(Icons.terminal, size: 18),
+                const SizedBox(width: 12),
+                const Text('Console log'),
+                if (_consoleLogs.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  Text(
+                    '${_consoleLogs.length}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const PopupMenuItem(
+            value: 'exit',
+            child: Row(
+              children: [
+                Icon(Icons.close, size: 18),
+                SizedBox(width: 12),
+                Text('Thoát'),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ];
+  }
+
+  static const _toolbarHeight = kToolbarHeight + 10;
+
+  double _webViewTop(BuildContext context) {
+    final topInset = MediaQuery.paddingOf(context).top;
+    final progressHeight = _loadProgress < 100 ? 2.0 : 0.0;
+    return topInset + _toolbarHeight + progressHeight;
+  }
+
+  bool get _canShowWebView =>
+      _webViewAttached || _session.canAttachWebView;
+
+  Widget _buildInAppWebView() {
+    if (_webViewWidget != null) {
+      return _webViewWidget!;
+    }
+
+    if (!_session.canAttachWebView) {
+      return const SizedBox.shrink();
+    }
+
+    _webViewWidget = InAppWebView(
+      keepAlive: _session.keepAlive,
+      headlessWebView: _session.headlessWebView,
+      initialSettings: AccountMasterBrowserService.defaultSettings(),
+      onWebViewCreated: _onWebViewCreated,
+      onLoadStart: _onLoadStart,
+      onProgressChanged: _onProgressChanged,
+      onLoadStop: _onLoadStop,
+      onTitleChanged: _onTitleChanged,
+      onUpdateVisitedHistory: (_, _, _) {
+        _updateNavigationState();
+      },
+      onReceivedServerTrustAuthRequest:
+          AccountMasterBrowserService.handleServerTrustAuthRequest,
+      onConsoleMessage: _onConsoleMessage,
+      onReceivedError: (_, _, _) {
+        if (mounted) setState(() => _loadProgress = 100);
+      },
+    );
+    return _webViewWidget!;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final account = _accountMaster;
+    final colorScheme = Theme.of(context).colorScheme;
+    final webViewTop = _webViewTop(context);
+    final canShowWebView = _canShowWebView;
 
     return PopScope(
       canPop: false,
@@ -500,167 +764,51 @@ class _AccountMasterBrowserScreenState extends State<AccountMasterBrowserScreen>
         if (_canGoBack) {
           await _goBack();
         } else {
-          _exitBrowser();
+          await _exitBrowser();
         }
       },
-      child: Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leadingWidth: 96,
-        leading: Row(
-          children: [
-            IconButton(
-              icon: const Icon(Icons.arrow_back),
-              tooltip: 'Quay lại trang trước',
-              onPressed: _canGoBack ? _goBack : null,
-            ),
-            IconButton(
-              icon: const Icon(Icons.arrow_forward),
-              tooltip: 'Tiến tới trang sau',
-              onPressed: _canGoForward ? _goForward : null,
-            ),
-          ],
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              account.name,
-              style: const TextStyle(fontSize: 16),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            Text(
-              _pageTitle ?? _initialUrl,
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.normal),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-        actions: [
-          if (_isSaving)
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12),
-              child: SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
-            onSelected: _handleMenuAction,
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'account_info',
-                child: Row(
-                  children: [
-                    Icon(Icons.info_outline, size: 18),
-                    SizedBox(width: 12),
-                    Text('Thông tin tài khoản'),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'save_cookie',
-                enabled: !_isSaving,
-                child: const Row(
-                  children: [
-                    Icon(Icons.save_outlined, size: 18),
-                    SizedBox(width: 12),
-                    Text('Lưu cookie'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'reload',
-                child: Row(
-                  children: [
-                    Icon(Icons.refresh, size: 18),
-                    SizedBox(width: 12),
-                    Text('Tải lại'),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'console_log',
-                child: Row(
-                  children: [
-                    const Icon(Icons.terminal, size: 18),
-                    const SizedBox(width: 12),
-                    const Text('Console log'),
-                    if (_consoleLogs.isNotEmpty) ...[
-                      const SizedBox(width: 8),
-                      Text(
-                        '${_consoleLogs.length}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Material(
+            color: colorScheme.surface,
+            child: Scaffold(
+              appBar: _buildBrowserAppBar(),
+              body: !canShowWebView
+                  ? const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 16),
+                          Text('Đang chuẩn bị trình duyệt...'),
+                        ],
                       ),
-                    ],
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'exit',
-                child: Row(
-                  children: [
-                    Icon(Icons.close, size: 18),
-                    SizedBox(width: 12),
-                    Text('Thoát'),
-                  ],
-                ),
-              ),
-            ],
+                    )
+                  : Column(
+                      children: [
+                        if (_loadProgress < 100)
+                          LinearProgressIndicator(
+                            minHeight: 2,
+                            value: _loadProgress > 0
+                                ? _loadProgress / 100
+                                : null,
+                          ),
+                        const Expanded(child: SizedBox()),
+                      ],
+                    ),
+            ),
           ),
+          if (canShowWebView)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              top: webViewTop,
+              child: _buildInAppWebView(),
+            ),
         ],
       ),
-      body: !_sessionCleared
-          ? const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text('Đang chuẩn bị trình duyệt...'),
-                ],
-              ),
-            )
-          : Column(
-              children: [
-                if (_loadProgress < 100)
-                  LinearProgressIndicator(
-                    minHeight: 2,
-                    value: _loadProgress > 0 ? _loadProgress / 100 : null,
-                  ),
-                Expanded(
-                  child: InAppWebView(
-                    initialSettings:
-                        AccountMasterBrowserService.defaultSettings(),
-                    onWebViewCreated: _onWebViewCreated,
-                    onLoadStart: _onLoadStart,
-                    onProgressChanged: _onProgressChanged,
-                    onLoadStop: _onLoadStop,
-                    onTitleChanged: _onTitleChanged,
-                    onUpdateVisitedHistory: (_, _, _) {
-                      _updateNavigationState();
-                    },
-                    onReceivedServerTrustAuthRequest:
-                        AccountMasterBrowserService.handleServerTrustAuthRequest,
-                    onConsoleMessage: _onConsoleMessage,
-                    onReceivedError: (_, _, _) {
-                      if (mounted) setState(() => _loadProgress = 100);
-                    },
-                  ),
-                ),
-              ],
-            ),
-    ),
     );
   }
 }

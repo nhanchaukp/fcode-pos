@@ -1,6 +1,8 @@
 import 'package:fcode_pos/api/api_exception.dart';
 import 'package:fcode_pos/data/models/status.dart';
 import 'package:fcode_pos/screens/tabs/main_shell.dart';
+import 'package:fcode_pos/screens/two_factor_screen.dart';
+import 'package:fcode_pos/services/deep_link_service.dart';
 import 'package:fcode_pos/utils/safe_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fcode_pos/providers/auth_provider.dart';
@@ -21,6 +23,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   Status _status = Status.idle;
   bool _obscurePassword = true;
+  String? _emailError;
 
   @override
   void dispose() {
@@ -31,32 +34,52 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      safeSetState(() => _status = Status.loading);
-      final auth = ref.read(authProvider.notifier);
+    safeSetState(() => _emailError = null);
 
-      try {
-        final user = await auth.login(
-          _emailController.text.trim(),
-          _passwordController.text.trim(),
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    safeSetState(() => _status = Status.loading);
+    final auth = ref.read(authProvider.notifier);
+
+    try {
+      final result = await auth.login(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
+
+      if (!mounted) return;
+
+      if (result.requiresTwoFactor) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const TwoFactorScreen()),
         );
-
-        if (user != null && mounted) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const MainShell()),
-          );
-        }
-      } on ApiException catch (e) {
-        safeSetState(() => _status = Status.error);
-        Toastr.error(e.message);
-      } catch (e, stack) {
-        debugPrintStack(stackTrace: stack);
-        safeSetState(() => _status = Status.error);
-        Toastr.error('Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
-      } finally {
-        safeSetState(() => _status = Status.idle);
+        return;
       }
+
+      if (result.user != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const MainShell()),
+        ).then((_) => DeepLinkService.processPendingNavigation());
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          DeepLinkService.processPendingNavigation();
+        });
+      }
+    } on ApiException catch (e) {
+      safeSetState(() => _status = Status.error);
+      final emailError = e.fieldError('email');
+      if (emailError != null) {
+        safeSetState(() => _emailError = emailError);
+        _formKey.currentState?.validate();
+      }
+      Toastr.error(emailError ?? e.firstFieldError ?? e.message);
+    } catch (e, stack) {
+      debugPrintStack(stackTrace: stack);
+      safeSetState(() => _status = Status.error);
+      Toastr.error('Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
+    } finally {
+      safeSetState(() => _status = Status.idle);
     }
   }
 
@@ -169,20 +192,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     bool isLoading,
   ) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
       decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(24),
+        color: colorScheme.onPrimary.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+          color: colorScheme.onPrimary.withValues(alpha: 0.2),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.shadow.withValues(alpha: 0.12),
-            blurRadius: 30,
-            offset: const Offset(0, 16),
-          ),
-        ],
       ),
       child: Form(
         key: _formKey,
@@ -193,14 +209,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               'Chào mừng trở lại',
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: colorScheme.onSurface,
+                color: colorScheme.onPrimary,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               'Đăng nhập để tiếp tục',
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
+                color: colorScheme.onPrimary.withValues(alpha: 0.85),
               ),
             ),
             const SizedBox(height: 28),
@@ -208,18 +224,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               controller: _emailController,
               decoration: _inputDecoration(
                 colorScheme: colorScheme,
-                label: 'Tài khoản',
-                hint: 'Nhập email của bạn',
+                label: 'Email',
+                hint: 'admin@example.com',
                 icon: Icons.alternate_email_rounded,
               ),
               keyboardType: TextInputType.emailAddress,
+              autofillHints: const [AutofillHints.email],
               enabled: !isLoading,
+              onChanged: (_) {
+                if (_emailError != null) {
+                  safeSetState(() => _emailError = null);
+                }
+              },
               validator: (value) {
+                if (_emailError != null) return _emailError;
                 if (value?.isEmpty ?? true) {
-                  return 'Tài khoản là bắt buộc';
+                  return 'Email là bắt buộc';
                 }
                 if (!value!.contains('@')) {
-                  return 'Vui lòng nhập một tài khoản hợp lệ';
+                  return 'Vui lòng nhập email hợp lệ';
                 }
                 return null;
               },
@@ -238,7 +261,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     _obscurePassword
                         ? Icons.visibility_off_rounded
                         : Icons.visibility_rounded,
-                    color: colorScheme.onSurfaceVariant,
+                    color: colorScheme.onPrimary.withValues(alpha: 0.7),
                   ),
                   onPressed: isLoading
                       ? null
@@ -251,6 +274,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
               obscureText: _obscurePassword,
               enabled: !isLoading,
+              onChanged: (_) {
+                if (_emailError != null) {
+                  safeSetState(() => _emailError = null);
+                }
+              },
               validator: (value) {
                 if (value?.isEmpty ?? true) {
                   return 'Mật khẩu là bắt buộc';
@@ -311,11 +339,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       labelText: label,
       hintText: hint,
       filled: true,
-      fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
-      prefixIcon: Icon(icon, color: colorScheme.onSurfaceVariant),
+      fillColor: colorScheme.onPrimary.withValues(alpha: 0.12),
+      prefixIcon: Icon(icon, color: colorScheme.onPrimary.withValues(alpha: 0.7)),
       suffixIcon: suffixIcon,
+      labelStyle: TextStyle(
+        color: colorScheme.onPrimary.withValues(alpha: 0.9),
+      ),
+      hintStyle: TextStyle(
+        color: colorScheme.onPrimary.withValues(alpha: 0.45),
+      ),
       enabledBorder: border(
-        colorScheme.outlineVariant.withValues(alpha: 0.6),
+        colorScheme.onPrimary.withValues(alpha: 0.25),
         1,
       ),
       focusedBorder: border(colorScheme.primary, 1.8),

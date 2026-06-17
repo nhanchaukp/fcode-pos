@@ -1,17 +1,26 @@
+import 'dart:convert';
+
 import 'package:fcode_pos/enums.dart' as enums;
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/account-master/account_master_browser_screen.dart';
 import 'package:fcode_pos/screens/account-master/account_master_expense_create_screen.dart';
 import 'package:fcode_pos/screens/account-master/account_master_upsert_screen.dart';
 import 'package:fcode_pos/screens/account-master/account_slot_detail_screen.dart';
+import 'package:fcode_pos/screens/audit/audit_log_screen.dart';
 import 'package:fcode_pos/screens/customer/customer_detail_screen.dart';
 import 'package:fcode_pos/screens/order/order_detail_screen.dart';
+import 'package:fcode_pos/services/account_master_browser_session.dart';
 import 'package:fcode_pos/services/account_master_service.dart';
-import 'package:fcode_pos/utils/date_helper.dart';
-import 'package:fcode_pos/utils/currency_helper.dart';
+import 'package:fcode_pos/services/account_slot_service.dart';
 import 'package:fcode_pos/ui/components/loading_icon.dart';
+import 'package:fcode_pos/ui/components/service_badge.dart';
+import 'package:fcode_pos/ui/components/slot_edit_sheet.dart';
+import 'package:fcode_pos/utils/currency_helper.dart';
+import 'package:fcode_pos/utils/date_helper.dart';
+import 'package:fcode_pos/utils/string_helper.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class AccountMasterDetailScreen extends StatefulWidget {
   final AccountMaster accountMaster;
@@ -27,6 +36,7 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late AccountMasterService _accountMasterService;
+  late AccountSlotService _accountSlotService;
 
   // Fresh account master data
   late AccountMaster _accountMaster;
@@ -44,6 +54,7 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
   bool _transactionsLoading = false;
   String? _transactionsError;
   bool _transactionsLoaded = false;
+  bool _externalConfigExpanded = false;
 
   @override
   void initState() {
@@ -51,6 +62,7 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
     _accountMaster = widget.accountMaster;
     _tabController = TabController(length: 2, vsync: this);
     _accountMasterService = AccountMasterService();
+    _accountSlotService = AccountSlotService();
 
     // Listen to tab changes
     _tabController.addListener(() {
@@ -71,9 +83,11 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
     super.dispose();
   }
 
-  Future<void> _fetchAccountMaster() async {
+  Future<void> _fetchAccountMaster({bool showLoading = true}) async {
     if (!mounted) return;
-    setState(() => _accountMasterLoading = true);
+    if (showLoading) {
+      setState(() => _accountMasterLoading = true);
+    }
 
     try {
       final response = await _accountMasterService.getById(
@@ -82,12 +96,17 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
       if (!mounted) return;
       setState(() {
         _accountMaster = response.data ?? _accountMaster;
+        _slots = _accountMaster.slots ?? _slots;
+        _slotsLoaded = true;
+        _slotsLoading = false;
+        _slotsError = null;
         _accountMasterLoading = false;
       });
-      _loadSlots();
     } catch (_) {
       if (!mounted) return;
-      setState(() => _accountMasterLoading = false);
+      setState(() {
+        _accountMasterLoading = false;
+      });
       _loadSlots();
     }
   }
@@ -212,21 +231,52 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
     }
   }
 
-  void _openInAppBrowser() async {
-    final result = await Navigator.push<AccountMaster>(
-      context,
-      MaterialPageRoute(
-        builder: (context) =>
-            AccountMasterBrowserScreen(accountMaster: _accountMaster),
+  Future<AccountMaster?> _pushBrowserScreen(
+    BuildContext navigatorContext,
+    AccountMasterBrowserSession session,
+  ) {
+    return Navigator.push<AccountMaster>(
+      navigatorContext,
+      PageRouteBuilder<AccountMaster>(
+        opaque: false,
+        barrierColor: null,
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return AccountMasterBrowserScreen(session: session);
+        },
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
       ),
     );
+  }
+
+  Future<AccountMaster?> _expandBrowserFromSession(
+    BuildContext context,
+    AccountMasterBrowserSession session,
+  ) async {
+    final result = await _pushBrowserScreen(context, session);
+    if (result != null && mounted) {
+      setState(() => _accountMaster = result);
+    }
+    return result;
+  }
+
+  void _openInAppBrowser() async {
+    final session = await AccountMasterBrowserSession.start(
+      accountMaster: _accountMaster,
+    );
+    if (!mounted) return;
+
+    session.onExpand = _expandBrowserFromSession;
+
+    final result = await _pushBrowserScreen(context, session);
 
     if (result != null && mounted) {
       setState(() => _accountMaster = result);
     }
   }
 
-  void _showAddSlotSheet() async {
+  Future<void> _showAddSlotSheet() async {
     final newSlot = await showModalBottomSheet<AccountSlot>(
       context: context,
       isScrollControlled: true,
@@ -236,11 +286,7 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
       builder: (context) => _AddSlotSheet(accountMaster: _accountMaster),
     );
     if (newSlot != null) {
-      // Reload slots
-      setState(() {
-        _slotsLoaded = false;
-      });
-      _loadSlots();
+      await _refreshAccountAndSlots();
     }
   }
 
@@ -346,66 +392,100 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
     );
   }
 
+  Future<void> _refreshAccountAndSlots() async {
+    setState(() {
+      _slotsLoaded = false;
+      _slotsLoading = false;
+    });
+    await _fetchAccountMaster(showLoading: false);
+  }
+
+  Future<void> _refreshTransactions() async {
+    if (!mounted) return;
+
+    try {
+      final response = await _accountMasterService.getExpense(
+        widget.accountMaster.id,
+      );
+      if (!mounted) return;
+      setState(() {
+        _transactions = response.data?.items ?? [];
+        _transactionsLoaded = true;
+        _transactionsLoading = false;
+        _transactionsError = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _transactionsError = e.toString();
+        _transactionsLoaded = true;
+        _transactionsLoading = false;
+      });
+    }
+  }
+
+  double get _tabBodyMinHeight {
+    final mediaQuery = MediaQuery.of(context);
+    return mediaQuery.size.height -
+        mediaQuery.padding.top -
+        kToolbarHeight -
+        kTextTabBarHeight;
+  }
+
   Widget _buildSlotsTab() {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          // Account Master Details Section
-          if (_accountMasterLoading)
-            const LinearProgressIndicator()
-          else
-            _buildAccountDetailsCard(),
-          const SizedBox(height: 16),
-          // Slots Section
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Danh sách Slot',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+    return RefreshIndicator(
+      onRefresh: _refreshAccountAndSlots,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: _tabBodyMinHeight),
+          child: Column(
+            children: [
+              if (_accountMasterLoading) const LinearProgressIndicator(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Column(
+                  children: [
+                    _buildAccountInfoCard(),
+                    const SizedBox(height: 12),
+                    _buildSlotsCard(),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                if (_slotsLoading)
-                  const Center(child: CircularProgressIndicator())
-                else if (_slotsError != null)
-                  Center(
-                    child: Text(
-                      'Lỗi: $_slotsError',
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  )
-                else if (_slots.isEmpty)
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: Text(
-                        'Không có slot nào',
-                        style: TextStyle(color: colorScheme.onSurfaceVariant),
-                      ),
-                    ),
-                  )
-                else
-                  ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _slots.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 8),
-                    itemBuilder: (context, index) {
-                      final slot = _slots[index];
-                      return _buildSlotCard(slot);
-                    },
-                  ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildAccountDetailsCard() {
+  void _copyToClipboard(String label, String value) {
+    Clipboard.setData(ClipboardData(text: value));
+    Toastr.success('Đã sao chép $label', context: context);
+  }
+
+  Widget _buildCopyIconButton({
+    required String label,
+    required String value,
+  }) {
+    return IconButton(
+      icon: Icon(
+        Icons.copy_outlined,
+        size: 14,
+        color: colorScheme.primary,
+      ),
+      tooltip: 'Sao chép $label',
+      visualDensity: VisualDensity.compact,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+      style: IconButton.styleFrom(
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      onPressed: () => _copyToClipboard(label, value),
+    );
+  }
+
+  Widget _buildAccountInfoCard() {
     final accountMaster = _accountMaster;
     final serviceTypeLabel = enums.AccountMasterServiceType.values
         .firstWhere(
@@ -415,49 +495,131 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
         .label;
 
     return Card(
-      margin: const EdgeInsets.all(16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildDetailRow('Tên tài khoản', accountMaster.name),
-            _buildDetailRow('Username', accountMaster.username),
-            _buildDetailRow('Loại dịch vụ', serviceTypeLabel),
-            _buildDetailRow(
-              'Số slot tối đa',
-              accountMaster.maxSlots.toString(),
+      margin: const EdgeInsets.only(top: 8),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ListTile(
+            contentPadding: const EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 4,
+              bottom: 4,
             ),
-            if (accountMaster.monthlyCost != null)
-              _buildDetailRow(
-                'Chi phí hàng tháng',
-                '${CurrencyHelper.formatCurrency(accountMaster.monthlyCost!)} VND',
-              ),
-            if (accountMaster.paymentDate != null)
-              _buildDetailRow(
-                'Ngày thanh toán',
-                DateHelper.formatDate(accountMaster.paymentDate!),
-              ),
-            if (accountMaster.notes != null && accountMaster.notes!.isNotEmpty)
-              _buildDetailRow('Ghi chú', accountMaster.notes!),
-            _buildDetailRow(
-              'Trạng thái',
-              accountMaster.isActive ? 'Đang hoạt động' : 'Không hoạt động',
+            leading: ServiceBadge(serviceType: accountMaster.serviceType),
+            title: Text(
+              accountMaster.name,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-            if (accountMaster.createdAt != null)
-              _buildDetailRow(
-                'Ngày tạo',
-                DateHelper.formatDate(accountMaster.createdAt!),
-              ),
-          ],
-        ),
+            subtitle: Row(
+              children: [
+                _StatusDot(isActive: accountMaster.isActive),
+                const SizedBox(width: 4),
+                Text(
+                  accountMaster.isActive ? 'Active' : 'Inactive',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: accountMaster.isActive ? Colors.green : Colors.red,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                if (accountMaster.paymentDate != null) ...[
+                  Text(
+                    '  ·  ',
+                    style: TextStyle(color: colorScheme.outlineVariant),
+                  ),
+                  Icon(
+                    Icons.calendar_today,
+                    size: 11,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 3),
+                  Text(
+                    DateHelper.formatDateShort(accountMaster.paymentDate!),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          Divider(
+            height: 1,
+            color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 8, 16),
+            child: Column(
+              children: [
+                _buildCopyableDetailRow('Username', accountMaster.username),
+                _buildCopyableDetailRow('Password', accountMaster.password),
+                _buildDetailRow('Loại dịch vụ', serviceTypeLabel),
+                _buildDetailRow(
+                  'Nhà cung cấp',
+                  accountMaster.supply?.name ?? '-',
+                ),
+                _buildDetailRow(
+                  'Số slot',
+                  '${_slots.length}/${accountMaster.maxSlots}',
+                ),
+                if (accountMaster.monthlyCost != null)
+                  _buildDetailRow(
+                    'Chi phí hàng tháng',
+                    '${CurrencyHelper.formatCurrency(accountMaster.monthlyCost!)} VND',
+                  ),
+                if (accountMaster.paymentDate != null)
+                  _buildDetailRow(
+                    'Ngày thanh toán',
+                    DateHelper.formatDate(accountMaster.paymentDate!),
+                  ),
+                if (accountMaster.notes != null &&
+                    accountMaster.notes!.isNotEmpty)
+                  _buildDetailRow('Ghi chú', accountMaster.notes!),
+                if (accountMaster.costNotes != null &&
+                    accountMaster.costNotes!.isNotEmpty)
+                  _buildDetailRow('Ghi chú chi phí', accountMaster.costNotes!),
+                if (accountMaster.externalSrc != null &&
+                    accountMaster.externalSrc!.isNotEmpty)
+                  _buildCopyableDetailRow(
+                    'External Src',
+                    accountMaster.externalSrc!,
+                  ),
+                if (accountMaster.externalConfig != null &&
+                    accountMaster.externalConfig!.isNotEmpty)
+                  _buildExternalConfigRow(accountMaster.externalConfig!),
+                _buildDetailRow(
+                  'Trạng thái',
+                  accountMaster.isActive
+                      ? 'Đang hoạt động'
+                      : 'Không hoạt động',
+                ),
+                if (accountMaster.createdAt != null)
+                  _buildDetailRow(
+                    'Ngày tạo',
+                    DateHelper.formatDate(accountMaster.createdAt!),
+                  ),
+                if (accountMaster.updatedAt != null)
+                  _buildDetailRow(
+                    'Cập nhật lần cuối',
+                    DateHelper.formatDate(accountMaster.updatedAt!),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildDetailRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -465,213 +627,581 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
             width: 130,
             child: Text(
               label,
-              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+              style: TextStyle(
+                fontSize: 13,
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
-          Expanded(child: Text(value, style: const TextStyle(fontSize: 14))),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildSlotCard(AccountSlot slot) {
-    final hasOrder = slot.shopOrderItem?.order != null;
-    final customerName = hasOrder
-        ? slot.shopOrderItem?.order?.user?.name
-        : null;
+  Widget _buildExternalConfigRow(Map<String, dynamic> config) {
+    final jsonText = const JsonEncoder.withIndent('  ').convert(config);
 
-    return InkWell(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => AccountSlotDetailScreen(slot: slot)),
-      ),
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: colorScheme.outlineVariant),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Slot name and days until expiry
-            Row(
-              children: [
-                Icon(Icons.label, size: 14, color: colorScheme.primary),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    slot.name,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Text(
-                  slot.daysUntilExpiry <= 0
-                      ? 'Hết hạn'
-                      : 'Còn ${slot.daysUntilExpiry} ngày',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: slot.daysUntilExpiry <= 3
-                        ? Colors.red
-                        : slot.daysUntilExpiry <= 0
-                        ? Colors.red
-                        : colorScheme.primary,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-
-            // Date information
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                if (slot.pin.isNotEmpty) ...[
-                  Expanded(
-                    child: _buildSlotInfo(Icons.vpn_key, 'PIN', slot.pin),
-                  ),
-                ],
-                Expanded(
-                  child: _buildSlotInfo(
-                    Icons.calendar_today,
-                    'Từ',
-                    slot.startDate != null
-                        ? DateHelper.formatDateShort(slot.startDate!)
-                        : 'N/A',
-                  ),
-                ),
-                Expanded(
-                  child: _buildSlotInfo(
-                    Icons.event_busy,
-                    'Đến',
-                    slot.expiryDate != null
-                        ? DateHelper.formatDateShort(slot.expiryDate!)
-                        : 'N/A',
-                  ),
-                ),
-              ],
-            ),
-
-            // Customer name (if available)
-            if (customerName != null && customerName.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Row(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InkWell(
+            onTap: () =>
+                setState(() => _externalConfigExpanded = !_externalConfigExpanded),
+            borderRadius: BorderRadius.circular(6),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: InkWell(
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CustomerDetailScreen(
-                            user: slot.shopOrderItem!.order!.user!,
-                          ),
-                        ),
+                  SizedBox(
+                    width: 130,
+                    child: Text(
+                      'Config',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: colorScheme.onSurfaceVariant,
                       ),
-                      child: _buildSlotInfo(Icons.person, '', customerName),
                     ),
                   ),
-                  if (hasOrder)
-                    TextButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => OrderDetailScreen(
-                              orderId: slot.shopOrderItem!.orderId.toString(),
-                            ),
-                          ),
-                        );
-                      },
-                      label: Text(
-                        'Xem đơn hàng',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: colorScheme.primary,
-                        ),
-                      ),
-                      icon: const Icon(Icons.receipt_long, size: 14),
-                      style: TextButton.styleFrom(
-                        minimumSize: Size.zero,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  Expanded(
+                    child: Text(
+                      _externalConfigExpanded
+                          ? 'JSON'
+                          : '${config.length} trường · chạm để xem',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
+                  ),
+                  Icon(
+                    _externalConfigExpanded
+                        ? Icons.expand_less
+                        : Icons.expand_more,
+                    size: 20,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  _buildCopyIconButton(label: 'Config', value: jsonText),
                 ],
               ),
-            ],
+            ),
+          ),
+          if (_externalConfigExpanded) ...[
+            const SizedBox(height: 6),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                ),
+              ),
+              child: SelectableText(
+                jsonText,
+                style: TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 11,
+                  color: colorScheme.onSurface,
+                  height: 1.45,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCopyableDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 130,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            ),
+          ),
+          _buildCopyIconButton(label: label, value: value),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSlotsCard() {
+    final accountMaster = _accountMaster;
+    final hasSlots = _slots.isNotEmpty;
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                Icon(Icons.dns_outlined, size: 14, color: colorScheme.primary),
+                const SizedBox(width: 6),
+                Text(
+                  'Slots  ${_slots.length}/${accountMaster.maxSlots}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Divider(
+            height: 1,
+            color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+          ),
+          if (_slotsLoading)
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (_slotsError != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: Text(
+                'Lỗi: $_slotsError',
+                style: const TextStyle(color: Colors.red, fontSize: 12),
+              ),
+            )
+          else if (!hasSlots)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: Text(
+                'Không có slot nào',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: colorScheme.onSurfaceVariant,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            )
+          else
+            ..._slots.asMap().entries.map((e) {
+              final isLast = e.key == _slots.length - 1;
+              return _buildSlotItem(e.value, isLast: isLast);
+            }),
+        ],
+      ),
+    );
+  }
+
+  void _showSlotItemMenu(BuildContext context, AccountSlot slot) {
+    final hasOrder = slot.shopOrderItem?.order != null;
+
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.open_in_new),
+              title: const Text('Xem chi tiết slot'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => AccountSlotDetailScreen(slot: slot),
+                  ),
+                );
+              },
+            ),
+            if (hasOrder)
+              ListTile(
+                leading: const Icon(Icons.link_off),
+                title: const Text('Gỡ liên kết đơn hàng'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _unlinkOrderFromSlot(slot);
+                },
+              ),
+            ListTile(
+              leading: const Icon(Icons.copy),
+              title: const Text('Sao chép thông tin'),
+              onTap: () {
+                Navigator.pop(context);
+                _copySlotInfo(slot);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.edit),
+              title: const Text('Chỉnh sửa'),
+              onTap: () {
+                Navigator.pop(context);
+                _showEditSlotSheet(slot);
+              },
+            ),
+            if (hasOrder)
+              ListTile(
+                leading: const Icon(Icons.receipt_long),
+                title: const Text('Xem đơn hàng'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => OrderDetailScreen(
+                        orderId: slot.shopOrderItem!.orderId.toString(),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ListTile(
+              leading: const Icon(Icons.history),
+              title: const Text('Lịch sử thay đổi'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AuditLogScreen(
+                      title: slot.name,
+                      fetcher: (page) =>
+                          _accountSlotService.audits(slot.id, page: page),
+                    ),
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSlotInfo(IconData icon, String label, String value) {
-    return Row(
-      children: [
-        Icon(icon, size: 12, color: colorScheme.onSurfaceVariant),
-        const SizedBox(width: 4),
-        if (label.isNotEmpty) ...[
-          Text(
-            '$label: ',
-            style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
+  Future<void> _unlinkOrderFromSlot(AccountSlot slot) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Gỡ liên kết đơn hàng'),
+        content: const Text(
+          'Bạn có chắc muốn gỡ liên kết đơn hàng khỏi slot này?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Hủy'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Gỡ liên kết'),
           ),
         ],
-        Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+      ),
+    );
+    if (confirm != true || !mounted) return;
+
+    try {
+      final response = await _accountSlotService.unlinkOrder(
+        slot.id.toString(),
+      );
+      if (!mounted) return;
+      if (response.success) {
+        Toastr.success('Đã gỡ liên kết đơn hàng', context: context);
+        await _refreshAccountAndSlots();
+      } else {
+        Toastr.error(
+          response.message ?? 'Gỡ liên kết thất bại',
+          context: context,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Toastr.error('Lỗi: ${e.toString()}', context: context);
+      }
+    }
+  }
+
+  Future<void> _copySlotInfo(AccountSlot slot) async {
+    final copyText = StringHelper.formatSlotCopyText(slot);
+
+    await Clipboard.setData(ClipboardData(text: copyText));
+
+    if (mounted) {
+      Toastr.success('Đã copy thông tin tài khoản', context: context);
+    }
+  }
+
+  void _showEditSlotSheet(AccountSlot slot) async {
+    final result = await showSlotEditSheet(
+      context,
+      slot: slot,
+      service: _accountMasterService,
+    );
+    if (result != null && mounted) {
+      await _refreshAccountAndSlots();
+    }
+  }
+
+  Widget _buildSlotItem(AccountSlot slot, {bool isLast = false}) {
+    final hasOrder = slot.shopOrderItem?.order != null;
+    final customerName = hasOrder
+        ? slot.shopOrderItem?.order?.user?.name
+        : null;
+    final days = slot.daysUntilExpiry;
+    final expiryColor = days <= 0
+        ? Colors.red
+        : days <= 3
+        ? Colors.orange
+        : days <= 7
+        ? Colors.amber.shade700
+        : Colors.green;
+
+    final startStr = slot.startDate != null
+        ? DateHelper.formatDateShort(slot.startDate!)
+        : 'N/A';
+    final endStr = slot.expiryDate != null
+        ? DateHelper.formatDateShort(slot.expiryDate!)
+        : 'N/A';
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        InkWell(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => AccountSlotDetailScreen(slot: slot),
+            ),
+          ),
+          onLongPress: () => _showSlotItemMenu(context, slot),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 3),
+                  child: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: expiryColor,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        slot.name,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 3),
+                      DefaultTextStyle(
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        child: Wrap(
+                          spacing: 10,
+                          children: [
+                            if (slot.pin.isNotEmpty)
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.vpn_key,
+                                    size: 11,
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    slot.pin,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.date_range,
+                                  size: 11,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                                const SizedBox(width: 3),
+                                Text('$startStr → $endStr'),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (customerName != null && customerName.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.person,
+                              size: 11,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 3),
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => CustomerDetailScreen(
+                                      user: slot.shopOrderItem!.order!.user!,
+                                    ),
+                                  ),
+                                ),
+                                child: Text(
+                                  customerName,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: colorScheme.primary,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ),
+                            if (hasOrder)
+                              GestureDetector(
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => OrderDetailScreen(
+                                      orderId: slot.shopOrderItem!.orderId
+                                          .toString(),
+                                    ),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Đơn hàng →',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: colorScheme.primary,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: expiryColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    days <= 0 ? 'Hết hạn' : '$days ngày',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: expiryColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
+        if (!isLast)
+          Divider(
+            height: 1,
+            indent: 38,
+            color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+          ),
       ],
     );
   }
 
   Widget _buildTransactionsTab() {
-    if (_transactionsLoading) {
+    if (_transactionsLoading && !_transactionsLoaded) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (_transactionsError != null) {
-      return Center(
-        child: Text(
-          'Lỗi: $_transactionsError',
-          style: const TextStyle(color: Colors.red),
-        ),
-      );
-    }
-
-    if (_transactions.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Text(
-            'Không có giao dịch nào',
-            style: TextStyle(color: colorScheme.onSurfaceVariant),
-          ),
-        ),
-      );
-    }
-
-    return ListView.separated(
-      itemCount: _transactions.length,
-      separatorBuilder: (_, _) => const Divider(),
-      itemBuilder: (context, index) {
-        final transaction = _transactions[index];
-        return _buildTransactionCard(transaction);
-      },
+    return RefreshIndicator(
+      onRefresh: _refreshTransactions,
+      child: _transactions.isEmpty
+          ? ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(
+                  height: _tabBodyMinHeight,
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Text(
+                        _transactionsError != null
+                            ? 'Lỗi: $_transactionsError'
+                            : 'Không có giao dịch nào',
+                        style: TextStyle(
+                          color: _transactionsError != null
+                              ? Colors.red
+                              : colorScheme.onSurfaceVariant,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            )
+          : ListView.separated(
+              physics: const AlwaysScrollableScrollPhysics(),
+              itemCount: _transactions.length,
+              separatorBuilder: (_, _) => const Divider(),
+              itemBuilder: (context, index) {
+                final transaction = _transactions[index];
+                return _buildTransactionCard(transaction);
+              },
+            ),
     );
   }
 
@@ -864,6 +1394,23 @@ class _AddSlotSheetState extends State<_AddSlotSheet> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _StatusDot extends StatelessWidget {
+  const _StatusDot({required this.isActive});
+  final bool isActive;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 8,
+      height: 8,
+      decoration: BoxDecoration(
+        color: isActive ? Colors.green : Colors.red,
+        shape: BoxShape.circle,
       ),
     );
   }

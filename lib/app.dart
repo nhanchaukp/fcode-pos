@@ -1,6 +1,3 @@
-import 'dart:async';
-
-import 'package:app_links/app_links.dart';
 import 'package:fcode_pos/appwrite.dart';
 import 'package:fcode_pos/config/environment.dart';
 import 'package:fcode_pos/config/theme_colors.dart';
@@ -9,6 +6,7 @@ import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/screens/splash_screen.dart';
 import 'package:fcode_pos/services/deep_link_service.dart';
 import 'package:fcode_pos/utils/extensions.dart';
+import 'package:fcode_pos/widgets/deep_link_listener.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -185,7 +183,7 @@ class FcodePosApp extends ConsumerWidget {
         GlobalWidgetsLocalizations.delegate,
       ],
       onGenerateRoute: _onGenerateRoute,
-      home: const _DeepLinkWrapper(child: SplashScreen()),
+      home: const DeepLinkListener(child: SplashScreen()),
     );
   }
 
@@ -203,51 +201,5 @@ class FcodePosApp extends ConsumerWidget {
       default:
         return null;
     }
-  }
-}
-
-/// Wrapper widget to handle deep links when app is launched
-class _DeepLinkWrapper extends ConsumerStatefulWidget {
-  final Widget child;
-
-  const _DeepLinkWrapper({required this.child});
-
-  @override
-  ConsumerState<_DeepLinkWrapper> createState() => _DeepLinkWrapperState();
-}
-
-class _DeepLinkWrapperState extends ConsumerState<_DeepLinkWrapper> {
-  late AppLinks _appLinks;
-  late StreamSubscription _deepLinkSubscription;
-
-  @override
-  void initState() {
-    super.initState();
-    _appLinks = AppLinks();
-    _initDeepLinkListener();
-  }
-
-  void _initDeepLinkListener() {
-    // Handle deep link when app is launched
-    _appLinks.uriLinkStream.listen(
-      (uri) {
-        debugPrint('🔗 Deep link received: $uri');
-        DeepLinkService.handleDeepLink(uri.toString());
-      },
-      onError: (err) {
-        debugPrint('❌ Deep link error: $err');
-      },
-    );
-  }
-
-  @override
-  void dispose() {
-    _deepLinkSubscription.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return widget.child;
   }
 }

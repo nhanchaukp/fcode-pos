@@ -2,6 +2,7 @@ import 'package:fcode_pos/config/theme_colors.dart';
 import 'package:fcode_pos/providers/auth_provider.dart';
 import 'package:fcode_pos/providers/theme_provider.dart';
 import 'package:fcode_pos/screens/developer/developer_screen.dart';
+import 'package:fcode_pos/screens/login_screen.dart';
 import 'package:fcode_pos/ui/components/app_switch_tile.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
@@ -40,10 +41,11 @@ class MoreScreen extends ConsumerWidget {
                 : () async {
                     await ref.read(authProvider.notifier).logout();
                     if (context.mounted) {
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        '/login',
-                        (route) => false,
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(
+                          builder: (_) => const LoginScreen(),
+                        ),
+                        (_) => false,
                       );
                       Toastr.success('Đã đăng xuất');
                     }

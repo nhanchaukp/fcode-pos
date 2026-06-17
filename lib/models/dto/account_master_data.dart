@@ -1,0 +1,50 @@
+class AccountMasterData {
+  final String name;
+  final String username;
+  final String password;
+  final String serviceType;
+  final int maxSlots;
+  final String? notes;
+  final DateTime? paymentDate;
+  final int? monthlyCost;
+  final String? costNotes;
+  final bool isActive;
+  final String? cookies;
+  final String? details;
+  final int? supplyId;
+
+  const AccountMasterData({
+    required this.name,
+    required this.username,
+    required this.password,
+    required this.serviceType,
+    required this.maxSlots,
+    required this.isActive,
+    this.notes,
+    this.paymentDate,
+    this.monthlyCost,
+    this.costNotes,
+    this.cookies,
+    this.details,
+    this.supplyId,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'username': username,
+      'password': password,
+      'service_type': serviceType,
+      'max_slots': maxSlots,
+      'is_active': isActive,
+      if (notes != null && notes!.isNotEmpty) 'notes': notes,
+      if (paymentDate != null)
+        'payment_date': paymentDate!.toIso8601String(),
+      if (monthlyCost != null) 'monthly_cost': monthlyCost,
+      if (costNotes != null && costNotes!.isNotEmpty) 'cost_notes': costNotes,
+      if (cookies != null && cookies!.isNotEmpty) 'cookies': cookies,
+      if (details != null && details!.isNotEmpty) 'details': details,
+      if (supplyId != null) 'supply_id': supplyId,
+    };
+  }
+}

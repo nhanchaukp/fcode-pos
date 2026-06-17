@@ -1,5 +1,6 @@
 import 'package:fcode_pos/providers/auth_provider.dart';
 import 'package:fcode_pos/screens/tabs/main_shell.dart';
+import 'package:fcode_pos/services/deep_link_service.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,9 +23,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
     return auth.when(
       data: (user) {
-        // Reset error flag khi load thành công
         _hasShownError = false;
-        return user != null ? const MainShell() : const LoginScreen();
+        if (user != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            DeepLinkService.processPendingNavigation();
+          });
+          return const MainShell();
+        }
+        return const LoginScreen();
       },
       loading: () => Scaffold(
         body: Column(

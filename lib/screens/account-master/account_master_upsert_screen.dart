@@ -1,8 +1,10 @@
 import 'package:fcode_pos/enums.dart' as enums;
 import 'package:fcode_pos/models.dart';
+import 'package:fcode_pos/models/dto/account_master_data.dart';
 import 'package:fcode_pos/services/account_master_service.dart';
 import 'package:fcode_pos/ui/components/app_switch_tile.dart';
 import 'package:fcode_pos/ui/components/dropdown/account_master_service_type_dropdown.dart';
+import 'package:fcode_pos/ui/components/dropdown/supply_dropdown.dart';
 import 'package:fcode_pos/ui/components/money_form_field.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
@@ -36,6 +38,7 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
   late TextEditingController _detailsController;
 
   DateTime? _paymentDate;
+  Supply? _selectedSupply;
   bool _isActive = true;
   bool _isLoading = false;
 
@@ -66,6 +69,7 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
     _detailsController = TextEditingController(text: account?.details ?? '');
 
     _paymentDate = account?.paymentDate;
+    _selectedSupply = account?.supply;
     _isActive = account?.isActive ?? true;
   }
 
@@ -109,8 +113,7 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
     });
 
     try {
-      final accountMaster = AccountMaster(
-        id: widget.accountMaster?.id ?? 0,
+      final data = AccountMasterData(
         name: _nameController.text.trim(),
         username: _usernameController.text.trim(),
         password: _passwordController.text.trim(),
@@ -133,15 +136,13 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
         details: _detailsController.text.trim().isEmpty
             ? null
             : _detailsController.text.trim(),
+        supplyId: _selectedSupply?.id,
       );
 
       if (_isUpdate) {
-        await _accountMasterService.update(
-          widget.accountMaster!.id,
-          accountMaster,
-        );
+        await _accountMasterService.update(widget.accountMaster!.id, data);
       } else {
-        await _accountMasterService.create(accountMaster);
+        await _accountMasterService.create(data);
       }
 
       if (!mounted) return;
@@ -263,6 +264,16 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
               onChanged: (value) {
                 setState(() {
                   _serviceType = value;
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+
+            SupplyDropdown(
+              selectedSupply: _selectedSupply,
+              onChanged: (supply) {
+                setState(() {
+                  _selectedSupply = supply;
                 });
               },
             ),
