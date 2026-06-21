@@ -1,4 +1,5 @@
 import 'package:fcode_pos/config/theme_colors.dart';
+import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/providers/auth_provider.dart';
 import 'package:fcode_pos/providers/theme_provider.dart';
 import 'package:fcode_pos/screens/developer/developer_screen.dart';
@@ -57,58 +58,10 @@ class MoreScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
         children: [
-          // User Profile Card
-          Card(
-            elevation: 0,
-            margin: EdgeInsets.zero,
-            clipBehavior: Clip.antiAlias,
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                children: [
-                  Container(
-                    width: 52,
-                    height: 52,
-                    decoration: BoxDecoration(
-                      color: colorScheme.primaryContainer,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Text(
-                        user?.name != null && user!.name.isNotEmpty
-                            ? user.name.substring(0, 1).toUpperCase()
-                            : 'U',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onPrimaryContainer,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          user?.name ?? 'Người dùng',
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(fontWeight: FontWeight.w600),
-                        ),
-                        const SizedBox(height: 2),
-                        if (user?.email != null)
-                          Text(
-                            user!.email,
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: colorScheme.onSurfaceVariant),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          _UserProfileCard(
+            user: user,
+            isLoading: isLoading,
+            colorScheme: colorScheme,
           ),
 
           const SizedBox(height: 16),
@@ -450,4 +403,255 @@ class MoreScreen extends ConsumerWidget {
       },
     );
   }
+}
+
+class _UserProfileCard extends StatelessWidget {
+  const _UserProfileCard({
+    required this.user,
+    required this.isLoading,
+    required this.colorScheme,
+  });
+
+  final User? user;
+  final bool isLoading;
+  final ColorScheme colorScheme;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final hasFooter = _hasTwoFactor || _roleNames.isNotEmpty;
+
+    return Card(
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.45),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (isLoading && user == null)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Center(
+                  child: SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+              )
+            else
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildAvatar(),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _displayName,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (_hasUsername) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            '@${user!.username}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                        if (user?.email != null && user!.email.isNotEmpty) ...[
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.alternate_email_rounded,
+                                size: 14,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  user!.email,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            if (!isLoading && user != null && hasFooter) ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    if (_hasTwoFactor) _twoFactorBadge(theme),
+                    ..._roleNames.map(
+                      (name) => _roleBadge(name, colorScheme),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  bool get _hasTwoFactor => user?.twoFactorConfirmedAt != null;
+
+  String get _displayName {
+    if (user == null) return 'Người dùng';
+    if (user!.name.isNotEmpty) return user!.name;
+    if (user!.username.isNotEmpty) return user!.username;
+    return 'Người dùng';
+  }
+
+  bool get _hasUsername =>
+      user != null &&
+      user!.username.isNotEmpty &&
+      user!.username != user!.name;
+
+  List<String> get _roleNames {
+    final roles = user?.roles;
+    if (roles == null) return const [];
+    return roles
+        .map((role) => role.name.trim())
+        .where((name) => name.isNotEmpty)
+        .toList();
+  }
+
+  Widget _buildAvatar() {
+    final photoUrl = _resolvePhotoUrl();
+    final initial =
+        _displayName.isNotEmpty ? _displayName[0].toUpperCase() : 'U';
+
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: colorScheme.primary.withValues(alpha: 0.2),
+          width: 1.5,
+        ),
+      ),
+      child: CircleAvatar(
+        radius: 28,
+        backgroundColor: colorScheme.primaryContainer,
+        backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+        child: photoUrl == null
+            ? Text(
+                initial,
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onPrimaryContainer,
+                ),
+              )
+            : null,
+      ),
+    );
+  }
+
+  Widget _twoFactorBadge(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.green.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.green.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.shield_outlined, size: 12, color: Colors.green.shade700),
+          const SizedBox(width: 4),
+          Text(
+            '2FA',
+            style: theme.textTheme.labelSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: Colors.green.shade700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String? _resolvePhotoUrl() {
+    final profilePhoto = user?.profilePhotoUrl?.trim();
+    if (profilePhoto != null && profilePhoto.isNotEmpty) return profilePhoto;
+
+    final avatar = user?.avatar?.trim();
+    if (avatar != null && avatar.isNotEmpty) return avatar;
+
+    return null;
+  }
+
+}
+
+Widget _roleBadge(String name, ColorScheme colorScheme) {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+    decoration: BoxDecoration(
+      color: colorScheme.secondaryContainer.withValues(alpha: 0.65),
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(
+        color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+      ),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.badge_outlined,
+          size: 12,
+          color: colorScheme.onSecondaryContainer,
+        ),
+        const SizedBox(width: 4),
+        Text(
+          name,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: colorScheme.onSecondaryContainer,
+          ),
+        ),
+      ],
+    ),
+  );
 }

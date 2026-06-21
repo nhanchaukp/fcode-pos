@@ -1,6 +1,6 @@
 import 'package:fcode_pos/enums.dart' as enums;
 import 'package:fcode_pos/models.dart';
-import 'package:fcode_pos/utils/date_helper.dart';
+import 'package:intl/intl.dart';
 
 class UpdateFinancialTransactionData {
   const UpdateFinancialTransactionData({
@@ -72,7 +72,7 @@ class UpdateFinancialTransactionData {
 
   String? _formatDateTime(DateTime? value) {
     if (value == null) return null;
-    return DateHelper.formatApiDateTime(value);
+    return DateFormat('yyyy-MM-dd HH:mm:ss').format(value.toLocal());
   }
 
   bool _sameInstant(DateTime? a, DateTime? b) {

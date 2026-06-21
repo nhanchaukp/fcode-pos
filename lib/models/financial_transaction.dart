@@ -17,6 +17,7 @@ class FinancialTransaction {
   final String? description;
   final String? notes;
   final Map<String, dynamic>? metadata;
+  final Map<String, dynamic>? transactionable;
   final DateTime? processedAt;
   final DateTime? completedAt;
   final DateTime? createdAt;
@@ -39,6 +40,7 @@ class FinancialTransaction {
     this.description,
     this.notes,
     this.metadata,
+    this.transactionable,
     this.processedAt,
     this.completedAt,
     this.createdAt,
@@ -62,7 +64,12 @@ class FinancialTransaction {
       processedBy: asIntOrNull(json['processed_by']),
       description: json['description'] as String?,
       notes: json['notes'] as String?,
-      metadata: json['metadata'] as Map<String, dynamic>?,
+      metadata: json['metadata'] is Map
+          ? Map<String, dynamic>.from(json['metadata'] as Map)
+          : null,
+      transactionable: json['transactionable'] is Map
+          ? Map<String, dynamic>.from(json['transactionable'] as Map)
+          : null,
       processedAt: json['processed_at'] != null
           ? DateTime.tryParse(json['processed_at'] as String)
           : null,
@@ -96,6 +103,7 @@ class FinancialTransaction {
       'description': description,
       'notes': notes,
       'metadata': metadata,
+      'transactionable': transactionable,
       'processed_at': processedAt?.toIso8601String(),
       'completed_at': completedAt?.toIso8601String(),
       'created_at': createdAt?.toIso8601String(),

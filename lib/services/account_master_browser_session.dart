@@ -1,4 +1,3 @@
-import 'package:fcode_pos/enums.dart' as enums;
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/account_master_browser_service.dart';
 import 'package:flutter/material.dart';
@@ -138,9 +137,7 @@ class AccountMasterBrowserSession {
     _bubbleOverlay = OverlayEntry(
       builder: (overlayContext) {
         final screenSize = MediaQuery.sizeOf(overlayContext);
-        final serviceType =
-            enums.AccountMasterServiceType.fromValue(accountMaster.serviceType) ??
-            enums.AccountMasterServiceType.netflix;
+        final colorScheme = Theme.of(overlayContext).colorScheme;
         final isLoading = loadProgress < 100;
 
         return Positioned(
@@ -159,15 +156,15 @@ class AccountMasterBrowserSession {
               elevation: 6,
               shadowColor: Colors.black45,
               shape: const CircleBorder(),
-              color: serviceType.color,
+              color: colorScheme.primary,
               child: SizedBox(
                 width: 56,
                 height: 56,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    Icon(
-                      serviceType.icon,
+                    const Icon(
+                      Icons.public,
                       color: Colors.white,
                       size: 26,
                     ),

@@ -1,4 +1,5 @@
 import 'package:fcode_pos/models.dart';
+import 'package:fcode_pos/screens/financial/financial_transaction_detail_screen.dart';
 import 'package:fcode_pos/services/finacial_service.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
@@ -335,6 +336,21 @@ class _FinancialTransactionScreenState
     );
   }
 
+  Future<void> _openTransactionDetail(FinancialTransaction transaction) async {
+    final changed = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => FinancialTransactionDetailScreen(
+          transactionId: transaction.id,
+        ),
+      ),
+    );
+
+    if (changed == true && mounted) {
+      _loadTransactions();
+    }
+  }
+
   Widget _buildTransactionCard(FinancialTransaction transaction) {
     final colorScheme = Theme.of(context).colorScheme;
     final isIncome = transaction.category == 'revenue';
@@ -342,9 +358,12 @@ class _FinancialTransactionScreenState
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => _openTransactionDetail(transaction),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header: Transaction ID và Status
@@ -455,6 +474,7 @@ class _FinancialTransactionScreenState
               ],
             ),
           ],
+        ),
         ),
       ),
     );

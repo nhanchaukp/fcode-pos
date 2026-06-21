@@ -38,6 +38,25 @@ class AccountMasterBrowserService {
         uri.host.isNotEmpty;
   }
 
+  /// Normalizes user input into a navigable http(s) URL, or null if invalid.
+  static String? normalizeUrl(String input) {
+    final trimmed = input.trim();
+    if (trimmed.isEmpty) return null;
+
+    if (_looksLikeUrl(trimmed)) {
+      return trimmed;
+    }
+
+    final withScheme = Uri.tryParse('https://$trimmed');
+    if (withScheme != null &&
+        withScheme.host.isNotEmpty &&
+        !withScheme.host.contains(' ')) {
+      return withScheme.toString();
+    }
+
+    return null;
+  }
+
   /// Clear all cookies and web storage so each account starts an isolated session.
   Future<void> clearSession() async {
     final cookieManager = CookieManager.instance();

@@ -8,6 +8,7 @@ part 'enums/order_status.dart';
 part 'enums/tax_rate.dart';
 part 'enums/financial_transaction_type.dart';
 part 'enums/financial_transaction_category.dart';
+part 'enums/financial_transaction_status.dart';
 part 'enums/account_master_service_type.dart';
 part 'enums/invoice_currency.dart';
 part 'enums/invoice_status.dart';

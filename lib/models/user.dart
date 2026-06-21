@@ -1,5 +1,26 @@
 part of '../models.dart';
 
+class Role implements Model {
+  final int id;
+  final String name;
+  final String guardName;
+
+  Role({required this.id, required this.name, required this.guardName});
+
+  factory Role.fromJson(Map<String, dynamic> map) {
+    return Role(
+      id: asInt(map['id']),
+      name: map['name']?.toString() ?? '',
+      guardName: map['guard_name']?.toString() ?? '',
+    );
+  }
+
+  @override
+  Map<String, dynamic> toMap() {
+    return {'id': id, 'name': name, 'guard_name': guardName};
+  }
+}
+
 /// User
 class User implements Model {
   /// User ID.
@@ -100,6 +121,9 @@ class User implements Model {
   /// Invoice email.
   final String? invoiceEmail;
 
+  /// User roles.
+  final List<Role>? roles;
+
   User({
     required this.id,
     required this.username,
@@ -133,6 +157,7 @@ class User implements Model {
     this.buyerCode,
     this.nationalId,
     this.invoiceEmail,
+    this.roles,
   });
 
   factory User.fromJson(Map<String, dynamic> map) {
@@ -169,6 +194,9 @@ class User implements Model {
       buyerCode: map['buyer_code']?.toString(),
       nationalId: map['national_id']?.toString(),
       invoiceEmail: map['invoice_email']?.toString(),
+      roles: map['roles'] != null
+          ? List<Role>.from(map['roles'].map((role) => Role.fromJson(role)))
+          : null,
     );
   }
   @override
@@ -206,6 +234,7 @@ class User implements Model {
       'buyer_code': buyerCode,
       'national_id': nationalId,
       'invoice_email': invoiceEmail,
+      'roles': roles?.map((role) => role.toMap()).toList(),
     };
   }
 }

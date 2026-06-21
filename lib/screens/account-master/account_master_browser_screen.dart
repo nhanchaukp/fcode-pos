@@ -48,6 +48,9 @@ class _AccountMasterBrowserScreenState extends State<AccountMasterBrowserScreen>
   bool _canGoBack = false;
   bool _canGoForward = false;
   double _headerDragDelta = 0;
+  bool _isEditingAddress = false;
+  late final TextEditingController _addressController;
+  late final FocusNode _addressFocusNode;
   final List<_BrowserConsoleLog> _consoleLogs = [];
 
   AccountMasterBrowserSession get _session => widget.session;
@@ -60,6 +63,15 @@ class _AccountMasterBrowserScreenState extends State<AccountMasterBrowserScreen>
     _pageTitle = _session.pageTitle;
     _loadProgress = _session.webPageReady ? 100 : _session.loadProgress;
     _webController = _session.webController;
+    _addressController = TextEditingController(text: _initialUrl);
+    _addressFocusNode = FocusNode();
+  }
+
+  @override
+  void dispose() {
+    _addressFocusNode.dispose();
+    _addressController.dispose();
+    super.dispose();
   }
 
   Future<void> _onWebViewCreated(InAppWebViewController controller) async {
@@ -73,6 +85,8 @@ class _AccountMasterBrowserScreenState extends State<AccountMasterBrowserScreen>
         _loadProgress = isRestoredSession ? 100 : _session.loadProgress;
       });
     }
+    final currentUrl = await controller.getUrl();
+    _syncAddressBar(currentUrl);
     await _updateNavigationState();
   }
 
@@ -91,8 +105,55 @@ class _AccountMasterBrowserScreenState extends State<AccountMasterBrowserScreen>
   void _onLoadStop(InAppWebViewController _, WebUri? url) {
     if (!mounted) return;
     _session.markPageReady();
+    _syncAddressBar(url);
     setState(() => _loadProgress = 100);
     _updateNavigationState();
+  }
+
+  void _syncAddressBar(WebUri? url) {
+    final value = url?.toString() ?? _initialUrl;
+    if (_addressController.text != value) {
+      _addressController.text = value;
+    }
+  }
+
+  Future<void> _showAddressEditor() async {
+    final currentUrl = await _webController?.getUrl();
+    _syncAddressBar(currentUrl);
+    if (!mounted) return;
+
+    setState(() => _isEditingAddress = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _addressFocusNode.requestFocus();
+      _addressController.selection = TextSelection(
+        baseOffset: 0,
+        extentOffset: _addressController.text.length,
+      );
+    });
+  }
+
+  Future<void> _hideAddressEditor() async {
+    if (!_isEditingAddress) return;
+    _addressFocusNode.unfocus();
+    _syncAddressBar(await _webController?.getUrl());
+    if (!mounted) return;
+    setState(() => _isEditingAddress = false);
+  }
+
+  Future<void> _navigateToAddress(String input) async {
+    final url = AccountMasterBrowserService.normalizeUrl(input);
+    if (url == null) {
+      Toastr.error('Địa chỉ web không hợp lệ', context: context);
+      return;
+    }
+
+    await _hideAddressEditor();
+    await _webController?.clearFocus();
+    FocusManager.instance.primaryFocus?.unfocus();
+    await _webController?.loadUrl(
+      urlRequest: URLRequest(url: WebUri(url)),
+    );
   }
 
   void _onTitleChanged(InAppWebViewController _, String? title) {
@@ -428,7 +489,11 @@ class _AccountMasterBrowserScreenState extends State<AccountMasterBrowserScreen>
     return colorScheme.primary;
   }
 
-  void _showAccountInfo() {
+  Future<void> _showAccountInfo() async {
+    await _webController?.clearFocus();
+    FocusManager.instance.primaryFocus?.unfocus();
+    if (!mounted) return;
+
     final account = _accountMaster;
     final serviceTypeLabel = enums.AccountMasterServiceType.values
         .firstWhere(
@@ -437,52 +502,58 @@ class _AccountMasterBrowserScreenState extends State<AccountMasterBrowserScreen>
         )
         .label;
 
-    showModalBottomSheet<void>(
+    await showModalBottomSheet<void>(
       context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (sheetContext) {
+        final bottomInset = MediaQuery.viewInsetsOf(sheetContext).bottom;
+
         return Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: Theme.of(sheetContext).colorScheme.outlineVariant,
-                    borderRadius: BorderRadius.circular(2),
+          padding: EdgeInsets.fromLTRB(16, 12, 16, 24 + bottomInset),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(sheetContext).colorScheme.outlineVariant,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-              ),
-              Text(
-                'Thông tin tài khoản master',
-                style: Theme.of(sheetContext).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
+                Text(
+                  'Thông tin tài khoản master',
+                  style: Theme.of(sheetContext).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              _buildCopyableInfoRow(
-                sheetContext,
-                label: 'Username',
-                value: account.username,
-              ),
-              _buildCopyableInfoRow(
-                sheetContext,
-                label: 'Password',
-                value: account.password,
-              ),
-              _buildInfoRow('Loại dịch vụ', serviceTypeLabel),
-              _buildInfoRow(
-                'Trạng thái',
-                account.isActive ? 'Đang hoạt động' : 'Không hoạt động',
-              ),
-            ],
+                const SizedBox(height: 16),
+                _buildCopyableInfoRow(
+                  sheetContext,
+                  label: 'Username',
+                  value: account.username,
+                ),
+                _buildCopyableInfoRow(
+                  sheetContext,
+                  label: 'Password',
+                  value: account.password,
+                ),
+                _buildInfoRow('Loại dịch vụ', serviceTypeLabel),
+                _buildInfoRow(
+                  'Trạng thái',
+                  account.isActive ? 'Đang hoạt động' : 'Không hoạt động',
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -547,7 +618,7 @@ class _AccountMasterBrowserScreenState extends State<AccountMasterBrowserScreen>
     final colorScheme = Theme.of(context).colorScheme;
 
     return PreferredSize(
-      preferredSize: const Size.fromHeight(kToolbarHeight + 10),
+      preferredSize: const Size.fromHeight(_headerHeight),
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
         onVerticalDragUpdate: _onHeaderDragUpdate,
@@ -570,41 +641,80 @@ class _AccountMasterBrowserScreenState extends State<AccountMasterBrowserScreen>
                 ),
                 AppBar(
                   automaticallyImplyLeading: false,
-                  leadingWidth: 96,
-                  leading: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back),
-                        tooltip: 'Quay lại trang trước',
-                        onPressed: _canGoBack ? _goBack : null,
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.arrow_forward),
-                        tooltip: 'Tiến tới trang sau',
-                        onPressed: _canGoForward ? _goForward : null,
-                      ),
-                    ],
-                  ),
-                  title: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        account.name,
-                        style: const TextStyle(fontSize: 16),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        _pageTitle ?? _initialUrl,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.normal,
+                  leadingWidth: _isEditingAddress ? 48 : 96,
+                  leading: _isEditingAddress
+                      ? IconButton(
+                          icon: const Icon(Icons.close),
+                          tooltip: 'Hủy nhập địa chỉ',
+                          onPressed: _hideAddressEditor,
+                        )
+                      : Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.arrow_back),
+                              tooltip: 'Quay lại trang trước',
+                              onPressed: _canGoBack ? _goBack : null,
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.arrow_forward),
+                              tooltip: 'Tiến tới trang sau',
+                              onPressed: _canGoForward ? _goForward : null,
+                            ),
+                          ],
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
+                  title: _isEditingAddress
+                      ? TextField(
+                          controller: _addressController,
+                          focusNode: _addressFocusNode,
+                          style: const TextStyle(fontSize: 14),
+                          keyboardType: TextInputType.url,
+                          textInputAction: TextInputAction.go,
+                          autocorrect: false,
+                          decoration: InputDecoration(
+                            hintText: 'Nhập địa chỉ web',
+                            prefixIcon: Icon(
+                              Icons.public,
+                              size: 20,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            isDense: true,
+                            filled: true,
+                            fillColor: colorScheme.surfaceContainerHighest,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                          ),
+                          onSubmitted: _navigateToAddress,
+                        )
+                      : GestureDetector(
+                          onTap: _showAddressEditor,
+                          behavior: HitTestBehavior.opaque,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                account.name,
+                                style: const TextStyle(fontSize: 16),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                _pageTitle ?? _initialUrl,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.normal,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
                   actions: _buildAppBarActions(),
                 ),
               ],
@@ -709,7 +819,8 @@ class _AccountMasterBrowserScreenState extends State<AccountMasterBrowserScreen>
     ];
   }
 
-  static const _toolbarHeight = kToolbarHeight + 10;
+  static const _headerHeight = kToolbarHeight + 10;
+  static const _toolbarHeight = _headerHeight;
 
   double _webViewTop(BuildContext context) {
     final topInset = MediaQuery.paddingOf(context).top;
@@ -738,7 +849,8 @@ class _AccountMasterBrowserScreenState extends State<AccountMasterBrowserScreen>
       onProgressChanged: _onProgressChanged,
       onLoadStop: _onLoadStop,
       onTitleChanged: _onTitleChanged,
-      onUpdateVisitedHistory: (_, _, _) {
+      onUpdateVisitedHistory: (controller, url, _) {
+        _syncAddressBar(url);
         _updateNavigationState();
       },
       onReceivedServerTrustAuthRequest:
@@ -761,6 +873,10 @@ class _AccountMasterBrowserScreenState extends State<AccountMasterBrowserScreen>
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
+        if (_isEditingAddress) {
+          await _hideAddressEditor();
+          return;
+        }
         if (_canGoBack) {
           await _goBack();
         } else {

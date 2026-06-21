@@ -57,6 +57,26 @@ class FinacialService {
     );
   }
 
+  Future<ApiResponse<FinancialTransaction>> getFinancialTransactionDetail(
+    int id,
+  ) {
+    return _api.get<FinancialTransaction>(
+      '/financial-transaction/$id',
+      parser: (json) => FinancialTransaction.fromJson(ensureMap(json)),
+    );
+  }
+
+  Future<ApiResponse<FinancialTransaction>> updateFinancialTransaction(
+    int id,
+    Map<String, dynamic> payload,
+  ) {
+    return _api.put<FinancialTransaction>(
+      '/financial-transaction/$id',
+      data: payload,
+      parser: (json) => FinancialTransaction.fromJson(ensureMap(json)),
+    );
+  }
+
   Future<ApiResponse<Map<String, dynamic>?>> deleteFinancialTransaction(
     int id,
   ) {
