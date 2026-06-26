@@ -83,6 +83,14 @@ class AccountSlotService {
       ),
     );
   }
+
+  /// Xóa account slot.
+  Future<ApiResponse<Map<String, dynamic>?>> delete(String id) {
+    return _api.delete<Map<String, dynamic>?>(
+      '/account-slots/$id',
+      parser: (json) => json == null ? null : ensureMap(json),
+    );
+  }
 }
 
 List<AccountSlot> _parseAccountSlotList(dynamic data) {

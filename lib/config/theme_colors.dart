@@ -528,6 +528,177 @@ const _highContrastDark = ColorScheme(
   inversePrimary: Color(0xFF0369a1), // sky-700
 );
 
+// ── Tailwind CSS v4 values used in Halloween ─────────────────────────────────
+// white:#ffffff  black:#000000
+// gray-100:#f3f4f6  gray-900:#111827
+// slate-100:#f1f5f9  slate-600:#475569  slate-700:#334155  slate-900:#0f172a
+// orange-400:#fb923c  orange-500:#f97316
+// purple-600:#9333ea  purple-800:#581c87
+// violet-100:#ede9fe
+// lime-400:#a3e635
+// fuchsia-600:#c026ff
+// sky-500:#0ea5e9  green-400:#4ade80  amber-500:#f59e0b  red-500:#ef4444
+
+// ── Halloween — light ─────────────────────────────────────────────────────────
+const _halloweenLight = ColorScheme(
+  brightness: Brightness.light,
+  primary: Color(0xFFfb923c), // orange-400
+  onPrimary: Color(0xFFf1f5f9), // slate-100
+  primaryContainer: Color(0xFFffedd5), // orange-100
+  onPrimaryContainer: Color(0xFF9a3412), // orange-800
+  secondary: Color(0xFF9333ea), // purple-600
+  onSecondary: Color(0xFFf1f5f9), // slate-100
+  secondaryContainer: Color(0xFFf3e8ff), // purple-100
+  onSecondaryContainer: Color(0xFF581c87), // purple-800
+  tertiary: Color(0xFF475569), // slate-600
+  onTertiary: Color(0xFFffffff),
+  tertiaryContainer: Color(0xFFf3f4f6), // gray-100
+  onTertiaryContainer: Color(0xFF334155), // slate-700
+  error: Color(0xFFef4444), // red-500
+  onError: Color(0xFFf1f5f9), // slate-100
+  errorContainer: Color(0xFFfee2e2),
+  onErrorContainer: Color(0xFF991b1b),
+  surface: Color(0xFFffffff), // white
+  onSurface: Color(0xFF581c87), // purple-800 (on-surface-strong)
+  surfaceDim: Color(0xFFf3f4f6),
+  surfaceBright: Color(0xFFffffff),
+  surfaceContainerLowest: Color(0xFFffffff),
+  surfaceContainerLow: Color(0xFFffffff),
+  surfaceContainer: Color(0xFFf3f4f6), // gray-100 (surface-alt)
+  surfaceContainerHigh: Color(0xFFf3f4f6),
+  surfaceContainerHighest: Color(0xFFe5e7eb), // gray-200
+  onSurfaceVariant: Color(0xFF475569), // slate-600 (on-surface)
+  outline: Color(0x00000000), // transparent
+  outlineVariant: Color(0xFFf97316), // orange-500 (outline-strong)
+  shadow: Color(0xFF000000),
+  scrim: Color(0xFF000000),
+  inverseSurface: Color(0xFF111827), // gray-900
+  onInverseSurface: Color(0xFFf3f4f6), // gray-100
+  inversePrimary: Color(0xFFf97316), // orange-500
+);
+
+// ── Halloween — dark ──────────────────────────────────────────────────────────
+const _halloweenDark = ColorScheme(
+  brightness: Brightness.dark,
+  primary: Color(0xFFa3e635), // lime-400
+  onPrimary: Color(0xFF000000), // black
+  primaryContainer: Color(0xFF365314), // lime-800 approx
+  onPrimaryContainer: Color(0xFFecfccb), // lime-100
+  secondary: Color(0xFFc026ff), // fuchsia-600
+  onSecondary: Color(0xFFffffff),
+  secondaryContainer: Color(0xFF581c87), // purple-800
+  onSecondaryContainer: Color(0xFFf3e8ff),
+  tertiary: Color(0xFF94a3b8), // slate-400
+  onTertiary: Color(0xFF000000),
+  tertiaryContainer: Color(0xFF1f2937), // gray-800
+  onTertiaryContainer: Color(0xFFd1d5db), // gray-300
+  error: Color(0xFFef4444), // red-500
+  onError: Color(0xFFf1f5f9), // slate-100
+  errorContainer: Color(0xFF7f1d1d),
+  onErrorContainer: Color(0xFFfee2e2),
+  surface: Color(0xFF000000), // black
+  onSurface: Color(0xFFffffff), // white (on-surface-dark-strong)
+  surfaceDim: Color(0xFF000000),
+  surfaceBright: Color(0xFF1f2937), // gray-800
+  surfaceContainerLowest: Color(0xFF000000),
+  surfaceContainerLow: Color(0xFF000000),
+  surfaceContainer: Color(0xFF111827), // gray-900 (surface-alt)
+  surfaceContainerHigh: Color(0xFF1f2937),
+  surfaceContainerHighest: Color(0xFF374151), // gray-700
+  onSurfaceVariant: Color(0xFFede9fe), // violet-100 (on-surface-dark)
+  outline: Color(0xFF334155), // slate-700 (outline-dark)
+  outlineVariant: Color(0xFF9333ea), // purple-600 (outline-dark-strong)
+  shadow: Color(0xFF000000),
+  scrim: Color(0xFF000000),
+  inverseSurface: Color(0xFFf3f4f6), // gray-100
+  onInverseSurface: Color(0xFF1f2937),
+  inversePrimary: Color(0xFF4ade80), // green-400
+);
+
+// ── Tailwind CSS v4 values used in 90s ────────────────────────────────────────
+// neutral-100:#f5f5f5  neutral-200:#e5e5e5  neutral-300:#d4d4d4
+// neutral-700:#404040  neutral-800:#262626  neutral-900:#171717
+// purple-400:#c084fc  purple-500:#a855f7
+// sky-500:#0ea5e9  blue-400:#60a5fa
+// cyan-500:#06b6d4  teal-400:#14b8a6  yellow-300:#fde047  pink-500:#ec4899
+// white:#ffffff  black:#000000
+
+// ── 90s — light ───────────────────────────────────────────────────────────────
+const _ninetiesLight = ColorScheme(
+  brightness: Brightness.light,
+  primary: Color(0xFFa855f7), // purple-500
+  onPrimary: Color(0xFFffffff), // white
+  primaryContainer: Color(0xFFf3e8ff), // purple-100
+  onPrimaryContainer: Color(0xFF6b21a8), // purple-800
+  secondary: Color(0xFF0ea5e9), // sky-500
+  onSecondary: Color(0xFFffffff),
+  secondaryContainer: Color(0xFFe0f2fe), // sky-100
+  onSecondaryContainer: Color(0xFF0369a1), // sky-700
+  tertiary: Color(0xFF404040), // neutral-700
+  onTertiary: Color(0xFFffffff),
+  tertiaryContainer: Color(0xFFe5e5e5), // neutral-200
+  onTertiaryContainer: Color(0xFF262626), // neutral-800
+  error: Color(0xFFec4899), // pink-500
+  onError: Color(0xFF000000), // black
+  errorContainer: Color(0xFFfce7f3), // pink-100
+  onErrorContainer: Color(0xFF831843),
+  surface: Color(0xFFf5f5f5), // neutral-100
+  onSurface: Color(0xFF000000), // black (on-surface-strong)
+  surfaceDim: Color(0xFFe5e5e5),
+  surfaceBright: Color(0xFFf5f5f5),
+  surfaceContainerLowest: Color(0xFFfafafa),
+  surfaceContainerLow: Color(0xFFf5f5f5),
+  surfaceContainer: Color(0xFFe5e5e5), // neutral-200 (surface-alt)
+  surfaceContainerHigh: Color(0xFFe5e5e5),
+  surfaceContainerHighest: Color(0xFFd4d4d4), // neutral-300
+  onSurfaceVariant: Color(0xFF262626), // neutral-800 (on-surface)
+  outline: Color(0xFFd4d4d4), // neutral-300
+  outlineVariant: Color(0xFF262626), // neutral-800 (outline-strong)
+  shadow: Color(0xFF000000),
+  scrim: Color(0xFF000000),
+  inverseSurface: Color(0xFF171717), // neutral-900
+  onInverseSurface: Color(0xFFf5f5f5), // neutral-100
+  inversePrimary: Color(0xFFc084fc), // purple-400
+);
+
+// ── 90s — dark ────────────────────────────────────────────────────────────────
+const _ninetiesDark = ColorScheme(
+  brightness: Brightness.dark,
+  primary: Color(0xFFc084fc), // purple-400
+  onPrimary: Color(0xFF000000), // black
+  primaryContainer: Color(0xFF581c87), // purple-800
+  onPrimaryContainer: Color(0xFFf3e8ff), // purple-100
+  secondary: Color(0xFF60a5fa), // blue-400
+  onSecondary: Color(0xFF000000), // black
+  secondaryContainer: Color(0xFF1e40af), // blue-800
+  onSecondaryContainer: Color(0xFFbfdbfe), // blue-200
+  tertiary: Color(0xFFa3a3a3), // neutral-400
+  onTertiary: Color(0xFF000000),
+  tertiaryContainer: Color(0xFF404040), // neutral-700
+  onTertiaryContainer: Color(0xFFe5e5e5), // neutral-200
+  error: Color(0xFFec4899), // pink-500
+  onError: Color(0xFF000000), // black
+  errorContainer: Color(0xFF831843),
+  onErrorContainer: Color(0xFFfce7f3),
+  surface: Color(0xFF262626), // neutral-800
+  onSurface: Color(0xFFf5f5f5), // neutral-100 (on-surface-dark-strong)
+  surfaceDim: Color(0xFF262626),
+  surfaceBright: Color(0xFF404040),
+  surfaceContainerLowest: Color(0xFF171717),
+  surfaceContainerLow: Color(0xFF262626),
+  surfaceContainer: Color(0xFF171717), // neutral-900 (surface-alt)
+  surfaceContainerHigh: Color(0xFF404040),
+  surfaceContainerHighest: Color(0xFF525252),
+  onSurfaceVariant: Color(0xFFd4d4d4), // neutral-300 (on-surface-dark)
+  outline: Color(0xFF404040), // neutral-700 (outline-dark)
+  outlineVariant: Color(0xFFd4d4d4), // neutral-300 (outline-dark-strong)
+  shadow: Color(0xFF000000),
+  scrim: Color(0xFF000000),
+  inverseSurface: Color(0xFFf5f5f5), // neutral-100
+  onInverseSurface: Color(0xFF262626),
+  inversePrimary: Color(0xFFa855f7), // purple-500
+);
+
 // ── AppColors instances per palette ──────────────────────────────────────────
 
 // Default (dùng làm fallback & Minimal)
@@ -590,6 +761,30 @@ const _highContrastColors = AppColors(
   onDanger: Color(0xFF000000), // red-500
 );
 
+// Halloween: follow the provided CSS semantic colors
+const _halloweenColors = AppColors(
+  success: Color(0xFF4ade80), // green-400
+  onSuccess: Color(0xFF0f172a), // slate-900
+  info: Color(0xFF0ea5e9), // sky-500
+  onInfo: Color(0xFFf1f5f9), // slate-100
+  warning: Color(0xFFf59e0b), // amber-500
+  onWarning: Color(0xFF0f172a), // slate-900
+  danger: Color(0xFFef4444), // red-500
+  onDanger: Color(0xFFf1f5f9), // slate-100
+);
+
+// 90s: follow the provided CSS semantic colors
+const _ninetiesColors = AppColors(
+  success: Color(0xFF14b8a6), // teal-400
+  onSuccess: Color(0xFF000000), // black
+  info: Color(0xFF06b6d4), // cyan-500
+  onInfo: Color(0xFF000000), // black
+  warning: Color(0xFFfde047), // yellow-300
+  onWarning: Color(0xFF000000), // black
+  danger: Color(0xFFec4899), // pink-500
+  onDanger: Color(0xFF000000), // black
+);
+
 // ── Palette list ──────────────────────────────────────────────────────────────
 
 /// Danh sách palette toàn custom — không dùng ColorScheme.fromSeed.
@@ -633,5 +828,21 @@ final List<ThemePalette> themePalettes = [
     colors: _highContrastColors,
     previewColor: Color(0xFF0284C7), // sky-900
     // borderRadius: 4,
+  ),
+  const ThemePalette(
+    name: 'Halloween',
+    lightScheme: _halloweenLight,
+    darkScheme: _halloweenDark,
+    colors: _halloweenColors,
+    previewColor: Color(0xFFfb923c), // orange-400
+    borderRadius: 12,
+  ),
+  const ThemePalette(
+    name: '90s',
+    lightScheme: _ninetiesLight,
+    darkScheme: _ninetiesDark,
+    colors: _ninetiesColors,
+    previewColor: Color(0xFFa855f7), // purple-500
+    borderRadius: 12,
   ),
 ];

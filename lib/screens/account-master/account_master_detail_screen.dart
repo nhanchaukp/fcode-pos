@@ -169,27 +169,31 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
   ColorScheme get colorScheme => Theme.of(context).colorScheme;
 
   bool get _isNetflix =>
-      _accountMaster.serviceType == enums.AccountMasterServiceType.netflix.value;
+      _accountMaster.serviceType ==
+      enums.AccountMasterServiceType.netflix.value;
 
   Future<void> _syncNetflixInfo() async {
     if (_syncingNetflix) return;
 
     setState(() => _syncingNetflix = true);
     try {
-      final response = await _accountMasterService.syncNetflixInfo(
-        _accountMaster.id,
-      );
-      if (!mounted) return;
+      await Toastr.promise<void>(
+        () async {
+          final response = await _accountMasterService.syncNetflixInfo(
+            _accountMaster.id,
+          );
+          if (!mounted) return;
 
-      setState(() {
-        _accountMaster = response.data ?? _accountMaster;
-        _slots = _accountMaster.slots ?? _slots;
-        _slotsLoaded = true;
-      });
-      Toastr.success('Đồng bộ thông tin Netflix thành công', context: context);
-    } catch (e) {
-      if (!mounted) return;
-      Toastr.error('Lỗi: $e', context: context);
+          setState(() {
+            _accountMaster = response.data ?? _accountMaster;
+            _slots = _accountMaster.slots ?? _slots;
+            _slotsLoaded = true;
+          });
+        }(),
+        loading: 'Đang đồng bộ thông tin Netflix...',
+        success: 'Đồng bộ thành công',
+        errorBuilder: (e) => 'Lỗi: $e',
+      );
     } finally {
       if (mounted) {
         setState(() => _syncingNetflix = false);
@@ -301,18 +305,6 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
             tooltip: 'Mở trình duyệt',
             onPressed: _openInAppBrowser,
           ),
-          if (_syncingNetflix)
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12),
-              child: SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Colors.white,
-                ),
-              ),
-            ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
             onSelected: (value) {
@@ -443,7 +435,10 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
             children: [
               if (_accountMasterLoading) const LinearProgressIndicator(),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: Column(
                   children: [
                     _buildAccountInfoCard(),
@@ -464,16 +459,9 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
     Toastr.success('Đã sao chép $label', context: context);
   }
 
-  Widget _buildCopyIconButton({
-    required String label,
-    required String value,
-  }) {
+  Widget _buildCopyIconButton({required String label, required String value}) {
     return IconButton(
-      icon: Icon(
-        Icons.copy_outlined,
-        size: 14,
-        color: colorScheme.primary,
-      ),
+      icon: Icon(Icons.copy_outlined, size: 14, color: colorScheme.primary),
       tooltip: 'Sao chép $label',
       visualDensity: VisualDensity.compact,
       padding: EdgeInsets.zero,
@@ -595,9 +583,7 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
                   _buildExternalConfigRow(accountMaster.externalConfig!),
                 _buildDetailRow(
                   'Trạng thái',
-                  accountMaster.isActive
-                      ? 'Đang hoạt động'
-                      : 'Không hoạt động',
+                  accountMaster.isActive ? 'Đang hoạt động' : 'Không hoạt động',
                 ),
                 if (accountMaster.createdAt != null)
                   _buildDetailRow(
@@ -653,8 +639,9 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           InkWell(
-            onTap: () =>
-                setState(() => _externalConfigExpanded = !_externalConfigExpanded),
+            onTap: () => setState(
+              () => _externalConfigExpanded = !_externalConfigExpanded,
+            ),
             borderRadius: BorderRadius.circular(6),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 2),
@@ -828,14 +815,17 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
             ListTile(
               leading: const Icon(Icons.open_in_new),
               title: const Text('Xem chi tiết slot'),
-              onTap: () {
+              onTap: () async {
                 Navigator.pop(context);
-                Navigator.push(
+                final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (_) => AccountSlotDetailScreen(slot: slot),
                   ),
                 );
+                if (result == true && mounted) {
+                  await _refreshAccountAndSlots();
+                }
               },
             ),
             if (hasOrder)
@@ -894,6 +884,18 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
                     ),
                   ),
                 );
+              },
+            ),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.delete, color: Colors.red),
+              title: const Text(
+                'Xóa slot',
+                style: TextStyle(color: Colors.red),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _deleteSlot(slot);
               },
             ),
           ],
@@ -966,6 +968,42 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
     }
   }
 
+  Future<void> _deleteSlot(AccountSlot slot) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Xóa slot?'),
+        content: Text('Bạn có chắc muốn xóa "${slot.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Hủy'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Xóa'),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true || !mounted) return;
+
+    try {
+      final response = await _accountSlotService.delete(slot.id.toString());
+      if (!mounted) return;
+      if (response.success) {
+        Toastr.success('Đã xóa slot', context: context);
+        await _refreshAccountAndSlots();
+      } else {
+        Toastr.error(response.message ?? 'Xóa slot thất bại', context: context);
+      }
+    } catch (e) {
+      if (mounted) {
+        Toastr.error('Lỗi: ${e.toString()}', context: context);
+      }
+    }
+  }
+
   Widget _buildSlotItem(AccountSlot slot, {bool isLast = false}) {
     final hasOrder = slot.shopOrderItem?.order != null;
     final customerName = hasOrder
@@ -991,12 +1029,17 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
       mainAxisSize: MainAxisSize.min,
       children: [
         InkWell(
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => AccountSlotDetailScreen(slot: slot),
-            ),
-          ),
+          onTap: () async {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => AccountSlotDetailScreen(slot: slot),
+              ),
+            );
+            if (result == true && mounted) {
+              await _refreshAccountAndSlots();
+            }
+          },
           onLongPress: () => _showSlotItemMenu(context, slot),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),

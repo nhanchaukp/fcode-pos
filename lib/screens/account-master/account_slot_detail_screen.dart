@@ -178,6 +178,45 @@ class _AccountSlotDetailScreenState extends State<AccountSlotDetailScreen>
     if (mounted) Toastr.success('Đã copy thông tin slot', context: context);
   }
 
+  Future<void> _deleteSlot() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Xóa slot?'),
+        content: Text('Bạn có chắc muốn xóa "${_slot.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Hủy'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Xóa'),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true || !mounted) return;
+
+    try {
+      final response = await _slotService.delete(_slot.id.toString());
+      if (!mounted) return;
+      if (response.success) {
+        Toastr.success('Đã xóa slot', context: context);
+        Navigator.of(context).pop(true);
+      } else {
+        Toastr.error(
+          response.message ?? 'Xóa slot thất bại',
+          context: context,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Toastr.error('Lỗi: ${e.toString()}', context: context);
+      }
+    }
+  }
+
   void _showCreateAccessLinkSheet() {
     showModalBottomSheet<bool>(
       context: context,
@@ -263,6 +302,8 @@ class _AccountSlotDetailScreenState extends State<AccountSlotDetailScreen>
                         ),
                       ),
                     );
+                  case _SlotAction.delete:
+                    _deleteSlot();
                 }
               },
               itemBuilder: (_) => [
@@ -304,6 +345,15 @@ class _AccountSlotDetailScreenState extends State<AccountSlotDetailScreen>
                     ),
                   ),
                 ],
+                const PopupMenuItem(
+                  value: _SlotAction.delete,
+                  child: ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(Icons.delete, size: 18, color: Colors.red),
+                    title: Text('Xóa slot', style: TextStyle(color: Colors.red)),
+                  ),
+                ),
               ],
             ),
         ],
@@ -716,7 +766,7 @@ class _AccountSlotDetailScreenState extends State<AccountSlotDetailScreen>
 
 // ── Enum for popup menu actions ───────────────────────────────────────────────
 
-enum _SlotAction { copy, edit, unlinkOrder, viewOrder }
+enum _SlotAction { copy, edit, unlinkOrder, viewOrder, delete }
 
 // ── Skeleton box ─────────────────────────────────────────────────────────────
 

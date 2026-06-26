@@ -50,9 +50,9 @@ class Toastr {
 
   static Future<T> promise<T>(
     Future<T> future, {
-    String loading = 'Đang xử lý...',
-    String success = 'Thành công!',
-    String error = 'Đã xảy ra lỗi',
+    String loading = 'Loading...',
+    String success = 'Success!',
+    String error = 'Something went wrong',
     String Function(T data)? successBuilder,
     String Function(Object error)? errorBuilder,
     Duration? successDuration,

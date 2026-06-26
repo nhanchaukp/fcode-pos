@@ -805,14 +805,17 @@ class _AccountSlotManagementScreenState
             ListTile(
               leading: const Icon(Icons.open_in_new),
               title: const Text('Xem chi tiết slot'),
-              onTap: () {
+              onTap: () async {
                 Navigator.pop(context);
-                Navigator.push(
+                final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (_) => AccountSlotDetailScreen(slot: slot),
                   ),
                 );
+                if (result == true && mounted) {
+                  _loadAccountMasters();
+                }
               },
             ),
             if (hasOrder)
@@ -871,6 +874,15 @@ class _AccountSlotManagementScreenState
                     ),
                   ),
                 );
+              },
+            ),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.delete, color: Colors.red),
+              title: const Text('Xóa slot', style: TextStyle(color: Colors.red)),
+              onTap: () {
+                Navigator.pop(context);
+                _deleteSlot(slot);
               },
             ),
           ],
@@ -943,6 +955,42 @@ class _AccountSlotManagementScreenState
     }
   }
 
+  Future<void> _deleteSlot(AccountSlot slot) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Xóa slot?'),
+        content: Text('Bạn có chắc muốn xóa "${slot.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Hủy'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Xóa'),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true || !mounted) return;
+
+    try {
+      final response = await _accountSlotService.delete(slot.id.toString());
+      if (!mounted) return;
+      if (response.success) {
+        Toastr.success('Đã xóa slot', context: context);
+        _loadAccountMasters();
+      } else {
+        Toastr.error(response.message ?? 'Xóa slot thất bại', context: context);
+      }
+    } catch (e) {
+      if (mounted) {
+        Toastr.error('Lỗi: ${e.toString()}', context: context);
+      }
+    }
+  }
+
   Widget _buildSlotItem(
     AccountSlot slot,
     AccountMaster accountMaster, {
@@ -972,12 +1020,17 @@ class _AccountSlotManagementScreenState
       mainAxisSize: MainAxisSize.min,
       children: [
         InkWell(
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => AccountSlotDetailScreen(slot: slot),
-            ),
-          ),
+          onTap: () async {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => AccountSlotDetailScreen(slot: slot),
+              ),
+            );
+            if (result == true && mounted) {
+              _loadAccountMasters();
+            }
+          },
           onLongPress: () => _showSlotItemMenu(context, slot, accountMaster),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),

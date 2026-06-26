@@ -120,6 +120,8 @@ class MoreScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
+                  // Theme options được generate động từ themePalettes trong theme_colors.dart.
+                  // Thêm ThemePalette mới ở đó sẽ tự động xuất hiện ở đây (ví dụ: Halloween, 90s).
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,

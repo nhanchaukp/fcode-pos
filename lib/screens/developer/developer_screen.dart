@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:toastr_flutter/toastr.dart'
     show
         Toastr,
+        ToastrOptions,
         ToastrPosition,
         ToastrShowMethod,
         ToastrHideMethod,
@@ -35,6 +36,56 @@ class _DeveloperScreenState extends State<DeveloperScreen> {
       showCloseButton: _showClose,
       preventDuplicates: _preventDup,
     );
+  }
+
+  // ── Demos sử dụng trực tiếp Toastr gốc từ package:toastr_flutter ────────────
+
+  void _demoRawLoading() async {
+    final id = Toastr.loading('Đang xử lý (toastr gốc)...');
+    await Future.delayed(const Duration(seconds: 2));
+    Toastr.dismiss(id);
+  }
+
+  void _demoRawOptions() {
+    Toastr.success(
+      'Thành công với duration 6s',
+      options: const ToastrOptions(duration: Duration(seconds: 6)),
+    );
+  }
+
+  void _demoRawWithTitle() {
+    Toastr.info(
+      'Nội dung thông báo',
+      title: 'Tiêu đề',
+      options: const ToastrOptions(
+        duration: Duration(seconds: 4),
+        showProgressBar: true,
+      ),
+    );
+  }
+
+  Future<void> _demoRawPromise() async {
+    final result = await Toastr.promise<String>(
+      Future.delayed(const Duration(seconds: 2), () => 'kết quả từ raw promise'),
+      loading: 'Đang xử lý promise gốc...',
+      successBuilder: (data) => 'Thành công: $data',
+      errorBuilder: (e) => 'Lỗi: $e',
+    );
+    // Optional: show the returned value again
+    Toastr.info('Trả về: $result');
+  }
+
+  Future<void> _demoRawPromiseError() async {
+    try {
+      await Toastr.promise<String>(
+        Future.delayed(const Duration(seconds: 2), () => throw Exception('Lỗi mạng mô phỏng')),
+        loading: 'Đang thử promise lỗi...',
+        success: 'Không nên thấy cái này',
+        errorBuilder: (e) => 'Đã bắt lỗi: ${e.toString()}',
+      );
+    } catch (_) {
+      // Error toast already shown by Toastr.promise
+    }
   }
 
   @override
@@ -102,6 +153,54 @@ class _DeveloperScreenState extends State<DeveloperScreen> {
                   label: 'Blank',
                   color: colorScheme.onSurfaceVariant,
                   onTap: () => Toastr.blank('Đây là toast không có icon.'),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          _sectionLabel('Toastr gốc (package:toastr_flutter/toastr.dart)', colorScheme),
+          const SizedBox(height: 6),
+          Card(
+            elevation: 0,
+            color: colorScheme.surfaceContainerLowest,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                _toastTile(
+                  icon: Icons.hourglass_top,
+                  label: 'Loading + Dismiss thủ công',
+                  color: colorScheme.primary,
+                  onTap: _demoRawLoading,
+                ),
+                _divider(),
+                _toastTile(
+                  icon: Icons.tune,
+                  label: 'Success với ToastrOptions',
+                  color: Colors.green,
+                  onTap: _demoRawOptions,
+                ),
+                _divider(),
+                _toastTile(
+                  icon: Icons.title,
+                  label: 'Info có title + options',
+                  color: Colors.blue,
+                  onTap: _demoRawWithTitle,
+                ),
+                _divider(),
+                _toastTile(
+                  icon: Icons.auto_awesome,
+                  label: 'Promise với builder (gốc)',
+                  color: colorScheme.primary,
+                  onTap: _demoRawPromise,
+                ),
+                _divider(),
+                _toastTile(
+                  icon: Icons.error_outline,
+                  label: 'Promise lỗi (errorBuilder)',
+                  color: Colors.red,
+                  onTap: _demoRawPromiseError,
                 ),
               ],
             ),
