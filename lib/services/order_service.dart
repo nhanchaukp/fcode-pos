@@ -126,6 +126,22 @@ class OrderService {
     );
   }
 
+  /// Lấy lịch sử audit của một đơn hàng có phân trang.
+  Future<ApiResponse<PaginatedData<Auditable>>> audits(
+    String orderId, {
+    int page = 1,
+    int perPage = 15,
+  }) {
+    return _api.get<PaginatedData<Auditable>>(
+      '/order/$orderId/audits',
+      queryParameters: {'page': page, 'per_page': perPage},
+      parser: (json) => PaginatedData<Auditable>.fromJson(
+        ensureMap(json),
+        (item) => Auditable.fromJson(ensureMap(item)),
+      ),
+    );
+  }
+
   Future<ApiResponse<OrderInvoicePreview>> invoicePreview(
     Object orderId, {
     TaxRate taxRate = TaxRate.noDeclaration,

@@ -6,6 +6,7 @@ import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/services/account_master_service.dart';
 import 'package:fcode_pos/services/account_slot_service.dart';
 import 'package:fcode_pos/ui/components/app_tab.dart';
+import 'package:fcode_pos/ui/components/audit/audit_log_list.dart';
 import 'package:fcode_pos/ui/components/slot_edit_sheet.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
@@ -33,15 +34,6 @@ class _AccountSlotDetailScreenState extends State<AccountSlotDetailScreen>
   late AccountSlot _slot;
   bool _loading = false;
 
-  // Audit log state
-  final List<Auditable> _audits = [];
-  int _auditPage = 1;
-  bool _auditLoading = false;
-  bool _auditHasMore = true;
-  bool _auditLoaded = false;
-  String? _auditError;
-  final _auditScrollController = ScrollController();
-
   @override
   void initState() {
     super.initState();
@@ -55,14 +47,11 @@ class _AccountSlotDetailScreenState extends State<AccountSlotDetailScreen>
   void dispose() {
     _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
-    _auditScrollController.dispose();
     super.dispose();
   }
 
   void _onTabChanged() {
-    if (_tabController.index == 1 && !_auditLoaded && !_auditLoading) {
-      _fetchAudits();
-    }
+    // no-op for now (AuditLogList handles its own loading)
   }
 
   // ── Data fetching ───────────────────────────────────────────────────────────
@@ -81,52 +70,6 @@ class _AccountSlotDetailScreenState extends State<AccountSlotDetailScreen>
       if (!mounted) return;
       setState(() => _loading = false);
     }
-  }
-
-  Future<void> _fetchAudits() async {
-    if (_auditLoading || !_auditHasMore) return;
-    setState(() {
-      _auditLoading = true;
-      _auditError = null;
-    });
-    try {
-      final res = await _slotService.audits(_slot.id, page: _auditPage);
-      if (!mounted) return;
-      final data = res.data;
-      if (data == null) {
-        setState(() {
-          _auditHasMore = false;
-          _auditLoading = false;
-          _auditLoaded = true;
-        });
-        return;
-      }
-      setState(() {
-        _audits.addAll(data.items);
-        _auditHasMore = data.pagination.currentPage < data.pagination.lastPage;
-        _auditPage++;
-        _auditLoading = false;
-        _auditLoaded = true;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _auditError = e.toString();
-        _auditLoading = false;
-        _auditLoaded = true;
-      });
-    }
-  }
-
-  Future<void> _refreshAudits() async {
-    setState(() {
-      _audits.clear();
-      _auditPage = 1;
-      _auditHasMore = true;
-      _auditLoaded = false;
-      _auditError = null;
-    });
-    await _fetchAudits();
   }
 
   // ── Actions ─────────────────────────────────────────────────────────────────
@@ -682,84 +625,8 @@ class _AccountSlotDetailScreenState extends State<AccountSlotDetailScreen>
   // ── Tab: Audit Log ──────────────────────────────────────────────────────────
 
   Widget _buildAuditTab() {
-    return RefreshIndicator(
-      onRefresh: _refreshAudits,
-      child: _buildAuditBody(),
-    );
-  }
-
-  Widget _buildAuditBody() {
-    if (_auditError != null && _audits.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.error_outline, size: 48, color: _cs.error),
-              const SizedBox(height: 12),
-              Text(_auditError!, textAlign: TextAlign.center),
-              const SizedBox(height: 16),
-              FilledButton.tonal(
-                onPressed: _refreshAudits,
-                child: const Text('Thử lại'),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    if (_audits.isEmpty && _auditLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (_audits.isEmpty && !_auditLoading) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.history,
-              size: 52,
-              color: _cs.onSurfaceVariant.withValues(alpha: 0.4),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Chưa có lịch sử thay đổi',
-              style: TextStyle(color: _cs.onSurfaceVariant),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return NotificationListener<ScrollNotification>(
-      onNotification: (n) {
-        if (n.metrics.pixels >= n.metrics.maxScrollExtent - 200 &&
-            !_auditLoading &&
-            _auditHasMore) {
-          _fetchAudits();
-        }
-        return false;
-      },
-      child: ListView.builder(
-        controller: _auditScrollController,
-        padding: const EdgeInsets.only(top: 8, bottom: 32),
-        itemCount: _audits.length + (_auditHasMore || _auditLoading ? 1 : 0),
-        itemBuilder: (context, index) {
-          if (index >= _audits.length) {
-            return const Padding(
-              padding: EdgeInsets.all(24),
-              child: Center(child: CircularProgressIndicator()),
-            );
-          }
-          return _AuditTile(
-            audit: _audits[index],
-            isLast: index == _audits.length - 1,
-          );
-        },
-      ),
+    return AuditLogList(
+      fetcher: (page) => _slotService.audits(_slot.id, page: page),
     );
   }
 }
@@ -1203,7 +1070,7 @@ class _CreateAccessLinkSheetState extends State<_CreateAccessLinkSheet> {
   }
 }
 
-// ── Audit Tile ────────────────────────────────────────────────────────────────
+
 
 class _AuditTile extends StatefulWidget {
   const _AuditTile({required this.audit, required this.isLast});

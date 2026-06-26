@@ -1,3 +1,4 @@
+import 'package:fcode_pos/ui/components/audit/audit_log_list.dart';
 import 'package:fcode_pos/ui/components/copyable_icon_text.dart';
 import 'package:fcode_pos/ui/components/skeleton.dart';
 import 'package:fcode_pos/enums.dart' as enums;
@@ -45,21 +46,26 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
   bool _isUpdatingStatus = false;
   Uint8List? _qrImageBytes;
 
+
+
   @override
   void initState() {
     super.initState();
     _orderService = OrderService();
-    _tabController = TabController(length: 3, vsync: this);
-    _tabController.addListener(() {
-      if (mounted) setState(() {});
-    });
+    _tabController = TabController(length: 4, vsync: this);
+    _tabController.addListener(_onTabChanged);
     _loadOrderDetail();
   }
 
   @override
   void dispose() {
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     super.dispose();
+  }
+
+  void _onTabChanged() {
+    if (mounted) setState(() {});
   }
 
   // Quick access to theme
@@ -472,6 +478,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
                 text: 'Thanh toán',
               ),
               Tab(icon: Icon(Icons.money_off, size: 20), text: 'Hoàn tiền'),
+              Tab(icon: Icon(Icons.history, size: 20), text: 'Lịch sử'),
             ],
           ),
         ),
@@ -484,6 +491,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
               _buildProductsTab(order),
               _buildPaymentHistoryTab(order),
               _buildRefundHistoryTab(order),
+              _buildAuditTab(),
             ],
           ),
         ),
@@ -1441,6 +1449,14 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
     );
   }
 
+  // ── Tab: Lịch sử thay đổi (Audit) ────────────────────────────────────────────
+
+  Widget _buildAuditTab() {
+    return AuditLogList(
+      fetcher: (page) => _orderService.audits(widget.orderId, page: page),
+    );
+  }
+
   Color _getPaymentStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'completed':
@@ -1608,3 +1624,5 @@ class _OrderProductItemSkeleton extends StatelessWidget {
     );
   }
 }
+
+

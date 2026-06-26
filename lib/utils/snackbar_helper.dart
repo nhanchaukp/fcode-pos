@@ -48,6 +48,15 @@ class Toastr {
     options: _pkg.ToastrOptions(duration: duration),
   );
 
+  /// Hiển thị loading toast, sau đó tự động chuyển sang success hoặc error
+  /// khi future hoàn thành.
+  ///
+  /// **Lưu ý quan trọng**: Vì package toastr_flutter hiện tại dùng `update()` để
+  /// đổi type từ loading → success/error, animation icon (checkmark / x) có thể
+  /// không chạy lại. Do đó chúng ta tự implement ở đây bằng cách:
+  /// - Dùng `loading()` để lấy id
+  /// - Dismiss loading toast
+  /// - Gọi `success()` / `error()` thật sự (có icon đúng)
   static Future<T> promise<T>(
     Future<T> future, {
     String loading = 'Loading...',
@@ -57,16 +66,39 @@ class Toastr {
     String Function(Object error)? errorBuilder,
     Duration? successDuration,
     Duration? errorDuration,
-  }) => _pkg.Toastr.promise<T>(
-    future,
-    loading: loading,
-    success: success,
-    error: error,
-    successBuilder: successBuilder,
-    errorBuilder: errorBuilder,
-    successDuration: successDuration,
-    errorDuration: errorDuration,
-  );
+  }) async {
+    final id = _pkg.Toastr.loading(loading);
+
+    try {
+      final result = await future;
+
+      // Đóng loading trước khi show success (tránh giữ icon loading)
+      _pkg.Toastr.dismiss(id);
+
+      final message = successBuilder != null ? successBuilder(result) : success;
+      _pkg.Toastr.success(
+        message,
+        options: _pkg.ToastrOptions(
+          duration: successDuration ?? const Duration(seconds: 2),
+        ),
+      );
+
+      return result;
+    } catch (e) {
+      _pkg.Toastr.dismiss(id);
+
+      final message = errorBuilder != null ? errorBuilder(e) : error;
+      _pkg.Toastr.error(
+        message,
+        options: _pkg.ToastrOptions(
+          duration: errorDuration ?? const Duration(seconds: 4),
+          showCloseButton: true,
+        ),
+      );
+
+      rethrow;
+    }
+  }
 
   /// Alias cho [info] — tương thích code cũ.
   static void show(
