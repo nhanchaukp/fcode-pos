@@ -468,17 +468,55 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
           child: TabBar(
             controller: _tabController,
             dividerHeight: 0,
+            isScrollable: true,
+            tabAlignment: TabAlignment.start,
             tabs: [
-              Tab(icon: Icon(Icons.shopping_bag, size: 20), text: 'Sản phẩm'),
               Tab(
-                icon: Badge.count(
-                  count: _order?.paymentHistories.length ?? 0,
-                  child: Icon(Icons.payment, size: 20),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.shopping_bag, size: 18),
+                    const SizedBox(width: 6),
+                    const Text('Sản phẩm'),
+                  ],
                 ),
-                text: 'Thanh toán',
               ),
-              Tab(icon: Icon(Icons.money_off, size: 20), text: 'Hoàn tiền'),
-              Tab(icon: Icon(Icons.history, size: 20), text: 'Lịch sử'),
+              Tab(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.payment, size: 18),
+                    const SizedBox(width: 6),
+                    const Text('Thanh toán'),
+                    if (order.paymentHistories.isNotEmpty) ...[
+                      const SizedBox(width: 4),
+                      Badge.count(
+                        count: order.paymentHistories.length,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              Tab(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.money_off, size: 18),
+                    const SizedBox(width: 6),
+                    const Text('Hoàn tiền'),
+                  ],
+                ),
+              ),
+              Tab(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.history, size: 18),
+                    const SizedBox(width: 6),
+                    const Text('Lịch sử'),
+                  ],
+                ),
+              ),
             ],
           ),
         ),

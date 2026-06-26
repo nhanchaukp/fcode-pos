@@ -4,11 +4,18 @@ import 'package:flutter/material.dart';
 ///
 /// Dùng thay cho [Tab] mặc định (icon trên text) khi muốn layout compact hơn.
 ///
+/// Khi có nhiều tab và nội dung bị tràn, hãy dùng:
+/// - `TabBar(isScrollable: true)` để cho phép vuốt ngang (scroll tabs)
+/// - (tùy chọn) `tabAlignment: TabAlignment.start` để các tab bắt đầu từ bên trái
+///
 /// ```dart
 /// TabBar(
+///   isScrollable: true,
+///   tabAlignment: TabAlignment.start,
 ///   tabs: [
 ///     AppTab(icon: Icons.link, text: 'Access Links'),
 ///     AppTab(icon: Icons.history, text: 'Audit Log'),
+///     AppTab(icon: Icons.settings, text: 'Cài đặt'),
 ///   ],
 /// )
 /// ```
@@ -34,7 +41,13 @@ class AppTab extends StatelessWidget {
         children: [
           Icon(icon, size: iconSize),
           SizedBox(width: spacing),
-          Text(text),
+          Flexible(
+            child: Text(
+              text,
+              overflow: TextOverflow.ellipsis,
+              softWrap: false,
+            ),
+          ),
         ],
       ),
     );
