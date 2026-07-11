@@ -1,4 +1,5 @@
 import 'package:fcode_pos/screens/account-master/account_slot_management_screen.dart';
+import 'package:fcode_pos/screens/account-vault/account_vault_list_screen.dart';
 import 'package:fcode_pos/screens/customer/customer_list_screen.dart';
 import 'package:fcode_pos/screens/invoice/invoice_list_screen.dart';
 import 'package:fcode_pos/screens/product-supply/product_cost_screen.dart';
@@ -34,6 +35,12 @@ class ProductHubScreen extends StatelessWidget {
           Icons.vpn_key_rounded,
           Colors.purple,
           (c) => const AccountSlotManagementScreen(),
+        ),
+        _Item(
+          'Account Vault',
+          Icons.lock_person_rounded,
+          Colors.deepPurple,
+          (c) => const AccountVaultListScreen(),
         ),
         _Item(
           'Nhà cung cấp',
@@ -89,12 +96,6 @@ class ProductHubScreen extends StatelessWidget {
           Colors.cyan,
           (c) => const InvoiceListScreen(),
         ),
-        _Item(
-          'Telegram Bot',
-          Icons.smart_toy_rounded,
-          Colors.lightBlue,
-          (c) => const TelegramBotHubScreen(),
-        ),
       ],
     ),
     _Section(
@@ -117,6 +118,12 @@ class ProductHubScreen extends StatelessWidget {
           Icons.confirmation_number_rounded,
           Colors.deepPurple,
           (c) => const IcallmeVoucherScreen(),
+        ),
+        _Item(
+          'Telegram Bot',
+          Icons.smart_toy_rounded,
+          Colors.lightBlue,
+          (c) => const TelegramBotHubScreen(),
         ),
       ],
     ),

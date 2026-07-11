@@ -31,3 +31,4 @@ part 'models/invoice.dart';
 part 'models/invoice_provider.dart';
 part 'models/coupon.dart';
 part 'models/coupon_usage.dart';
+part 'models/account_vault.dart';
