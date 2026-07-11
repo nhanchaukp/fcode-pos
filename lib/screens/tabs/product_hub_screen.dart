@@ -22,7 +22,7 @@ class ProductHubScreen extends StatelessWidget {
 
   static final _sections = [
     _Section(
-      title: 'Quản lý',
+      title: 'Khám phá',
       items: [
         _Item(
           'Sản phẩm',
@@ -159,7 +159,7 @@ class _SectionView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 2, bottom: 10),
+          padding: const EdgeInsets.only(left: 2, bottom: 12),
           child: Text(
             section.title.toUpperCase(),
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -169,16 +169,7 @@ class _SectionView extends StatelessWidget {
             ),
           ),
         ),
-        Card(
-          margin: EdgeInsets.zero,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.4)),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: _ItemGrid(items: section.items),
-        ),
+        _ItemGrid(items: section.items),
       ],
     );
   }
@@ -190,86 +181,50 @@ class _ItemGrid extends StatelessWidget {
   const _ItemGrid({required this.items});
   final List<_Item> items;
 
-  static const _cols = 4;
-
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final rows = (items.length / _cols).ceil();
-
-    return Column(
-      children: List.generate(rows, (row) {
-        final start = row * _cols;
-        final end = (start + _cols).clamp(0, items.length);
-        final rowItems = items.sublist(start, end);
-        return Column(
-          children: [
-            if (row > 0)
-              Divider(
-                height: 1,
-                color: cs.outlineVariant.withValues(alpha: 0.3),
-              ),
-            IntrinsicHeight(
-              child: Row(
-                children: List.generate(_cols, (col) {
-                  if (col >= rowItems.length) {
-                    return const Expanded(child: SizedBox());
-                  }
-                  return Expanded(
-                    child: _GridCell(
-                      item: rowItems[col],
-                      showRightBorder:
-                          col < _cols - 1 && col < rowItems.length - 1,
-                    ),
-                  );
-                }),
-              ),
-            ),
-          ],
-        );
-      }),
+    return GridView.count(
+      crossAxisCount: 4,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.zero,
+      mainAxisSpacing: 8,
+      crossAxisSpacing: 8,
+      childAspectRatio: 0.72,
+      children: items.map((item) => _GridCell(item: item)).toList(),
     );
   }
 }
 
 class _GridCell extends StatelessWidget {
-  const _GridCell({required this.item, this.showRightBorder = false});
+  const _GridCell({required this.item});
   final _Item item;
-  final bool showRightBorder;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        border: showRightBorder
-            ? Border(
-                right: BorderSide(
-                  color: cs.outlineVariant.withValues(alpha: 0.3),
-                ),
-              )
-            : const BoxDecoration().border ?? const Border(),
-      ),
-      child: InkWell(
-        onTap: () =>
-            Navigator.push(context, MaterialPageRoute(builder: item.builder)),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 6),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  color: item.color.applyOpacity(0.12),
-                  borderRadius: BorderRadius.circular(13),
-                ),
-                child: Icon(item.icon, size: 22, color: item.color),
+    return InkWell(
+      onTap: () =>
+          Navigator.push(context, MaterialPageRoute(builder: item.builder)),
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 54,
+              height: 54,
+              decoration: BoxDecoration(
+                color: item.color.applyOpacity(0.12),
+                borderRadius: BorderRadius.circular(16),
               ),
-              const SizedBox(height: 8),
-              Text(
+              child: Icon(item.icon, size: 26, color: item.color),
+            ),
+            const SizedBox(height: 8),
+            Flexible(
+              child: Text(
                 item.title,
                 textAlign: TextAlign.center,
                 maxLines: 2,
@@ -277,11 +232,11 @@ class _GridCell extends StatelessWidget {
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: cs.onSurface,
-                  height: 1.3,
+                  height: 1.25,
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
