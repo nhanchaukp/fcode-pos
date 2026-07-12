@@ -2,7 +2,7 @@ import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/mail_log_service.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class MailLogDetailScreen extends StatefulWidget {
@@ -145,25 +145,7 @@ class _MailLogDetailScreenState extends State<MailLogDetailScreen> {
                 clipBehavior: Clip.antiAlias,
                 color: Colors.white,
                 child: _isHtmlContent
-                    ? Html(
-                        data: mail.html!,
-                        onLinkTap: (url, attributes, element) {
-                          if (url == null) return;
-                          launchUrlString(
-                            url,
-                            mode: LaunchMode.inAppBrowserView,
-                          );
-                        },
-                        style: {
-                          'body': Style(
-                            margin: Margins.zero,
-                            padding: HtmlPaddings.all(12),
-                            fontSize: FontSize(15),
-                            color: Colors.black87,
-                            backgroundColor: Colors.white,
-                          ),
-                        },
-                      )
+                    ? _MailHtmlView(html: mail.html!)
                     : Padding(
                         padding: const EdgeInsets.all(12),
                         child: SelectableText(
@@ -191,6 +173,87 @@ class _MailLogDetailScreenState extends State<MailLogDetailScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Render nội dung HTML của email bằng InAppWebView, tự co chiều cao theo nội dung.
+class _MailHtmlView extends StatefulWidget {
+  const _MailHtmlView({required this.html});
+
+  final String html;
+
+  @override
+  State<_MailHtmlView> createState() => _MailHtmlViewState();
+}
+
+class _MailHtmlViewState extends State<_MailHtmlView> {
+  double _height = 240;
+  bool _loading = true;
+
+  String get _wrappedHtml {
+    final html = widget.html;
+    if (html.toLowerCase().contains('<html')) return html;
+    return '''<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: -apple-system, sans-serif; font-size: 15px;
+           margin: 12px; color: #222; word-break: break-word; }
+    img  { max-width: 100%; height: auto; }
+    a    { color: #1a73e8; }
+  </style>
+</head>
+<body>$html</body>
+</html>''';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        SizedBox(
+          height: _height,
+          child: InAppWebView(
+            initialData: InAppWebViewInitialData(data: _wrappedHtml),
+            initialSettings: InAppWebViewSettings(
+              disableVerticalScroll: true,
+              disableHorizontalScroll: true,
+              supportZoom: false,
+              useWideViewPort: true,
+              loadWithOverviewMode: true,
+              transparentBackground: true,
+              useShouldOverrideUrlLoading: true,
+            ),
+            shouldOverrideUrlLoading: (controller, action) async {
+              final uri = action.request.url;
+              if (uri != null &&
+                  (uri.scheme == 'http' || uri.scheme == 'https')) {
+                launchUrlString(
+                  uri.toString(),
+                  mode: LaunchMode.inAppBrowserView,
+                );
+                return NavigationActionPolicy.CANCEL;
+              }
+              return NavigationActionPolicy.ALLOW;
+            },
+            onLoadStop: (controller, _) async {
+              final result = await controller.evaluateJavascript(
+                source: 'document.documentElement.scrollHeight',
+              );
+              final parsed = double.tryParse('$result');
+              if (!mounted) return;
+              setState(() {
+                if (parsed != null && parsed > 0) _height = parsed;
+                _loading = false;
+              });
+            },
+          ),
+        ),
+        if (_loading) const LinearProgressIndicator(minHeight: 2),
+      ],
     );
   }
 }

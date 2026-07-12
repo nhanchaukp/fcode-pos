@@ -84,6 +84,22 @@ class AccountSlotService {
     );
   }
 
+  /// Lấy lịch sử truy cập của access link.
+  Future<ApiResponse<PaginatedData<AccessLinkVisit>>> accessLinkVisits(
+    String accessLinkId, {
+    int page = 1,
+    int perPage = 15,
+  }) {
+    return _api.get<PaginatedData<AccessLinkVisit>>(
+      '/account-slots/access-links/$accessLinkId/visits',
+      queryParameters: {'page': page, 'per_page': perPage},
+      parser: (json) => PaginatedData<AccessLinkVisit>.fromJson(
+        ensureMap(json),
+        (item) => AccessLinkVisit.fromJson(ensureMap(item)),
+      ),
+    );
+  }
+
   /// Xóa account slot.
   Future<ApiResponse<Map<String, dynamic>?>> delete(String id) {
     return _api.delete<Map<String, dynamic>?>(

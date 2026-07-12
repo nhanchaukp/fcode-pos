@@ -369,7 +369,7 @@ class _AccountSlotSelectSheetState extends State<_AccountSlotSelectSheet> {
 
     return Row(
       children: [
-        Icon(Icons.badge_outlined, size: 14, color: Colors.grey.shade600),
+        Icon(Icons.label_outlined, size: 12, color: Colors.grey.shade600),
         const SizedBox(width: 4),
         Text(
           serviceType.toUpperCase(),
@@ -391,6 +391,12 @@ class _AccountSlotSelectSheetState extends State<_AccountSlotSelectSheet> {
           ),
         ),
         const SizedBox(width: 8),
+        Icon(
+          Icons.local_shipping_outlined,
+          size: 12,
+          color: Colors.grey.shade600,
+        ),
+        const SizedBox(width: 4),
         Text(
           supplyName,
           style: TextStyle(fontSize: 10, color: Colors.grey.shade700),

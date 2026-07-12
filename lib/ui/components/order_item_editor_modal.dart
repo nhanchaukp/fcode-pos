@@ -468,6 +468,11 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
           onChanged: (slot) {
             setState(() {
               widget.itemData.accountSlot = slot;
+              // Nếu slot có nhà cung cấp (qua account master) thì tự chọn vào supply
+              final slotSupply = slot?.accountMaster?.supply;
+              if (slotSupply != null) {
+                widget.itemData.supply = slotSupply;
+              }
             });
           },
         ),

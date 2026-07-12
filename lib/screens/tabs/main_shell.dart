@@ -16,9 +16,6 @@ class _MainShellState extends State<MainShell> {
   final PageController _pageController = PageController();
   int _currentIndex = 0;
 
-  static const _tabTransitionDuration = Duration(milliseconds: 320);
-  static const _tabTransitionCurve = Curves.easeInOutCubic;
-
   late final List<Widget> _screens = [
     const HomeScreen(key: PageStorageKey('orders')),
     const DashboardScreen(key: PageStorageKey('dashboard')),
@@ -36,11 +33,7 @@ class _MainShellState extends State<MainShell> {
     if (index == _currentIndex) return;
 
     setState(() => _currentIndex = index);
-    _pageController.animateToPage(
-      index,
-      duration: _tabTransitionDuration,
-      curve: _tabTransitionCurve,
-    );
+    _pageController.jumpToPage(index);
   }
 
   @override

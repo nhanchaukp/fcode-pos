@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:fcode_pos/models.dart';
+import 'package:fcode_pos/screens/account-master/access_link_visits_screen.dart';
+import 'package:fcode_pos/screens/account-master/account_master_detail_screen.dart';
 import 'package:fcode_pos/screens/customer/customer_detail_screen.dart';
 import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/services/account_master_service.dart';
@@ -148,10 +150,7 @@ class _AccountSlotDetailScreenState extends State<AccountSlotDetailScreen>
         Toastr.success('Đã xóa slot', context: context);
         Navigator.of(context).pop(true);
       } else {
-        Toastr.error(
-          response.message ?? 'Xóa slot thất bại',
-          context: context,
-        );
+        Toastr.error(response.message ?? 'Xóa slot thất bại', context: context);
       }
     } catch (e) {
       if (mounted) {
@@ -203,12 +202,18 @@ class _AccountSlotDetailScreenState extends State<AccountSlotDetailScreen>
                   if (_slot.accountMaster != null)
                     Text(
                       _slot.accountMaster!.name,
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   Text(
                     _slot.name,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
@@ -234,6 +239,15 @@ class _AccountSlotDetailScreenState extends State<AccountSlotDetailScreen>
                     _copySlotInfo();
                   case _SlotAction.edit:
                     _showEditSlot();
+                  case _SlotAction.viewMaster:
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => AccountMasterDetailScreen(
+                          accountMaster: _slot.accountMaster!,
+                        ),
+                      ),
+                    );
                   case _SlotAction.unlinkOrder:
                     _unlinkOrder();
                   case _SlotAction.viewOrder:
@@ -268,6 +282,16 @@ class _AccountSlotDetailScreenState extends State<AccountSlotDetailScreen>
                     title: Text('Chỉnh sửa'),
                   ),
                 ),
+                if (_slot.accountMaster != null)
+                  const PopupMenuItem(
+                    value: _SlotAction.viewMaster,
+                    child: ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(Icons.person_outline, size: 18),
+                      title: Text('Xem account master'),
+                    ),
+                  ),
                 if (_hasOrder) ...[
                   const PopupMenuItem(
                     value: _SlotAction.viewOrder,
@@ -294,7 +318,10 @@ class _AccountSlotDetailScreenState extends State<AccountSlotDetailScreen>
                     dense: true,
                     contentPadding: EdgeInsets.zero,
                     leading: Icon(Icons.delete, size: 18, color: Colors.red),
-                    title: Text('Xóa slot', style: TextStyle(color: Colors.red)),
+                    title: Text(
+                      'Xóa slot',
+                      style: TextStyle(color: Colors.red),
+                    ),
                   ),
                 ),
               ],
@@ -633,7 +660,7 @@ class _AccountSlotDetailScreenState extends State<AccountSlotDetailScreen>
 
 // ── Enum for popup menu actions ───────────────────────────────────────────────
 
-enum _SlotAction { copy, edit, unlinkOrder, viewOrder, delete }
+enum _SlotAction { copy, edit, viewMaster, unlinkOrder, viewOrder, delete }
 
 // ── Skeleton box ─────────────────────────────────────────────────────────────
 
@@ -797,7 +824,7 @@ class _AccessLinkCard extends StatelessWidget {
                   child: OutlinedButton.icon(
                     onPressed: () => _copyUrl(context),
                     icon: const Icon(Icons.copy, size: 14),
-                    label: const Text('Copy URL'),
+                    label: const Text('Sao chép'),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 6),
                       textStyle: const TextStyle(fontSize: 12),
@@ -806,10 +833,10 @@ class _AccessLinkCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: FilledButton.icon(
+                  child: OutlinedButton.icon(
                     onPressed: () => _openUrl(context),
                     icon: const Icon(Icons.open_in_new, size: 14),
-                    label: const Text('Mở URL'),
+                    label: const Text('Mở'),
                     style: FilledButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 6),
                       textStyle: const TextStyle(fontSize: 12),
@@ -838,6 +865,24 @@ class _AccessLinkCard extends StatelessWidget {
                   ),
                 ],
               ],
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: TextButton.icon(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => AccessLinkVisitsScreen(accessLink: link),
+                  ),
+                ),
+                icon: const Icon(Icons.travel_explore, size: 16),
+                label: const Text('Xem visit'),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  textStyle: const TextStyle(fontSize: 12),
+                ),
+              ),
             ),
           ],
         ),
@@ -1069,8 +1114,6 @@ class _CreateAccessLinkSheetState extends State<_CreateAccessLinkSheet> {
     );
   }
 }
-
-
 
 class _AuditTile extends StatefulWidget {
   const _AuditTile({required this.audit, required this.isLast});

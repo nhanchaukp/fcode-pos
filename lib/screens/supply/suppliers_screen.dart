@@ -143,6 +143,13 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
             EdgeInsets.symmetric(horizontal: 8),
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            tooltip: 'Thêm nhà cung cấp',
+            onPressed: _handleCreateSupply,
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -150,11 +157,6 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
           Expanded(child: _buildContent(supplies)),
           _buildPaginationControls(pagination),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _handleCreateSupply,
-        tooltip: 'Thêm nhà cung cấp',
-        child: const Icon(Icons.add),
       ),
     );
   }
@@ -230,14 +232,13 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
 
     return RefreshIndicator(
       onRefresh: () => _loadSuppliers(page: _currentPage),
-      child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      child: ListView.builder(
+        padding: EdgeInsets.zero,
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: supplies.length,
-        separatorBuilder: (context, _) => const SizedBox(height: 10),
         itemBuilder: (context, index) {
           final supply = supplies[index];
-          return _SupplyCard(
+          return _SupplyTile(
             supply: supply,
             onTap: () => _handleEditSupply(supply),
           );
@@ -284,126 +285,129 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
   }
 }
 
-class _SupplyCard extends StatelessWidget {
-  const _SupplyCard({required this.supply, required this.onTap});
+class _SupplyTile extends StatelessWidget {
+  const _SupplyTile({required this.supply, required this.onTap});
 
   final Supply supply;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final cs = Theme.of(context).colorScheme;
     final createdLabel = DateHelper.formatDate(supply.createdAt);
     final updatedLabel = DateHelper.timeAgo(supply.updatedAt);
     final description = supply.content;
 
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.warehouse_outlined,
-                    size: 22,
-                    color: colorScheme.primary,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      supply.name,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  Icon(
-                    Icons.chevron_right,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ],
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: cs.outlineVariant.withValues(alpha: 0.4),
+              width: 0.5,
+            ),
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: cs.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
               ),
-              if (description != null && description.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.notes_outlined,
-                      size: 18,
-                      color: colorScheme.onSurfaceVariant,
+              child: Icon(
+                Icons.warehouse_outlined,
+                size: 18,
+                color: cs.primary,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    supply.name,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: cs.primary,
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        description,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (description != null && description.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.notes_outlined,
+                          size: 12,
+                          color: cs.onSurfaceVariant,
                         ),
-                      ),
+                        const SizedBox(width: 3),
+                        Expanded(
+                          child: Text(
+                            description,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: cs.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
-                ),
-              ],
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: _IconValue(
-                      icon: Icons.event_outlined,
-                      value: createdLabel,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _IconValue(
-                      icon: Icons.update_outlined,
-                      value: updatedLabel,
-                    ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.event_outlined,
+                        size: 12,
+                        color: cs.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 3),
+                      Text(
+                        createdLabel,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: cs.onSurfaceVariant,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Icon(
+                        Icons.update_outlined,
+                        size: 12,
+                        color: cs.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 3),
+                      Expanded(
+                        child: Text(
+                          updatedLabel,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: cs.onSurfaceVariant,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+            Icon(Icons.chevron_right, color: cs.onSurfaceVariant, size: 18),
+          ],
         ),
       ),
-    );
-  }
-}
-
-class _IconValue extends StatelessWidget {
-  const _IconValue({required this.icon, required this.value});
-
-  final IconData icon;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: colorScheme.onSurfaceVariant),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-          ),
-        ),
-      ],
     );
   }
 }
