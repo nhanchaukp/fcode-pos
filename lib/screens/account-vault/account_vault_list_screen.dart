@@ -277,10 +277,10 @@ class _AccountVaultListScreenState extends State<AccountVaultListScreen> {
     return RefreshIndicator(
       onRefresh: () => _load(page: _currentPage),
       child: ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: EdgeInsets.zero,
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: items.length,
-        itemBuilder: (context, i) => _VaultCard(
+        itemBuilder: (context, i) => _VaultTile(
           item: items[i],
           onTap: () => _openDetail(items[i]),
         ),
@@ -516,8 +516,8 @@ class _ActiveFilterBar extends StatelessWidget {
 
 // ── Vault Card ────────────────────────────────────────────────────────────────
 
-class _VaultCard extends StatelessWidget {
-  const _VaultCard({
+class _VaultTile extends StatelessWidget {
+  const _VaultTile({
     required this.item,
     required this.onTap,
   });
@@ -530,83 +530,128 @@ class _VaultCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final hasNotes = item.notes != null && item.notes!.isNotEmpty;
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      item.email,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  _StatusBadge(isActive: item.isActive),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Row(
-                children: [
-                  Icon(
-                    Icons.storefront_outlined,
-                    size: 13,
-                    color: cs.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 3),
-                  Text(
-                    (item.provider == null || item.provider!.isEmpty)
-                        ? 'Không rõ provider'
-                        : item.provider!,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 6,
-                runSpacing: 4,
-                children: [
-                  if (item.hasPassword)
-                    _CredBadge(icon: Icons.lock_outline, label: 'Password'),
-                  if (item.hasClientId)
-                    _CredBadge(icon: Icons.vpn_key_outlined, label: 'Client ID'),
-                  if (item.hasRefreshToken)
-                    _CredBadge(icon: Icons.refresh, label: 'Refresh Token'),
-                  if (item.hasTwoFactorSecret)
-                    _CredBadge(
-                      icon: Icons.security,
-                      label: '2FA',
-                      color: Colors.orange,
-                    ),
-                ],
-              ),
-              if (hasNotes) ...[
-                const SizedBox(height: 8),
-                Text(
-                  item.notes!,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
-                ),
-              ],
-            ],
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: cs.outlineVariant.withValues(alpha: 0.4),
+              width: 0.5,
+            ),
           ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          item.email,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      _StatusBadge(isActive: item.isActive),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.storefront_outlined,
+                        size: 12,
+                        color: cs.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 3),
+                      Expanded(
+                        child: Text(
+                          (item.provider == null || item.provider!.isEmpty)
+                              ? 'Không rõ provider'
+                              : item.provider!,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: cs.onSurfaceVariant,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (item.hasPassword ||
+                      item.hasClientId ||
+                      item.hasRefreshToken ||
+                      item.hasTwoFactorSecret) ...[
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: [
+                        if (item.hasPassword)
+                          _CredBadge(
+                            icon: Icons.lock_outline,
+                            label: 'Password',
+                          ),
+                        if (item.hasClientId)
+                          _CredBadge(
+                            icon: Icons.vpn_key_outlined,
+                            label: 'Client ID',
+                          ),
+                        if (item.hasRefreshToken)
+                          _CredBadge(
+                            icon: Icons.refresh,
+                            label: 'Refresh Token',
+                          ),
+                        if (item.hasTwoFactorSecret)
+                          _CredBadge(
+                            icon: Icons.security,
+                            label: '2FA',
+                            color: Colors.orange,
+                          ),
+                      ],
+                    ),
+                  ],
+                  if (hasNotes) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.notes_outlined,
+                          size: 12,
+                          color: cs.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 3),
+                        Expanded(
+                          child: Text(
+                            item.notes!,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: cs.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(Icons.chevron_right, color: cs.onSurfaceVariant, size: 18),
+          ],
         ),
       ),
     );

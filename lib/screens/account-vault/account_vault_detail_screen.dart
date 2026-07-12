@@ -348,6 +348,12 @@ class _AccountVaultDetailScreenState extends State<AccountVaultDetailScreen> {
             value: vault.refreshToken!,
             monospace: true,
           ),
+        if (vault.twoFactorSecret != null && vault.twoFactorSecret!.isNotEmpty)
+          _SecretRow(
+            label: '2FA Secret',
+            value: vault.twoFactorSecret!,
+            monospace: true,
+          ),
       ],
     );
   }

@@ -138,11 +138,10 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
     required int currentPage,
   }) {
     if (isLoading && !hasData && error == null) {
-      return ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+      return ListView.builder(
+        padding: EdgeInsets.zero,
         physics: const NeverScrollableScrollPhysics(),
         itemCount: 8,
-        separatorBuilder: (context, _) => const SizedBox(height: 8),
         itemBuilder: (context, _) => const ProductListItemSkeleton(),
       );
     }
@@ -184,11 +183,10 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
 
     return RefreshIndicator(
       onRefresh: () async => ref.invalidate(productListProvider),
-      child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+      child: ListView.builder(
+        padding: EdgeInsets.zero,
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: products.length,
-        separatorBuilder: (context, _) => const SizedBox(height: 8),
         itemBuilder: (context, index) {
           final product = products[index];
           return ProductListItem(

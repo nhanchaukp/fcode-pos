@@ -239,14 +239,13 @@ class _ProductCostScreenState extends State<ProductCostScreen> {
 
     return RefreshIndicator(
       onRefresh: () => _loadProductSupplies(page: _currentPage),
-      child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+      child: ListView.builder(
+        padding: EdgeInsets.zero,
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: items.length,
-        separatorBuilder: (context, _) => const SizedBox(height: 8),
         itemBuilder: (context, index) {
           final item = items[index];
-          return _ProductSupplyCard(
+          return _ProductSupplyTile(
             productSupply: item,
             onTap: () => _navigateToEditScreen(item),
           );
@@ -293,8 +292,8 @@ class _ProductCostScreenState extends State<ProductCostScreen> {
   }
 }
 
-class _ProductSupplyCard extends StatelessWidget {
-  const _ProductSupplyCard({required this.productSupply, this.onTap});
+class _ProductSupplyTile extends StatelessWidget {
+  const _ProductSupplyTile({required this.productSupply, this.onTap});
 
   final ProductSupply productSupply;
   final VoidCallback? onTap;
@@ -314,113 +313,112 @@ class _ProductSupplyCard extends StatelessWidget {
         : productSupply.product?.sku?.trim().isNotEmpty == true
         ? productSupply.product!.sku!.trim()
         : null);
+    final hasNote =
+        productSupply.note != null && productSupply.note!.isNotEmpty;
 
-    return Card(
-      elevation: 0,
-      margin: EdgeInsets.zero,
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+              width: 0.5,
+            ),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    productName,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  priceLabel,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Icon(
+                  Icons.local_shipping_outlined,
+                  size: 12,
+                  color: colorScheme.secondary,
+                ),
+                const SizedBox(width: 3),
+                Expanded(
+                  child: Text(
+                    supplyName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                if (sku != null) ...[
+                  const SizedBox(width: 10),
+                  Icon(
+                    Icons.qr_code_2_outlined,
+                    size: 12,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 3),
+                  Text(
+                    sku,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            if (hasNote) ...[
+              const SizedBox(height: 4),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Icon(
-                    Icons.inventory_2_outlined,
-                    size: 20,
-                    color: colorScheme.primary,
+                    Icons.sticky_note_2_outlined,
+                    size: 12,
+                    color: colorScheme.onSurfaceVariant,
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 3),
                   Expanded(
                     child: Text(
-                      productName,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              if (sku != null) ...[
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.qr_code_2_outlined,
-                      size: 16,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'SKU: $sku',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(
-                    Icons.local_shipping_outlined,
-                    size: 16,
-                    color: colorScheme.secondary,
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      supplyName,
-                      maxLines: 1,
+                      productSupply.note!,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      style: TextStyle(
+                        fontSize: 11,
                         color: colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    priceLabel,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: colorScheme.primary,
-                    ),
-                  ),
                 ],
               ),
-              if (productSupply.note != null &&
-                  productSupply.note!.isNotEmpty) ...[
-                const SizedBox(height: 6),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.sticky_note_2_outlined,
-                      size: 16,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        productSupply.note!,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
             ],
-          ),
+          ],
         ),
       ),
     );

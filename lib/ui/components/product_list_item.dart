@@ -24,91 +24,95 @@ class ProductListItem extends StatelessWidget {
     final hasSku = sku != null && sku.isNotEmpty;
     final hasGroup = group != null && group.isNotEmpty;
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                product.name,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+              width: 0.5,
+            ),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    product.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+                const SizedBox(width: 8),
+                Text(
+                  bestPriceLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
+            if (hasSku || hasGroup) ...[
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 6,
+                runSpacing: 4,
                 children: [
                   if (hasSku)
-                    Flexible(
-                      fit: FlexFit.loose,
-                      child: _MetaChip(
-                        icon: Icons.qr_code_2_outlined,
-                        label: sku,
-                      ),
-                    ),
-                  if (hasSku) const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      bestPriceLabel,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: hasSku ? TextAlign.right : TextAlign.left,
-                      style: textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              if (hasGroup) ...[
-                const SizedBox(height: 8),
-                _MetaChip(icon: Icons.category_outlined, label: group),
-              ],
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _FactChip(
-                    icon: product.instock > 0
-                        ? Icons.inventory_2_outlined
-                        : Icons.inventory_2,
-                    label: 'Tồn ${product.instock}',
-                    color: product.instock > 0
-                        ? colorScheme.tertiary
-                        : colorScheme.error,
-                  ),
-                  if (product.allowBuyMulti)
-                    _FactChip(
-                      icon: Icons.layers_outlined,
-                      label: 'Mua nhiều',
-                      color: colorScheme.primary,
-                    ),
-                  if (product.requireAccount)
-                    _FactChip(
-                      icon: Icons.person_outline,
-                      label: 'Cần tài khoản',
-                      color: colorScheme.secondary,
-                    ),
-                  if (product.requirePassword)
-                    _FactChip(
-                      icon: Icons.password_outlined,
-                      label: 'Cần mật khẩu',
-                      color: colorScheme.error,
-                    ),
+                    _MetaChip(icon: Icons.qr_code_2_outlined, label: sku),
+                  if (hasGroup)
+                    _MetaChip(icon: Icons.category_outlined, label: group),
                 ],
               ),
             ],
-          ),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: [
+                _FactChip(
+                  icon: product.instock > 0
+                      ? Icons.inventory_2_outlined
+                      : Icons.inventory_2,
+                  label: 'Tồn ${product.instock}',
+                  color: product.instock > 0
+                      ? colorScheme.tertiary
+                      : colorScheme.error,
+                ),
+                if (product.allowBuyMulti)
+                  _FactChip(
+                    icon: Icons.layers_outlined,
+                    label: 'Mua nhiều',
+                    color: colorScheme.primary,
+                  ),
+                if (product.requireAccount)
+                  _FactChip(
+                    icon: Icons.person_outline,
+                    label: 'Cần tài khoản',
+                    color: colorScheme.secondary,
+                  ),
+                if (product.requirePassword)
+                  _FactChip(
+                    icon: Icons.password_outlined,
+                    label: 'Cần mật khẩu',
+                    color: colorScheme.error,
+                  ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -120,34 +124,47 @@ class ProductListItemSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            _SkeletonLine(height: 14, widthFactor: 0.6),
-            SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(child: _SkeletonLine(height: 12, widthFactor: 0.45)),
-                SizedBox(width: 8),
-                _SkeletonBox(width: 96, height: 18, radius: 4),
-              ],
-            ),
-            SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _SkeletonBox(width: 76, height: 22, radius: 999),
-                _SkeletonBox(width: 92, height: 22, radius: 999),
-                _SkeletonBox(width: 108, height: 22, radius: 999),
-              ],
-            ),
-          ],
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+            width: 0.5,
+          ),
         ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          Row(
+            children: [
+              Expanded(child: _SkeletonLine(height: 14, widthFactor: 0.6)),
+              SizedBox(width: 8),
+              _SkeletonBox(width: 80, height: 16, radius: 4),
+            ],
+          ),
+          SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: [
+              _SkeletonBox(width: 70, height: 18, radius: 5),
+              _SkeletonBox(width: 90, height: 18, radius: 5),
+            ],
+          ),
+          SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: [
+              _SkeletonBox(width: 66, height: 20, radius: 999),
+              _SkeletonBox(width: 82, height: 20, radius: 999),
+              _SkeletonBox(width: 98, height: 20, radius: 999),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -164,25 +181,27 @@ class _MetaChip extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(7),
+        borderRadius: BorderRadius.circular(5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: colorScheme.onSurfaceVariant),
-          const SizedBox(width: 5),
+          Icon(icon, size: 12, color: colorScheme.onSurfaceVariant),
+          const SizedBox(width: 3),
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 140),
             child: Text(
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(
-                context,
-              ).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
         ],
@@ -210,15 +229,16 @@ class _FactChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 14, color: color),
-            const SizedBox(width: 5),
+            Icon(icon, size: 12, color: color),
+            const SizedBox(width: 3),
             Text(
               label,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              style: TextStyle(
+                fontSize: 11,
                 color: color,
                 fontWeight: FontWeight.w700,
               ),

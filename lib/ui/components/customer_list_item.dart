@@ -20,75 +20,100 @@ class CustomerListItem extends StatelessWidget {
     final facebookUrl = user.facebookUrl;
     final balanceLabel = CurrencyHelper.formatCurrency(user.balance);
     final phone = user.phone;
-    final initial = displayName.trim().isNotEmpty
-        ? displayName.trim()[0].toUpperCase()
-        : '?';
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CircleAvatar(radius: 20, child: Text(initial)),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          displayName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.mail_outlined,
-                              size: 16,
-                              color: colorScheme.primary,
-                            ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                email,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+              width: 0.5,
+            ),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    displayName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: IconText(
-                      icon: Icons.account_balance_wallet_outlined,
-                      value: balanceLabel,
+                ),
+                const SizedBox(width: 8),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.account_balance_wallet_outlined,
+                      size: 14,
                       color: colorScheme.primary,
                     ),
+                    const SizedBox(width: 3),
+                    Text(
+                      balanceLabel,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Icon(
+                  Icons.mail_outlined,
+                  size: 12,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 3),
+                Expanded(
+                  child: Text(
+                    email,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
-                  if (facebookUrl != null && facebookUrl.isNotEmpty) ...[
+                ),
+              ],
+            ),
+            if ((phone != null && phone.isNotEmpty) ||
+                (facebookUrl != null && facebookUrl.isNotEmpty)) ...[
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  if (phone != null && phone.isNotEmpty)
+                    Flexible(
+                      child: CopyableIconText(
+                        icon: Icons.phone_outlined,
+                        value: phone,
+                        color: colorScheme.tertiary,
+                      ),
+                    ),
+                  if (phone != null &&
+                      phone.isNotEmpty &&
+                      facebookUrl != null &&
+                      facebookUrl.isNotEmpty)
                     const SizedBox(width: 12),
-                    Expanded(
+                  if (facebookUrl != null && facebookUrl.isNotEmpty)
+                    Flexible(
                       child: InkWell(
                         onTap: () => openUrl(facebookUrl),
                         child: IconText(
@@ -98,19 +123,10 @@ class CustomerListItem extends StatelessWidget {
                         ),
                       ),
                     ),
-                  ],
                 ],
               ),
-              if (phone != null && phone.isNotEmpty) ...[
-                const SizedBox(height: 6),
-                CopyableIconText(
-                  icon: Icons.phone_outlined,
-                  value: phone,
-                  color: colorScheme.tertiary,
-                ),
-              ],
             ],
-          ),
+          ],
         ),
       ),
     );
