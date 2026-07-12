@@ -106,10 +106,8 @@ class _AccountVaultDetailScreenState extends State<AccountVaultDetailScreen> {
     final result = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
-        builder: (_) => AccountVaultUpsertScreen(
-          vault: _detail,
-          providers: providers,
-        ),
+        builder: (_) =>
+            AccountVaultUpsertScreen(vault: _detail, providers: providers),
       ),
     );
     if (result == true && mounted) {
@@ -160,8 +158,7 @@ class _AccountVaultDetailScreenState extends State<AccountVaultDetailScreen> {
   void _copyAccountInfo() {
     final vault = _detail;
     if (vault == null) return;
-    final text =
-        'Tài khoản: ${vault.email}\nMật khẩu: ${vault.password ?? ''}';
+    final text = 'Tài khoản: ${vault.email}\nMật khẩu: ${vault.password ?? ''}';
     Clipboard.setData(ClipboardData(text: text));
     Toastr.success('Đã sao chép thông tin tài khoản', context: context);
   }
@@ -179,11 +176,8 @@ class _AccountVaultDetailScreenState extends State<AccountVaultDetailScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (_) => _MailSheet(
-        vault: vault,
-        useGraphApi: useGraphApi,
-        service: _service,
-      ),
+      builder: (_) =>
+          _MailSheet(vault: vault, useGraphApi: useGraphApi, service: _service),
     );
   }
 
@@ -305,26 +299,26 @@ class _AccountVaultDetailScreenState extends State<AccountVaultDetailScreen> {
     final vault = _detail!;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
       children: [
-        // Credentials (kèm tên tài khoản)
+        // Thông tin đăng nhập (kèm tên tài khoản, trạng thái, provider)
         _buildCredentialsSection(vault),
 
         // OTP
         if (vault.twoFactorSecret != null) ...[
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
           _buildOtpSection(),
         ],
 
         // Mail reading
         if (vault.canReadMail) ...[
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
           _buildMailSection(vault),
         ],
 
         // Notes
         if (vault.notes != null && vault.notes!.isNotEmpty) ...[
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
           _buildNotesSection(vault.notes!),
         ],
       ],
@@ -332,98 +326,36 @@ class _AccountVaultDetailScreenState extends State<AccountVaultDetailScreen> {
   }
 
   Widget _buildCredentialsSection(AccountVault vault) {
-    final cs = Theme.of(context).colorScheme;
-    final children = <Widget>[
-      ListTile(
-        dense: true,
-        leading: Icon(Icons.person_outline, size: 20, color: cs.primary),
-        title: const Text(
-          'Tài khoản',
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-        ),
-        subtitle: Text(
-          vault.email,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(fontSize: 13, color: cs.onSurface),
-        ),
-        trailing: IconButton(
-          icon: const Icon(Icons.copy, size: 18),
-          onPressed: () => _copy(vault.email, 'Tài khoản'),
-          tooltip: 'Sao chép',
-        ),
-      ),
-      ListTile(
-        dense: true,
-        leading: Icon(Icons.toggle_on_outlined, size: 20, color: cs.primary),
-        title: const Text(
-          'Trạng thái',
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-        ),
-        trailing: _StatusChip(isActive: vault.isActive),
-      ),
-      ListTile(
-        dense: true,
-        leading: Icon(Icons.storefront_outlined, size: 20, color: cs.primary),
-        title: const Text(
-          'Provider',
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-        ),
-        subtitle: Text(
-          (vault.provider == null || vault.provider!.isEmpty)
-              ? '-'
-              : vault.provider!,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(fontSize: 13, color: cs.onSurface),
-        ),
-      ),
-    ];
-
-    if (vault.password != null) {
-      children.add(_buildCredTile(_CredRow(
-        icon: Icons.lock_outline,
-        label: 'Password',
-        value: vault.password!,
-        obscure: true,
-      )));
-    }
-    if (vault.clientId != null) {
-      children.add(_buildCredTile(_CredRow(
-        icon: Icons.vpn_key_outlined,
-        label: 'Client ID',
-        value: vault.clientId!,
-      )));
-    }
-    if (vault.refreshToken != null) {
-      children.add(_buildCredTile(_CredRow(
-        icon: Icons.refresh,
-        label: 'Refresh Token',
-        value: vault.refreshToken!,
-        monospace: true,
-      )));
-    }
-
-    return _SectionCard(
+    return _DetailCard(
       title: 'Thông tin đăng nhập',
-      children: children,
-    );
-  }
-
-  Widget _buildCredTile(_CredRow row) {
-    return _CredentialTile(
-      icon: row.icon,
-      label: row.label,
-      value: row.value,
-      obscure: row.obscure,
-      monospace: row.monospace,
-      onCopy: () => _copy(row.value, row.label),
+      icon: Icons.lock_person_outlined,
+      children: [
+        _InfoRow(label: 'Tài khoản', value: vault.email, canCopy: true),
+        _StatusRow(isActive: vault.isActive),
+        _InfoRow(
+          label: 'Provider',
+          value: (vault.provider == null || vault.provider!.isEmpty)
+              ? '—'
+              : vault.provider!,
+        ),
+        if (vault.password != null)
+          _SecretRow(label: 'Password', value: vault.password!),
+        if (vault.clientId != null)
+          _SecretRow(label: 'Client ID', value: vault.clientId!),
+        if (vault.refreshToken != null)
+          _SecretRow(
+            label: 'Refresh Token',
+            value: vault.refreshToken!,
+            monospace: true,
+          ),
+      ],
     );
   }
 
   Widget _buildOtpSection() {
-    return _SectionCard(
+    return _DetailCard(
       title: 'OTP (TOTP 2FA)',
+      icon: Icons.security_outlined,
       children: [
         _OtpTile(
           code: _otpCode,
@@ -435,30 +367,28 @@ class _AccountVaultDetailScreenState extends State<AccountVaultDetailScreen> {
   }
 
   Widget _buildMailSection(AccountVault vault) {
-    return _SectionCard(
+    return _DetailCard(
       title: 'Đọc hộp thư',
+      icon: Icons.email_outlined,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          child: Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  icon: const Icon(Icons.mail_outline, size: 18),
-                  label: const Text('Graph API'),
-                  onPressed: () => _readMail(useGraphApi: true),
-                ),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.mail_outline, size: 18),
+                label: const Text('Graph API'),
+                onPressed: () => _readMail(useGraphApi: true),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: OutlinedButton.icon(
-                  icon: const Icon(Icons.mail_outlined, size: 18),
-                  label: const Text('OAuth2'),
-                  onPressed: () => _readMail(useGraphApi: false),
-                ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.mail_outlined, size: 18),
+                label: const Text('OAuth2'),
+                onPressed: () => _readMail(useGraphApi: false),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ],
     );
@@ -466,138 +396,207 @@ class _AccountVaultDetailScreenState extends State<AccountVaultDetailScreen> {
 
   Widget _buildNotesSection(String notes) {
     final cs = Theme.of(context).colorScheme;
-    return _SectionCard(
+    return _DetailCard(
       title: 'Ghi chú',
+      icon: Icons.sticky_note_2_outlined,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
-          child: Text(
-            notes,
-            style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant),
-          ),
+        Text(
+          notes,
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
         ),
       ],
     );
   }
 }
 
-// ── Section Card ──────────────────────────────────────────────────────────────
+// ── Detail Card (style tham khảo invoice_detail_screen) ─────────────────────────
 
-class _SectionCard extends StatelessWidget {
-  const _SectionCard({required this.title, required this.children});
+class _DetailCard extends StatelessWidget {
+  const _DetailCard({
+    required this.title,
+    required this.icon,
+    required this.children,
+  });
+
   final String title;
+  final IconData icon;
   final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 2, bottom: 8),
-          child: Text(
-            title.toUpperCase(),
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: cs.onSurfaceVariant,
-              letterSpacing: 1.0,
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 16, color: cs.primary),
+                const SizedBox(width: 6),
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: cs.onSurface,
+                  ),
+                ),
+              ],
             ),
-          ),
+            const SizedBox(height: 14),
+            ...children,
+          ],
         ),
-        Card(
-          elevation: 0,
-          margin: EdgeInsets.zero,
-          clipBehavior: Clip.antiAlias,
-          color: cs.surfaceContainerLowest,
-          child: Column(children: children),
-        ),
-      ],
+      ),
     );
   }
 }
 
-// ── Credential Tile ───────────────────────────────────────────────────────────
-
-class _CredRow {
-  const _CredRow({
-    required this.icon,
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({
     required this.label,
     required this.value,
-    this.obscure = false,
-    this.monospace = false,
-  });
-  final IconData icon;
-  final String label;
-  final String value;
-  final bool obscure;
-  final bool monospace;
-}
-
-class _CredentialTile extends StatefulWidget {
-  const _CredentialTile({
-    required this.icon,
-    required this.label,
-    required this.value,
-    this.obscure = false,
-    this.monospace = false,
-    required this.onCopy,
+    this.canCopy = false,
   });
 
-  final IconData icon;
   final String label;
   final String value;
-  final bool obscure;
-  final bool monospace;
-  final VoidCallback onCopy;
-
-  @override
-  State<_CredentialTile> createState() => _CredentialTileState();
-}
-
-class _CredentialTileState extends State<_CredentialTile> {
-  bool _revealed = false;
+  final bool canCopy;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final showValue = !widget.obscure || _revealed;
-    final displayText = showValue
-        ? widget.value
-        : '•' * widget.value.length.clamp(8, 20);
-
-    return ListTile(
-      dense: true,
-      leading: Icon(widget.icon, size: 20, color: cs.primary),
-      title: Text(
-        widget.label,
-        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-      ),
-      subtitle: Text(
-        displayText,
-        maxLines: showValue ? 3 : 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          fontSize: 13,
-          fontFamily: widget.monospace ? 'monospace' : null,
-          color: cs.onSurface,
-        ),
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (widget.obscure)
-            IconButton(
-              icon: Icon(
-                _revealed ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                size: 18,
-              ),
-              onPressed: () => setState(() => _revealed = !_revealed),
+          SizedBox(
+            width: 110,
+            child: Text(
+              label,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
             ),
-          IconButton(
-            icon: const Icon(Icons.copy, size: 18),
-            onPressed: widget.onCopy,
-            tooltip: 'Sao chép',
+          ),
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    value,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                if (canCopy)
+                  GestureDetector(
+                    onTap: () {
+                      Clipboard.setData(ClipboardData(text: value));
+                      Toastr.success('Đã sao chép', context: context);
+                    },
+                    child: Icon(
+                      Icons.copy_outlined,
+                      size: 14,
+                      color: cs.onSurfaceVariant,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Dòng trạng thái với badge màu.
+class _StatusRow extends StatelessWidget {
+  const _StatusRow({required this.isActive});
+  final bool isActive;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 110,
+            child: Text(
+              'Trạng thái',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+            ),
+          ),
+          _StatusChip(isActive: isActive),
+        ],
+      ),
+    );
+  }
+}
+
+/// Dòng giá trị (hiển thị đầy đủ) kèm nút sao chép.
+class _SecretRow extends StatelessWidget {
+  const _SecretRow({
+    required this.label,
+    required this.value,
+    this.monospace = false,
+  });
+
+  final String label;
+  final String value;
+  final bool monospace;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 110,
+            child: Text(
+              label,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              maxLines: 4,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                fontFamily: monospace ? 'monospace' : null,
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: () {
+              Clipboard.setData(ClipboardData(text: value));
+              Toastr.success('Đã sao chép $label', context: context);
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Icon(
+                Icons.copy_outlined,
+                size: 14,
+                color: cs.onSurfaceVariant,
+              ),
+            ),
           ),
         ],
       ),
@@ -625,7 +624,7 @@ class _OtpTile extends StatelessWidget {
     final color = isUrgent ? cs.error : cs.primary;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
         children: [
           // Code — tap để copy
@@ -850,7 +849,11 @@ class _MailSheetState extends State<_MailSheet> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline, size: 40, color: Colors.redAccent),
+              const Icon(
+                Icons.error_outline,
+                size: 40,
+                color: Colors.redAccent,
+              ),
               const SizedBox(height: 12),
               Text(_error!, textAlign: TextAlign.center),
               const SizedBox(height: 16),
@@ -1000,7 +1003,10 @@ class _MailCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                     ),
                     icon: const Icon(Icons.open_in_new, size: 14),
-                    label: const Text('Xem nội dung', style: TextStyle(fontSize: 12)),
+                    label: const Text(
+                      'Xem nội dung',
+                      style: TextStyle(fontSize: 12),
+                    ),
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -1120,12 +1126,11 @@ class _MailContentScreenState extends State<_MailContentScreen> {
               useWideViewPort: true,
               loadWithOverviewMode: true,
             ),
-            onLoadStop: (_, __) {
+            onLoadStop: (_, _) {
               if (mounted) setState(() => _loading = false);
             },
           ),
-          if (_loading)
-            const LinearProgressIndicator(minHeight: 2),
+          if (_loading) const LinearProgressIndicator(minHeight: 2),
         ],
       ),
     );

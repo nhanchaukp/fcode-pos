@@ -14,85 +14,89 @@ import 'package:fcode_pos/screens/icallme/icallme_voucher_screen.dart';
 import 'package:fcode_pos/screens/rating/rating_list_screen.dart';
 import 'package:fcode_pos/screens/coupon/coupon_list_screen.dart';
 import 'package:fcode_pos/screens/telegram-bot/telegram_bot_hub_screen.dart';
-import 'package:fcode_pos/utils/extensions.dart';
+import 'package:amazing_icons/twotone.dart';
 import 'package:flutter/material.dart';
+
+/// Builder cho icon twotone của amazing_icons.
+typedef TwotoneIconBuilder =
+    Widget Function({double size, Color color, double opacity});
 
 class ProductHubScreen extends StatelessWidget {
   const ProductHubScreen({super.key});
 
   static final _sections = [
     _Section(
-      title: 'Khám phá',
+      title: 'Quản lí cửa hàng',
       items: [
         _Item(
           'Sản phẩm',
-          Icons.inventory_2_rounded,
+          AmazingIconTwotone.box,
           Colors.blue,
           (c) => const ProductListScreen(),
         ),
         _Item(
           'Kho tài khoản',
-          Icons.vpn_key_rounded,
+          AmazingIconTwotone.key,
           Colors.purple,
           (c) => const AccountSlotManagementScreen(),
         ),
         _Item(
-          'Account Vault',
-          Icons.lock_person_rounded,
+          'Ví tài khoản',
+          AmazingIconTwotone.shieldSecurity,
           Colors.deepPurple,
           (c) => const AccountVaultListScreen(),
         ),
         _Item(
           'Nhà cung cấp',
-          Icons.local_shipping_rounded,
+          AmazingIconTwotone.truck,
           Colors.orange,
           (c) => const SuppliersScreen(),
         ),
         _Item(
           'Hoàn tiền',
-          Icons.replay_rounded,
+          AmazingIconTwotone.moneyRecive,
           Colors.red,
           (c) => const RefundRequestScreen(),
         ),
         _Item(
           'Giá nhập',
-          Icons.price_change_rounded,
+          AmazingIconTwotone.tag,
           Colors.teal,
           (c) => const ProductCostScreen(),
         ),
         _Item(
           'Khách hàng',
-          Icons.people_alt_rounded,
+          AmazingIconTwotone.profile2user,
           Colors.indigo,
           (c) => const CustomerListScreen(),
         ),
         _Item(
           'Nhật ký email',
-          Icons.email_rounded,
+          AmazingIconTwotone.email,
           Colors.pink,
           (c) => const MailLogScreen(),
         ),
         _Item(
           'Tài chính',
-          Icons.account_balance_wallet_rounded,
+          AmazingIconTwotone.wallet,
           Colors.green,
           (c) => const FinancialTransactionScreen(),
         ),
         _Item(
           'Đánh giá',
-          Icons.star_rounded,
+          AmazingIconTwotone.medalStar,
           Colors.amber,
           (c) => const RatingListScreen(),
         ),
         _Item(
           'Mã giảm giá',
-          Icons.confirmation_number_rounded,
+          AmazingIconTwotone.ticketDiscount,
           Colors.deepPurple,
           (c) => const CouponListScreen(),
         ),
         _Item(
           'Hóa đơn ĐT',
-          Icons.receipt_long_rounded,
+          AmazingIconTwotone.receiptText,
           Colors.cyan,
           (c) => const InvoiceListScreen(),
         ),
@@ -103,25 +107,25 @@ class ProductHubScreen extends StatelessWidget {
       items: [
         _Item(
           'Google Adsense',
-          Icons.bar_chart_rounded,
+          AmazingIconTwotone.statusUp,
           Colors.deepOrange,
           (c) => const AdsenseScreen(),
         ),
         _Item(
           'ChatGPT',
-          Icons.smart_toy_rounded,
+          AmazingIconTwotone.messageProgramming,
           Colors.blueGrey,
           (c) => const ChatGptSessionScreen(),
         ),
         _Item(
           'Icallme',
-          Icons.confirmation_number_rounded,
+          AmazingIconTwotone.ticket,
           Colors.deepPurple,
           (c) => const IcallmeVoucherScreen(),
         ),
         _Item(
           'Telegram Bot',
-          Icons.smart_toy_rounded,
+          AmazingIconTwotone.send2,
           Colors.lightBlue,
           (c) => const TelegramBotHubScreen(),
         ),
@@ -132,7 +136,7 @@ class ProductHubScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Quản lý')),
+      appBar: AppBar(title: const Text('Khám phá')),
       body: SafeArea(
         child: ListView.separated(
           padding: const EdgeInsets.fromLTRB(14, 12, 14, 28),
@@ -188,9 +192,9 @@ class _ItemGrid extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       padding: EdgeInsets.zero,
-      mainAxisSpacing: 8,
-      crossAxisSpacing: 8,
-      childAspectRatio: 0.72,
+      mainAxisSpacing: 2,
+      crossAxisSpacing: 2,
+      childAspectRatio: 0.92,
       children: items.map((item) => _GridCell(item: item)).toList(),
     );
   }
@@ -209,20 +213,17 @@ class _GridCell extends StatelessWidget {
           Navigator.push(context, MaterialPageRoute(builder: item.builder)),
       borderRadius: BorderRadius.circular(16),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 54,
-              height: 54,
-              decoration: BoxDecoration(
-                color: item.color.applyOpacity(0.12),
-                borderRadius: BorderRadius.circular(16),
+            SizedBox(
+              height: 32,
+              child: Center(
+                child: item.icon(size: 28, color: item.color, opacity: 0.4),
               ),
-              child: Icon(item.icon, size: 26, color: item.color),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             Flexible(
               child: Text(
                 item.title,
@@ -254,7 +255,7 @@ class _Section {
 class _Item {
   const _Item(this.title, this.icon, this.color, this.builder);
   final String title;
-  final IconData icon;
+  final TwotoneIconBuilder icon;
   final Color color;
   final WidgetBuilder builder;
 }

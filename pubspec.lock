@@ -9,6 +9,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "99.0.0"
+  amazing_icons:
+    dependency: "direct main"
+    description:
+      name: amazing_icons
+      sha256: b79d603adab53124da7ecb1ddb711f95a2e2c6858357aa07ad1ce745b3d388bd
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.1"
   analyzer:
     dependency: transitive
     description:
@@ -669,6 +677,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.1"
+  jovial_misc:
+    dependency: transitive
+    description:
+      name: jovial_misc
+      sha256: "065b5240badae6b13472efdea28fffe8baf914a7831361469a95c6456d9b8dc8"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.10.0"
+  jovial_svg:
+    dependency: transitive
+    description:
+      name: jovial_svg
+      sha256: "53d5ef08fafb28c56131bfd83894221597f522c324fb0f0e6fcbfdcae3b0867d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.30"
   js:
     dependency: transitive
     description:

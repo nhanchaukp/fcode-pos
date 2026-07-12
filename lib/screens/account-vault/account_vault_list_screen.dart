@@ -276,11 +276,10 @@ class _AccountVaultListScreenState extends State<AccountVaultListScreen> {
 
     return RefreshIndicator(
       onRefresh: () => _load(page: _currentPage),
-      child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: items.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 8),
         itemBuilder: (context, i) => _VaultCard(
           item: items[i],
           onTap: () => _openDetail(items[i]),
@@ -293,32 +292,35 @@ class _AccountVaultListScreenState extends State<AccountVaultListScreen> {
     if (pagination == null || pagination.lastPage <= 1) {
       return const SizedBox.shrink();
     }
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.4)),
+        ),
+      ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            'Trang ${pagination.currentPage}/${pagination.lastPage} · ${pagination.total} vault',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const Spacer(),
-          FilledButton.tonalIcon(
+          IconButton.outlined(
             onPressed: !_loading && pagination.currentPage > 1
                 ? () => _load(page: pagination.currentPage - 1)
                 : null,
             icon: const Icon(Icons.chevron_left),
-            label: const Text('Trước'),
+            visualDensity: VisualDensity.compact,
           ),
-          const SizedBox(width: 8),
-          FilledButton.tonalIcon(
+          Text(
+            'Trang ${pagination.currentPage} / ${pagination.lastPage}',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          IconButton.outlined(
             onPressed:
                 !_loading && pagination.currentPage < pagination.lastPage
                     ? () => _load(page: pagination.currentPage + 1)
                     : null,
             icon: const Icon(Icons.chevron_right),
-            label: const Text('Sau'),
+            visualDensity: VisualDensity.compact,
           ),
         ],
       ),
@@ -529,46 +531,55 @@ class _VaultCard extends StatelessWidget {
     final hasNotes = item.notes != null && item.notes!.isNotEmpty;
 
     return Card(
-      elevation: 0,
+      margin: const EdgeInsets.only(bottom: 8),
       clipBehavior: Clip.antiAlias,
-      color: cs.surfaceContainerLowest,
-      child: ListTile(
+      child: InkWell(
         onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-        title: Row(
-          children: [
-            Expanded(
-              child: Text(
-                item.email,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              width: 9,
-              height: 9,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: item.isActive ? Colors.green : Colors.grey,
-              ),
-            ),
-          ],
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 6),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      item.email,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  _StatusBadge(isActive: item.isActive),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  Icon(
+                    Icons.storefront_outlined,
+                    size: 13,
+                    color: cs.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 3),
+                  Text(
+                    (item.provider == null || item.provider!.isEmpty)
+                        ? 'Không rõ provider'
+                        : item.provider!,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
               Wrap(
                 spacing: 6,
                 runSpacing: 4,
                 children: [
-                  if (item.provider != null)
-                    _ProviderBadge(provider: item.provider!),
                   if (item.hasPassword)
                     _CredBadge(icon: Icons.lock_outline, label: 'Password'),
                   if (item.hasClientId)
@@ -584,16 +595,43 @@ class _VaultCard extends StatelessWidget {
                 ],
               ),
               if (hasNotes) ...[
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 Text(
                   item.notes!,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
                 ),
               ],
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  const _StatusBadge({required this.isActive});
+  final bool isActive;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isActive ? Colors.green : Colors.grey;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        isActive ? 'Đang dùng' : 'Vô hiệu',
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: color,
         ),
       ),
     );
@@ -635,31 +673,6 @@ class _CredBadge extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ProviderBadge extends StatelessWidget {
-  const _ProviderBadge({required this.provider});
-  final String provider;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: cs.secondaryContainer,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        provider,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: cs.onSecondaryContainer,
-        ),
       ),
     );
   }

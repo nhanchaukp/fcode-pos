@@ -357,6 +357,7 @@ class _AccountSlotSelectSheetState extends State<_AccountSlotSelectSheet> {
 
   Widget _buildSlotSubtitle(AccountSlot slot) {
     final serviceType = slot.accountMaster?.serviceType ?? 'N/A';
+    final supplyName = slot.accountMaster?.supply?.name ?? 'N/A';
     final expiryDateStr = slot.expiryDate != null
         ? DateFormat('dd/MM/yyyy').format(slot.expiryDate!)
         : 'N/A';
@@ -372,28 +373,33 @@ class _AccountSlotSelectSheetState extends State<_AccountSlotSelectSheet> {
         const SizedBox(width: 4),
         Text(
           serviceType.toUpperCase(),
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+          style: TextStyle(fontSize: 10, color: Colors.grey.shade700),
         ),
         const SizedBox(width: 8),
         Icon(
           Icons.event_outlined,
-          size: 14,
+          size: 12,
           color: isExpiringSoon ? Colors.orange : Colors.grey.shade600,
         ),
         const SizedBox(width: 4),
         Text(
           expiryDateStr,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 10,
             color: isExpiringSoon ? Colors.orange : Colors.grey.shade700,
             fontWeight: isExpiringSoon ? FontWeight.w600 : FontWeight.normal,
           ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          supplyName,
+          style: TextStyle(fontSize: 10, color: Colors.grey.shade700),
         ),
         if (slot.shopOrderItemId == null) const SizedBox(width: 8),
         if (slot.shopOrderItemId == null)
           Icon(
             Icons.remove_shopping_cart,
-            size: 14,
+            size: 10,
             color: Colors.green.shade600,
           ),
       ],
