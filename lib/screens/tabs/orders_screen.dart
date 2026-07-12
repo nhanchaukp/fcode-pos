@@ -4,6 +4,7 @@ import 'package:fcode_pos/providers/order/order_filter_provider.dart';
 import 'package:fcode_pos/providers/order/order_list_provider.dart';
 import 'package:fcode_pos/screens/global_search_screen.dart';
 import 'package:fcode_pos/screens/order/order_create_screen.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/dropdown/customer_dropdown.dart';
 import 'package:fcode_pos/ui/components/order_list_component.dart'
     show OrderListComponent, OrderListViewMode;
@@ -42,94 +43,92 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final filter = ref.watch(orderFilterProvider);
     final orderListAsync = ref.watch(orderListProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Đơn hàng'),
-        actions: [
-          IconButton(
-            visualDensity: VisualDensity.compact,
-            icon: Icon(
-              _orderListViewMode == OrderListViewMode.full
-                  ? Icons.view_agenda_outlined
-                  : Icons.view_list,
-            ),
-            onPressed: () {
-              setState(() {
-                _orderListViewMode =
-                    _orderListViewMode == OrderListViewMode.full
-                    ? OrderListViewMode.compact
-                    : OrderListViewMode.full;
-              });
-            },
-            tooltip: _orderListViewMode == OrderListViewMode.full
-                ? 'Xem rút gọn'
-                : 'Xem đầy đủ',
+    return AppScaffold(
+      title: 'Đơn hàng',
+      showBack: false,
+      actions: [
+        IconButton(
+          visualDensity: VisualDensity.compact,
+          icon: Icon(
+            _orderListViewMode == OrderListViewMode.full
+                ? Icons.view_agenda_outlined
+                : Icons.view_list,
           ),
-          IconButton(
-            visualDensity: VisualDensity.compact,
-            icon: Badge(
-              isLabelVisible: filter.hasActiveFilters,
-              child: const Icon(Icons.filter_list),
-            ),
-            onPressed: () => _showFilterBottomSheet(context),
-            tooltip: 'Bộ lọc',
-          ),
-        ],
-        bottom: orderListAsync.isLoading
-            ? const PreferredSize(
-                preferredSize: Size.fromHeight(2),
-                child: LinearProgressIndicator(minHeight: 2),
-              )
-            : null,
-      ),
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: () async {
-            ref.invalidate(orderListProvider);
+          onPressed: () {
+            setState(() {
+              _orderListViewMode =
+                  _orderListViewMode == OrderListViewMode.full
+                  ? OrderListViewMode.compact
+                  : OrderListViewMode.full;
+            });
           },
-          child: orderListAsync.when(
-            data: (state) => OrderListComponent(
-              orders: state.orders,
-              isLoading: false,
-              error: null,
-              currentPage: state.pagination?.currentPage ?? 1,
-              totalPages: state.pagination?.lastPage ?? 1,
-              viewMode: _orderListViewMode,
-              orderSummary: state.summary,
-              isLoadingSummary: false,
-              onPageChanged: (page) {
-                ref.read(orderFilterProvider.notifier).state = filter.copyWith(
-                  page: page,
-                );
-              },
-              onRetry: () => ref.invalidate(orderListProvider),
-            ),
-            loading: () => OrderListComponent(
-              orders: const [],
-              isLoading: true,
-              error: null,
-              currentPage: filter.page,
-              totalPages: 1,
-              viewMode: _orderListViewMode,
-              orderSummary: null,
-              isLoadingSummary: true,
-              onPageChanged: (_) {},
-              onRetry: () {},
-            ),
-            error: (error, _) => OrderListComponent(
-              orders: const [],
-              isLoading: false,
-              error: error.toString(),
-              currentPage: filter.page,
-              totalPages: 1,
-              viewMode: _orderListViewMode,
-              orderSummary: null,
-              isLoadingSummary: false,
-              onPageChanged: (_) {},
-              onRetry: () => ref.invalidate(orderListProvider),
-            ),
-          ),
+          tooltip: _orderListViewMode == OrderListViewMode.full
+              ? 'Xem rút gọn'
+              : 'Xem đầy đủ',
         ),
+        IconButton(
+          visualDensity: VisualDensity.compact,
+          icon: Badge(
+            isLabelVisible: filter.hasActiveFilters,
+            child: const Icon(Icons.filter_list),
+          ),
+          onPressed: () => _showFilterBottomSheet(context),
+          tooltip: 'Bộ lọc',
+        ),
+      ],
+      body: (context, _) => Column(
+        children: [
+          if (orderListAsync.isLoading)
+            const LinearProgressIndicator(minHeight: 2),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(orderListProvider);
+              },
+              child: orderListAsync.when(
+                  data: (state) => OrderListComponent(
+                    orders: state.orders,
+                    isLoading: false,
+                    error: null,
+                    currentPage: state.pagination?.currentPage ?? 1,
+                    totalPages: state.pagination?.lastPage ?? 1,
+                    viewMode: _orderListViewMode,
+                    orderSummary: state.summary,
+                    isLoadingSummary: false,
+                    onPageChanged: (page) {
+                      ref.read(orderFilterProvider.notifier).state =
+                          filter.copyWith(page: page);
+                    },
+                    onRetry: () => ref.invalidate(orderListProvider),
+                  ),
+                  loading: () => OrderListComponent(
+                    orders: const [],
+                    isLoading: true,
+                    error: null,
+                    currentPage: filter.page,
+                    totalPages: 1,
+                    viewMode: _orderListViewMode,
+                    orderSummary: null,
+                    isLoadingSummary: true,
+                    onPageChanged: (_) {},
+                    onRetry: () {},
+                  ),
+                  error: (error, _) => OrderListComponent(
+                    orders: const [],
+                    isLoading: false,
+                    error: error.toString(),
+                    currentPage: filter.page,
+                    totalPages: 1,
+                    viewMode: _orderListViewMode,
+                    orderSummary: null,
+                    isLoadingSummary: false,
+                    onPageChanged: (_) {},
+                    onRetry: () => ref.invalidate(orderListProvider),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
@@ -159,8 +158,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ],
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
-      floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling,
     );
   }
 

@@ -1,4 +1,6 @@
+import 'package:amazing_icons/twotone.dart';
 import 'package:fcode_pos/models.dart';
+import 'package:fcode_pos/ui/components/badge_twotone_icon.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:flutter/material.dart';
 
@@ -72,9 +74,9 @@ class ProductListItem extends StatelessWidget {
                 runSpacing: 4,
                 children: [
                   if (hasSku)
-                    _MetaChip(icon: Icons.qr_code_2_outlined, label: sku),
+                    _MetaChip(icon: AmazingIconTwotone.scanBarcode, label: sku),
                   if (hasGroup)
-                    _MetaChip(icon: Icons.category_outlined, label: group),
+                    _MetaChip(icon: AmazingIconTwotone.category, label: group),
                 ],
               ),
             ],
@@ -85,8 +87,8 @@ class ProductListItem extends StatelessWidget {
               children: [
                 _FactChip(
                   icon: product.instock > 0
-                      ? Icons.inventory_2_outlined
-                      : Icons.inventory_2,
+                      ? AmazingIconTwotone.box
+                      : AmazingIconTwotone.boxRemove,
                   label: 'Tồn ${product.instock}',
                   color: product.instock > 0
                       ? colorScheme.tertiary
@@ -94,19 +96,19 @@ class ProductListItem extends StatelessWidget {
                 ),
                 if (product.allowBuyMulti)
                   _FactChip(
-                    icon: Icons.layers_outlined,
+                    icon: AmazingIconTwotone.layer,
                     label: 'Mua nhiều',
                     color: colorScheme.primary,
                   ),
                 if (product.requireAccount)
                   _FactChip(
-                    icon: Icons.person_outline,
+                    icon: AmazingIconTwotone.profile,
                     label: 'Cần tài khoản',
                     color: colorScheme.secondary,
                   ),
                 if (product.requirePassword)
                   _FactChip(
-                    icon: Icons.password_outlined,
+                    icon: AmazingIconTwotone.lock,
                     label: 'Cần mật khẩu',
                     color: colorScheme.error,
                   ),
@@ -173,12 +175,13 @@ class ProductListItemSkeleton extends StatelessWidget {
 class _MetaChip extends StatelessWidget {
   const _MetaChip({required this.icon, required this.label});
 
-  final IconData icon;
+  final TwotoneIconBuilder icon;
   final String label;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final color = colorScheme.onSurfaceVariant;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
@@ -189,7 +192,7 @@ class _MetaChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: colorScheme.onSurfaceVariant),
+          icon(size: 12, color: color, opacity: 0.45),
           const SizedBox(width: 3),
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 140),
@@ -200,7 +203,7 @@ class _MetaChip extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: colorScheme.onSurfaceVariant,
+                color: color,
               ),
             ),
           ),
@@ -217,7 +220,7 @@ class _FactChip extends StatelessWidget {
     required this.color,
   });
 
-  final IconData icon;
+  final TwotoneIconBuilder icon;
   final String label;
   final Color color;
 
@@ -233,7 +236,7 @@ class _FactChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 12, color: color),
+            icon(size: 12, color: color, opacity: 0.45),
             const SizedBox(width: 3),
             Text(
               label,

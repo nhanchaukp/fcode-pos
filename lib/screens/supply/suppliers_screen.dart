@@ -1,10 +1,9 @@
-import 'dart:async';
-
 import 'package:fcode_pos/api/api_exception.dart';
 import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/supply/supply_form_screen.dart';
 import 'package:fcode_pos/services/supply_service.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:flutter/material.dart';
 
@@ -18,8 +17,6 @@ class SuppliersScreen extends StatefulWidget {
 class _SuppliersScreenState extends State<SuppliersScreen> {
   final _supplyService = SupplyService();
   final TextEditingController _searchController = TextEditingController();
-  Timer? _searchDebounce;
-  String _lastSearchValue = '';
 
   PaginatedData<Supply>? _page;
   bool _isLoading = false;
@@ -30,35 +27,13 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
   @override
   void initState() {
     super.initState();
-    _searchController.addListener(_onSearchChanged);
     _loadSuppliers();
   }
 
   @override
   void dispose() {
-    _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
-    _searchDebounce?.cancel();
     super.dispose();
-  }
-
-  void _onSearchChanged() {
-    final currentValue = _searchController.text.trim();
-
-    // Only trigger search if text actually changed
-    if (currentValue == _lastSearchValue) {
-      return;
-    }
-
-    _searchDebounce?.cancel();
-    _searchDebounce = Timer(const Duration(milliseconds: 350), () {
-      if (!mounted) return;
-      _lastSearchValue = currentValue;
-      _loadSuppliers(page: 1);
-    });
-
-    // Update UI for suffix icon
-    if (mounted) setState(() {});
   }
 
   Future<void> _loadSuppliers({int page = 1}) async {
@@ -110,51 +85,25 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
     final supplies = _page?.items ?? const <Supply>[];
     final pagination = _page?.pagination;
 
-    return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 64,
-        automaticallyImplyLeading: false,
-        title: SearchBar(
-          controller: _searchController,
-          hintText: 'Tìm kiếm nhà cung cấp',
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          trailing: _searchController.text.isEmpty
-              ? null
-              : [
-                  IconButton(
-                    tooltip: 'Xóa',
-                    icon: const Icon(Icons.close),
-                    onPressed: () {
-                      _searchController.clear();
-                      _loadSuppliers(page: 1);
-                    },
-                  ),
-                ],
-          onSubmitted: (_) => _loadSuppliers(page: 1),
-          textInputAction: TextInputAction.search,
-          elevation: const WidgetStatePropertyAll(0),
-          backgroundColor: WidgetStatePropertyAll(
-            Theme.of(context).colorScheme.surfaceContainerHigh,
-          ),
-          padding: const WidgetStatePropertyAll<EdgeInsets>(
-            EdgeInsets.symmetric(horizontal: 8),
-          ),
+    return AppScaffold(
+      title: 'Nhà cung cấp',
+      enableSearch: true,
+      searchHint: 'Tìm kiếm nhà cung cấp',
+      searchController: _searchController,
+      onSearchChanged: (_) => _loadSuppliers(page: 1),
+      onSearchSubmitted: (_) => _loadSuppliers(page: 1),
+      actions: [
+        IconButton(
+          tooltip: 'Thêm nhà cung cấp',
+          visualDensity: VisualDensity.compact,
+          icon: const Icon(Icons.add),
+          onPressed: _handleCreateSupply,
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            tooltip: 'Thêm nhà cung cấp',
-            onPressed: _handleCreateSupply,
-          ),
-        ],
-      ),
-      body: Column(
+      ],
+      body: (context, scrollController) => Column(
         children: [
           if (_isLoading) const LinearProgressIndicator(minHeight: 2),
-          Expanded(child: _buildContent(supplies)),
+          Expanded(child: _buildContent(supplies, scrollController)),
           _buildPaginationControls(pagination),
         ],
       ),
@@ -183,7 +132,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
     }
   }
 
-  Widget _buildContent(List<Supply> supplies) {
+  Widget _buildContent(List<Supply> supplies, ScrollController scrollController) {
     if (_isLoading && _page == null && _error == null) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -233,6 +182,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
     return RefreshIndicator(
       onRefresh: () => _loadSuppliers(page: _currentPage),
       child: ListView.builder(
+        controller: scrollController,
         padding: EdgeInsets.zero,
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: supplies.length,

@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:fcode_pos/api/api_exception.dart';
 import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/models.dart';
@@ -7,6 +5,7 @@ import 'package:fcode_pos/screens/customer/customer_upsert_screen.dart';
 import 'package:fcode_pos/screens/customer/customer_detail_screen.dart';
 import 'package:fcode_pos/screens/customer/customer_stats_screen.dart';
 import 'package:fcode_pos/services/customer_service.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/customer_list_item.dart';
 import 'package:flutter/material.dart';
 
@@ -20,8 +19,6 @@ class CustomerListScreen extends StatefulWidget {
 class _CustomerListScreenState extends State<CustomerListScreen> {
   final _customerService = CustomerService();
   final TextEditingController _searchController = TextEditingController();
-  Timer? _searchDebounce;
-  String _lastSearchValue = '';
 
   PaginatedData<User>? _page;
   bool _isLoading = false;
@@ -32,35 +29,13 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
   @override
   void initState() {
     super.initState();
-    _searchController.addListener(_onSearchChanged);
     _loadCustomers();
   }
 
   @override
   void dispose() {
-    _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
-    _searchDebounce?.cancel();
     super.dispose();
-  }
-
-  void _onSearchChanged() {
-    final currentValue = _searchController.text.trim();
-
-    // Only trigger search if text actually changed
-    if (currentValue == _lastSearchValue) {
-      return;
-    }
-
-    _searchDebounce?.cancel();
-    _searchDebounce = Timer(const Duration(milliseconds: 350), () {
-      if (!mounted) return;
-      _lastSearchValue = currentValue;
-      _loadCustomers(page: 1);
-    });
-
-    // Update UI for suffix icon
-    if (mounted) setState(() {});
   }
 
   Future<void> _loadCustomers({int page = 1}) async {
@@ -136,65 +111,38 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
     final customers = _page?.items ?? const <User>[];
     final pagination = _page?.pagination;
 
-    return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 56,
-        automaticallyImplyLeading: false,
-        title: SearchBar(
-          controller: _searchController,
-          hintText: 'Tìm kiếm khách hàng',
-          leading: IconButton(
-            visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          trailing: [
-            if (_searchController.text.isEmpty) ...[
-              IconButton(
-                tooltip: 'Thống kê',
-                visualDensity: VisualDensity.compact,
-                icon: const Icon(Icons.assessment),
-                onPressed: _navigateToStats,
-              ),
-              IconButton(
-                tooltip: 'Thêm khách hàng',
-                visualDensity: VisualDensity.compact,
-                icon: const Icon(Icons.person_add_outlined),
-                onPressed: _navigateToCreate,
-              ),
-            ] else
-              IconButton(
-                tooltip: 'Xóa',
-                visualDensity: VisualDensity.compact,
-                icon: const Icon(Icons.close),
-                onPressed: () {
-                  _searchController.clear();
-                  _loadCustomers(page: 1);
-                },
-              ),
-          ],
-          onSubmitted: (_) => _loadCustomers(page: 1),
-          textInputAction: TextInputAction.search,
-          elevation: const WidgetStatePropertyAll(0),
-          backgroundColor: WidgetStatePropertyAll(
-            Theme.of(context).colorScheme.surfaceContainerHigh,
-          ),
-          padding: const WidgetStatePropertyAll<EdgeInsets>(
-            EdgeInsets.symmetric(horizontal: 8),
-          ),
+    return AppScaffold(
+      title: 'Khách hàng',
+      enableSearch: true,
+      searchHint: 'Tìm kiếm khách hàng',
+      searchController: _searchController,
+      onSearchChanged: (_) => _loadCustomers(page: 1),
+      onSearchSubmitted: (_) => _loadCustomers(page: 1),
+      actions: [
+        IconButton(
+          tooltip: 'Thống kê',
+          visualDensity: VisualDensity.compact,
+          icon: const Icon(Icons.assessment),
+          onPressed: _navigateToStats,
         ),
-      ),
-      body: Column(
+        IconButton(
+          tooltip: 'Thêm khách hàng',
+          visualDensity: VisualDensity.compact,
+          icon: const Icon(Icons.person_add_outlined),
+          onPressed: _navigateToCreate,
+        ),
+      ],
+      body: (context, scrollController) => Column(
         children: [
           if (_isLoading) const LinearProgressIndicator(minHeight: 2),
-          Expanded(child: _buildContent(customers)),
+          Expanded(child: _buildContent(customers, scrollController)),
           _buildPaginationControls(pagination),
         ],
       ),
     );
   }
 
-  Widget _buildContent(List<User> customers) {
+  Widget _buildContent(List<User> customers, ScrollController scrollController) {
     if (_isLoading && _page == null && _error == null) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -240,6 +188,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
     return RefreshIndicator(
       onRefresh: () => _loadCustomers(page: _currentPage),
       child: ListView.builder(
+        controller: scrollController,
         padding: EdgeInsets.zero,
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: customers.length,

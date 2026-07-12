@@ -9,6 +9,7 @@ import 'package:fcode_pos/services/product_service.dart';
 import 'package:fcode_pos/ui/components/customer_list_item.dart';
 import 'package:fcode_pos/ui/components/order_list_component.dart';
 import 'package:fcode_pos/ui/components/product_list_item.dart';
+import 'package:fcode_pos/ui/components/swipe_back_detector.dart';
 import 'package:fcode_pos/utils/extensions.dart';
 import 'package:flutter/material.dart';
 
@@ -125,8 +126,9 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final canPop = Navigator.of(context).canPop();
 
-    return Scaffold(
+    final screen = Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -142,6 +144,13 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
           _buildBottomBar(colorScheme, bottomInset),
         ],
       ),
+    );
+
+    if (!canPop) return screen;
+
+    return SwipeBackDetector(
+      onPop: () => Navigator.of(context).maybePop(),
+      child: screen,
     );
   }
 

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/account-vault/account_vault_upsert_screen.dart';
 import 'package:fcode_pos/services/account_vault_service.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -163,6 +164,10 @@ class _AccountVaultDetailScreenState extends State<AccountVaultDetailScreen> {
     Toastr.success('Đã sao chép thông tin tài khoản', context: context);
   }
 
+  void _popWithResult() {
+    Navigator.of(context).pop(_changed);
+  }
+
   // ── Mail reading ──────────────────────────────────────────────────────────
 
   Future<void> _readMail({required bool useGraphApi}) async {
@@ -189,94 +194,76 @@ class _AccountVaultDetailScreenState extends State<AccountVaultDetailScreen> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        Navigator.of(context).pop(_changed);
+        _popWithResult();
       },
-      child: Scaffold(
-        appBar: AppBar(
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (widget.item.provider != null)
-                Text(
-                  widget.item.provider!,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                  ),
+      child: AppScaffold(
+        title: widget.item.email,
+        subtitle: widget.item.provider,
+        showBack: true,
+        enableSwipeBack: true,
+        onBack: _popWithResult,
+        actions: [
+          if (_detail != null)
+            IconButton(
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(Icons.copy_all_outlined),
+              tooltip: 'Sao chép tài khoản',
+              onPressed: _copyAccountInfo,
+            ),
+          PopupMenuButton<String>(
+            tooltip: 'Tùy chọn',
+            onSelected: (v) {
+              switch (v) {
+                case 'reload':
+                  _fetchDetail();
+                case 'edit':
+                  _navigateToEdit();
+                case 'delete':
+                  _delete();
+              }
+            },
+            itemBuilder: (_) => [
+              const PopupMenuItem(
+                value: 'reload',
+                child: Row(
+                  children: [
+                    Icon(Icons.refresh, size: 20),
+                    SizedBox(width: 12),
+                    Text('Tải lại'),
+                  ],
                 ),
-              Text(
-                widget.item.email,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-                overflow: TextOverflow.ellipsis,
               ),
-            ],
-          ),
-          actions: [
-            if (_detail != null)
-              IconButton(
-                icon: const Icon(Icons.copy_all_outlined),
-                tooltip: 'Sao chép tài khoản',
-                onPressed: _copyAccountInfo,
-              ),
-            PopupMenuButton<String>(
-              tooltip: 'Tùy chọn',
-              onSelected: (v) {
-                switch (v) {
-                  case 'reload':
-                    _fetchDetail();
-                  case 'edit':
-                    _navigateToEdit();
-                  case 'delete':
-                    _delete();
-                }
-              },
-              itemBuilder: (_) => [
+              if (_detail != null)
                 const PopupMenuItem(
-                  value: 'reload',
+                  value: 'edit',
                   child: Row(
                     children: [
-                      Icon(Icons.refresh, size: 20),
+                      Icon(Icons.edit_outlined, size: 20),
                       SizedBox(width: 12),
-                      Text('Tải lại'),
+                      Text('Chỉnh sửa'),
                     ],
                   ),
                 ),
-                if (_detail != null)
-                  const PopupMenuItem(
-                    value: 'edit',
-                    child: Row(
-                      children: [
-                        Icon(Icons.edit_outlined, size: 20),
-                        SizedBox(width: 12),
-                        Text('Chỉnh sửa'),
-                      ],
-                    ),
+              if (_detail != null)
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete_outline, size: 20, color: Colors.red),
+                      SizedBox(width: 12),
+                      Text('Xóa', style: TextStyle(color: Colors.red)),
+                    ],
                   ),
-                if (_detail != null)
-                  const PopupMenuItem(
-                    value: 'delete',
-                    child: Row(
-                      children: [
-                        Icon(Icons.delete_outline, size: 20, color: Colors.red),
-                        SizedBox(width: 12),
-                        Text('Xóa', style: TextStyle(color: Colors.red)),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-          ],
-        ),
-        body: _buildBody(),
+                ),
+            ],
+          ),
+        ],
+        body: (context, scrollController) => _buildBody(scrollController),
       ),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(ScrollController scrollController) {
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -299,6 +286,7 @@ class _AccountVaultDetailScreenState extends State<AccountVaultDetailScreen> {
     final vault = _detail!;
 
     return ListView(
+      controller: scrollController,
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
       children: [
         // Thông tin đăng nhập (kèm tên tài khoản, trạng thái, provider)

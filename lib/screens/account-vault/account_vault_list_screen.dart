@@ -1,11 +1,10 @@
-import 'dart:async';
-
 import 'package:fcode_pos/api/api_exception.dart';
 import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/account-vault/account_vault_detail_screen.dart';
 import 'package:fcode_pos/screens/account-vault/account_vault_upsert_screen.dart';
 import 'package:fcode_pos/services/account_vault_service.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:flutter/material.dart';
 
 class AccountVaultListScreen extends StatefulWidget {
@@ -18,8 +17,6 @@ class AccountVaultListScreen extends StatefulWidget {
 class _AccountVaultListScreenState extends State<AccountVaultListScreen> {
   final _service = AccountVaultService();
   final _searchController = TextEditingController();
-  Timer? _debounce;
-  String _lastSearch = '';
 
   PaginatedData<AccountVaultItem>? _page;
   bool _loading = false;
@@ -36,29 +33,14 @@ class _AccountVaultListScreenState extends State<AccountVaultListScreen> {
   @override
   void initState() {
     super.initState();
-    _searchController.addListener(_onSearchChanged);
     _loadProviders();
     _load();
   }
 
   @override
   void dispose() {
-    _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
-    _debounce?.cancel();
     super.dispose();
-  }
-
-  void _onSearchChanged() {
-    final v = _searchController.text.trim();
-    if (v == _lastSearch) return;
-    _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 350), () {
-      if (!mounted) return;
-      _lastSearch = v;
-      _load(page: 1);
-    });
-    if (mounted) setState(() {});
   }
 
   Future<void> _loadProviders() async {
@@ -163,60 +145,32 @@ class _AccountVaultListScreenState extends State<AccountVaultListScreen> {
   Widget build(BuildContext context) {
     final items = _page?.items ?? [];
     final pagination = _page?.pagination;
-    final cs = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 56,
-        automaticallyImplyLeading: false,
-        title: SearchBar(
-          controller: _searchController,
-          hintText: 'Tìm email...',
-          leading: IconButton(
-            visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          trailing: [
-            if (_searchController.text.isEmpty)
-              IconButton(
-                tooltip: 'Thêm vault',
-                visualDensity: VisualDensity.compact,
-                icon: const Icon(Icons.add),
-                onPressed: _navigateToCreate,
-              )
-            else
-              IconButton(
-                tooltip: 'Xóa tìm kiếm',
-                visualDensity: VisualDensity.compact,
-                icon: const Icon(Icons.close),
-                onPressed: () {
-                  _searchController.clear();
-                  _load(page: 1);
-                },
-              ),
-            IconButton(
-              tooltip: 'Lọc',
-              visualDensity: VisualDensity.compact,
-              icon: Badge(
-                isLabelVisible: _hasFilter,
-                child: const Icon(Icons.filter_list),
-              ),
-              onPressed: _showFilterSheet,
-            ),
-          ],
-          onSubmitted: (_) => _load(page: 1),
-          textInputAction: TextInputAction.search,
-          elevation: const WidgetStatePropertyAll(0),
-          backgroundColor: WidgetStatePropertyAll(
-            cs.surfaceContainerHigh,
-          ),
-          padding: const WidgetStatePropertyAll<EdgeInsets>(
-            EdgeInsets.symmetric(horizontal: 8),
-          ),
+    return AppScaffold(
+      title: 'Ví tài khoản',
+      enableSearch: true,
+      searchHint: 'Tìm email...',
+      searchController: _searchController,
+      onSearchChanged: (_) => _load(page: 1),
+      onSearchSubmitted: (_) => _load(page: 1),
+      actions: [
+        IconButton(
+          tooltip: 'Thêm vault',
+          visualDensity: VisualDensity.compact,
+          icon: const Icon(Icons.add),
+          onPressed: _navigateToCreate,
         ),
-      ),
-      body: Column(
+        IconButton(
+          tooltip: 'Lọc',
+          visualDensity: VisualDensity.compact,
+          icon: Badge(
+            isLabelVisible: _hasFilter,
+            child: const Icon(Icons.filter_list),
+          ),
+          onPressed: _showFilterSheet,
+        ),
+      ],
+      body: (context, scrollController) => Column(
         children: [
           if (_loading) const LinearProgressIndicator(minHeight: 2),
           if (_hasFilter)
@@ -231,14 +185,14 @@ class _AccountVaultListScreenState extends State<AccountVaultListScreen> {
                 _load(page: 1);
               },
             ),
-          Expanded(child: _buildContent(items)),
+          Expanded(child: _buildContent(items, scrollController)),
           _buildPagination(pagination),
         ],
       ),
     );
   }
 
-  Widget _buildContent(List<AccountVaultItem> items) {
+  Widget _buildContent(List<AccountVaultItem> items, ScrollController scrollController) {
     if (_loading && _page == null && _error == null) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -277,6 +231,7 @@ class _AccountVaultListScreenState extends State<AccountVaultListScreen> {
     return RefreshIndicator(
       onRefresh: () => _load(page: _currentPage),
       child: ListView.builder(
+        controller: scrollController,
         padding: EdgeInsets.zero,
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: items.length,

@@ -1,5 +1,6 @@
+import 'package:amazing_icons/twotone.dart';
+import 'package:fcode_pos/ui/components/badge_twotone_icon.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class ServiceBadge extends StatelessWidget {
   const ServiceBadge({
@@ -15,20 +16,20 @@ class ServiceBadge extends StatelessWidget {
   final double iconSize;
   final double borderRadius;
 
-  static (FaIconData, Color) getServiceStyle(String serviceType) {
+  static (TwotoneIconBuilder, Color) getServiceStyle(String serviceType) {
     switch (serviceType.toLowerCase()) {
       case 'netflix':
-        return (FontAwesomeIcons.tv, const Color(0xFFE50914));
+        return (AmazingIconTwotone.monitor, const Color(0xFFE50914));
       case 'youtube':
-        return (FontAwesomeIcons.youtube, const Color(0xFFFF0000));
+        return (AmazingIconTwotone.youtube, const Color(0xFFFF0000));
       case 'google_one':
-        return (FontAwesomeIcons.google, const Color(0xFF4285F4));
+        return (AmazingIconTwotone.googlePlay, const Color(0xFF4285F4));
       case 'chatgpt':
-        return (FontAwesomeIcons.robot, const Color(0xFF10A37F));
+        return (AmazingIconTwotone.messageProgramming, const Color(0xFF10A37F));
       case 'microsoft':
-        return (FontAwesomeIcons.microsoft, const Color(0xFF00A4EF));
+        return (AmazingIconTwotone.setting, const Color(0xFF00A4EF));
       default:
-        return (FontAwesomeIcons.circleQuestion, const Color(0xFF9E9E9E));
+        return (AmazingIconTwotone.infoCircle, const Color(0xFF9E9E9E));
     }
   }
 
@@ -43,7 +44,7 @@ class ServiceBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(borderRadius),
       ),
       alignment: Alignment.center,
-      child: FaIcon(icon, size: iconSize, color: Colors.white),
+      child: icon(size: iconSize, color: Colors.white, opacity: 0.35),
     );
   }
 }

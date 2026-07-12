@@ -1,5 +1,6 @@
 import 'package:fcode_pos/config/app_color.dart';
 import 'package:fcode_pos/enums.dart';
+import 'package:fcode_pos/ui/components/badge_twotone_icon.dart';
 import 'package:flutter/material.dart';
 
 class EnumBadge extends StatelessWidget {
@@ -29,6 +30,8 @@ class EnumBadge extends StatelessWidget {
     final color = value?.color ?? fallbackColor;
     final label = value?.label ?? fallbackLabel ?? '--';
     final icon = value?.icon ?? fallbackIcon;
+    final twotoneIcon = twotoneIconFor(value);
+    final iconSize = fontSize + 2;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final backgroundOpacity = isDark ? 0.24 : 0.12;
     final borderOpacity = isDark ? 0.5 : 0.22;
@@ -47,7 +50,10 @@ class EnumBadge extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (showIcon) ...[
-            Icon(icon, size: fontSize + 2, color: color),
+            if (twotoneIcon != null)
+              twotoneIcon(size: iconSize, color: color, opacity: 0.45)
+            else
+              Icon(icon, size: iconSize, color: color),
             const SizedBox(width: 4),
           ],
           Text(

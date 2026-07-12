@@ -1,10 +1,9 @@
-import 'dart:async';
-
 import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/providers/product/product_filter_provider.dart';
 import 'package:fcode_pos/providers/product/product_list_provider.dart';
 import 'package:fcode_pos/screens/products/product_edit_screen.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/product_list_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,40 +17,24 @@ class ProductListScreen extends ConsumerStatefulWidget {
 
 class _ProductListScreenState extends ConsumerState<ProductListScreen> {
   final TextEditingController _searchController = TextEditingController();
-  Timer? _searchDebounce;
-  String _lastSearchValue = '';
 
   @override
   void initState() {
     super.initState();
-    final currentFilter = ref.read(productFilterProvider);
-    _searchController.text = currentFilter.search;
-    _lastSearchValue = currentFilter.search;
-    _searchController.addListener(_handleSearchChanged);
+    _searchController.text = ref.read(productFilterProvider).search;
   }
 
   @override
   void dispose() {
-    _searchController.removeListener(_handleSearchChanged);
     _searchController.dispose();
-    _searchDebounce?.cancel();
     super.dispose();
   }
 
-  void _handleSearchChanged() {
-    _searchDebounce?.cancel();
-    _searchDebounce = Timer(const Duration(milliseconds: 550), () {
-      if (!mounted) return;
-      final currentValue = _searchController.text.trim();
-      if (currentValue == _lastSearchValue) return;
-      _lastSearchValue = currentValue;
-      ref.read(productFilterProvider.notifier).state = ProductFilter(
-        search: currentValue,
-        page: 1,
-      );
-    });
-
-    if (mounted) setState(() {});
+  void _applySearch(String value) {
+    ref.read(productFilterProvider.notifier).state = ProductFilter(
+      search: value.trim(),
+      page: 1,
+    );
   }
 
   @override
@@ -67,56 +50,20 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
         : null;
     final hasData = productListAsync.hasValue;
 
-    return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        title: SearchBar(
-          controller: _searchController,
-          hintText: 'Tìm kiếm sản phẩm',
-          leading: IconButton(
-            visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          trailing: _searchController.text.isEmpty
-              ? null
-              : [
-                  IconButton(
-                    tooltip: 'Xóa',
-                    visualDensity: VisualDensity.compact,
-                    icon: const Icon(Icons.close),
-                    onPressed: () {
-                      _searchController.clear();
-                      _lastSearchValue = '';
-                      ref.read(productFilterProvider.notifier).state =
-                          const ProductFilter(search: '', page: 1);
-                    },
-                  ),
-                ],
-          onSubmitted: (_) {
-            final value = _searchController.text.trim();
-            _lastSearchValue = value;
-            ref.read(productFilterProvider.notifier).state = ProductFilter(
-              search: value,
-              page: 1,
-            );
-          },
-          textInputAction: TextInputAction.search,
-          elevation: const WidgetStatePropertyAll(0),
-          backgroundColor: WidgetStatePropertyAll(
-            Theme.of(context).colorScheme.surfaceContainerHigh,
-          ),
-          padding: const WidgetStatePropertyAll<EdgeInsets>(
-            EdgeInsets.symmetric(horizontal: 8),
-          ),
-        ),
-      ),
-      body: Column(
+    return AppScaffold(
+      title: 'Sản phẩm',
+      enableSearch: true,
+      searchHint: 'Tìm kiếm sản phẩm',
+      searchController: _searchController,
+      searchDebounce: const Duration(milliseconds: 550),
+      onSearchChanged: _applySearch,
+      onSearchSubmitted: _applySearch,
+      body: (context, scrollController) => Column(
         children: [
           if (isLoading) const LinearProgressIndicator(minHeight: 2),
           Expanded(
             child: _buildContent(
+              scrollController: scrollController,
               products: products,
               isLoading: isLoading,
               hasData: hasData,
@@ -131,6 +78,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
   }
 
   Widget _buildContent({
+    required ScrollController scrollController,
     required List<Product> products,
     required bool isLoading,
     required bool hasData,
@@ -184,6 +132,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
     return RefreshIndicator(
       onRefresh: () async => ref.invalidate(productListProvider),
       child: ListView.builder(
+        controller: scrollController,
         padding: EdgeInsets.zero,
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: products.length,

@@ -13,8 +13,8 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   final PageStorageBucket _bucket = PageStorageBucket();
-  final PageController _pageController = PageController();
   int _currentIndex = 0;
+  int _tabDirection = 1;
 
   late final List<Widget> _screens = [
     const HomeScreen(key: PageStorageKey('orders')),
@@ -23,17 +23,12 @@ class _MainShellState extends State<MainShell> {
     const MoreScreen(key: PageStorageKey('more')),
   ];
 
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
   void _onTabSelected(int index) {
     if (index == _currentIndex) return;
-
-    setState(() => _currentIndex = index);
-    _pageController.jumpToPage(index);
+    setState(() {
+      _tabDirection = index > _currentIndex ? 1 : -1;
+      _currentIndex = index;
+    });
   }
 
   @override
@@ -43,23 +38,26 @@ class _MainShellState extends State<MainShell> {
         builder: (context, constraints) {
           return PageStorage(
             bucket: _bucket,
-            child: PageView(
-              controller: _pageController,
-              physics: const NeverScrollableScrollPhysics(),
-              onPageChanged: (index) {
-                if (_currentIndex != index) {
-                  setState(() => _currentIndex = index);
-                }
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              transitionBuilder: (child, animation) {
+                final slide = Tween<Offset>(
+                  begin: Offset(_tabDirection * 0.04, 0),
+                  end: Offset.zero,
+                ).animate(animation);
+                return FadeTransition(
+                  opacity: animation,
+                  child: SlideTransition(position: slide, child: child),
+                );
               },
-              children: _screens
-                  .map(
-                    (screen) => SizedBox(
-                      height: constraints.maxHeight,
-                      width: constraints.maxWidth,
-                      child: screen,
-                    ),
-                  )
-                  .toList(growable: false),
+              child: SizedBox(
+                key: ValueKey(_currentIndex),
+                height: constraints.maxHeight,
+                width: constraints.maxWidth,
+                child: _screens[_currentIndex],
+              ),
             ),
           );
         },

@@ -1,10 +1,9 @@
-import 'dart:async';
-
 import 'package:fcode_pos/api/api_exception.dart';
 import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/product-supply/product_supply_form_screen.dart';
 import 'package:fcode_pos/services/product_supply_service.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:flutter/material.dart';
 
@@ -18,8 +17,6 @@ class ProductCostScreen extends StatefulWidget {
 class _ProductCostScreenState extends State<ProductCostScreen> {
   final _productSupplyService = ProductSupplyService();
   final TextEditingController _searchController = TextEditingController();
-  Timer? _searchDebounce;
-  String _lastSearchValue = '';
 
   PaginatedData<ProductSupply>? _page;
   bool _isLoading = false;
@@ -30,35 +27,13 @@ class _ProductCostScreenState extends State<ProductCostScreen> {
   @override
   void initState() {
     super.initState();
-    _searchController.addListener(_onSearchChanged);
     _loadProductSupplies();
   }
 
   @override
   void dispose() {
-    _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
-    _searchDebounce?.cancel();
     super.dispose();
-  }
-
-  void _onSearchChanged() {
-    final currentValue = _searchController.text.trim();
-
-    // Only trigger search if text actually changed
-    if (currentValue == _lastSearchValue) {
-      return;
-    }
-
-    _searchDebounce?.cancel();
-    _searchDebounce = Timer(const Duration(milliseconds: 350), () {
-      if (!mounted) return;
-      _lastSearchValue = currentValue;
-      _loadProductSupplies(page: 1);
-    });
-
-    // Update UI for suffix icon
-    if (mounted) setState(() {});
   }
 
   Future<void> _loadProductSupplies({int page = 1}) async {
@@ -110,52 +85,27 @@ class _ProductCostScreenState extends State<ProductCostScreen> {
     final items = _page?.items ?? const <ProductSupply>[];
     final pagination = _page?.pagination;
 
-    return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        title: SearchBar(
-          controller: _searchController,
-          hintText: 'Tìm sản phẩm hoặc nhà cung cấp',
-          leading: IconButton(
-            visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          trailing: _searchController.text.isEmpty
-              ? null
-              : [
-                  IconButton(
-                    tooltip: 'Xóa',
-                    icon: const Icon(Icons.close),
-                    onPressed: () {
-                      _searchController.clear();
-                      _loadProductSupplies(page: 1);
-                    },
-                  ),
-                ],
-          onSubmitted: (_) => _loadProductSupplies(page: 1),
-          textInputAction: TextInputAction.search,
-          elevation: const WidgetStatePropertyAll(0),
-          backgroundColor: WidgetStatePropertyAll(
-            Theme.of(context).colorScheme.surfaceContainerLow,
-          ),
-          padding: const WidgetStatePropertyAll<EdgeInsets>(
-            EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          ),
+    return AppScaffold(
+      title: 'Giá nhập',
+      enableSearch: true,
+      searchHint: 'Tìm sản phẩm hoặc nhà cung cấp',
+      searchController: _searchController,
+      onSearchChanged: (_) => _loadProductSupplies(page: 1),
+      onSearchSubmitted: (_) => _loadProductSupplies(page: 1),
+      actions: [
+        IconButton(
+          tooltip: 'Thêm giá nhập',
+          visualDensity: VisualDensity.compact,
+          icon: const Icon(Icons.add),
+          onPressed: _navigateToAddScreen,
         ),
-      ),
-      body: Column(
+      ],
+      body: (context, scrollController) => Column(
         children: [
           if (_isLoading) const LinearProgressIndicator(minHeight: 2),
-          Expanded(child: _buildContent(items)),
+          Expanded(child: _buildContent(items, scrollController)),
           _buildPaginationControls(pagination),
         ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _navigateToAddScreen,
-        icon: const Icon(Icons.add),
-        label: const Text('Thêm giá nhập'),
       ),
     );
   }
@@ -183,7 +133,7 @@ class _ProductCostScreenState extends State<ProductCostScreen> {
     }
   }
 
-  Widget _buildContent(List<ProductSupply> items) {
+  Widget _buildContent(List<ProductSupply> items, ScrollController scrollController) {
     if (_isLoading && _page == null && _error == null) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -240,6 +190,7 @@ class _ProductCostScreenState extends State<ProductCostScreen> {
     return RefreshIndicator(
       onRefresh: () => _loadProductSupplies(page: _currentPage),
       child: ListView.builder(
+        controller: scrollController,
         padding: EdgeInsets.zero,
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: items.length,
