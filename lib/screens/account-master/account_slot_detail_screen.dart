@@ -9,6 +9,7 @@ import 'package:fcode_pos/services/account_master_service.dart';
 import 'package:fcode_pos/services/account_slot_service.dart';
 import 'package:fcode_pos/ui/components/app_tab.dart';
 import 'package:fcode_pos/ui/components/audit/audit_log_list.dart';
+import 'package:fcode_pos/ui/components/badge/audit_event_badge.dart';
 import 'package:fcode_pos/ui/components/slot_edit_sheet.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
@@ -1132,7 +1133,7 @@ class _AuditTileState extends State<_AuditTile> {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final audit = widget.audit;
-    final (eventColor, eventIcon, eventLabel) = _eventMeta(audit.event, cs);
+    final (eventColor, eventIcon, _) = eventMeta(audit.event, cs);
 
     return IntrinsicHeight(
       child: Row(
@@ -1181,7 +1182,7 @@ class _AuditTileState extends State<_AuditTile> {
                 children: [
                   Row(
                     children: [
-                      _EventBadge(label: eventLabel, color: eventColor),
+                      AuditEventBadge(event: audit.event),
                       const Spacer(),
                       _TimeText(audit.createdAt),
                     ],
@@ -1245,44 +1246,6 @@ class _AuditTileState extends State<_AuditTile> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-(Color, IconData, String) _eventMeta(String event, ColorScheme cs) {
-  return switch (event.toLowerCase()) {
-    'created' => (Colors.green, Icons.add_circle_outline, 'Tạo mới'),
-    'updated' => (Colors.orange, Icons.edit_outlined, 'Cập nhật'),
-    'deleted' => (Colors.red, Icons.delete_outline, 'Xóa'),
-    'restored' => (Colors.blue, Icons.restore, 'Khôi phục'),
-    _ => (cs.primary, Icons.history, event),
-  };
-}
-
-class _EventBadge extends StatelessWidget {
-  const _EventBadge({required this.label, required this.color});
-
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withValues(alpha: 0.35), width: 0.8),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: color,
-          letterSpacing: 0.2,
-        ),
       ),
     );
   }

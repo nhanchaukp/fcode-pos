@@ -1,8 +1,8 @@
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/customer/customer_detail_screen.dart';
-import 'package:fcode_pos/ui/components/refund_reason_badge.dart';
-import 'package:fcode_pos/ui/components/refund_status_badge.dart';
-import 'package:fcode_pos/ui/components/refund_type_badge.dart';
+import 'package:fcode_pos/ui/components/badge/refund_reason_badge.dart';
+import 'package:fcode_pos/ui/components/badge/refund_status_badge.dart';
+import 'package:fcode_pos/ui/components/badge/refund_type_badge.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/extensions/colors.dart';

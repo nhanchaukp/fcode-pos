@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:fcode_pos/models/icallme_voucher.dart';
 import 'package:fcode_pos/screens/icallme/icallme_voucher_detail_screen.dart';
 import 'package:fcode_pos/services/icallme_voucher_service.dart';
-import 'package:fcode_pos/ui/components/enum_badge.dart';
+import 'package:fcode_pos/ui/components/badge/enum_badge.dart';
 import 'package:flutter/material.dart';
 
 enum _VoucherStatusTab {
@@ -1063,12 +1063,6 @@ class _VoucherTile extends StatelessWidget {
                       const SizedBox(width: 8),
                       EnumBadge(
                         value: voucher.status,
-                        fontSize: 10,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        borderRadius: 4,
                       ),
                     ],
                   ),

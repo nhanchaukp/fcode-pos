@@ -2,6 +2,7 @@ import 'package:fcode_pos/api/api_exception.dart';
 import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/rating_service.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
@@ -175,69 +176,67 @@ class _RatingListScreenState extends State<RatingListScreen> {
     final ratings = _page?.items ?? const <Rating>[];
     final pagination = _page?.pagination;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Đánh giá'),
-        actions: [
-          PopupMenuButton<bool?>(
-            icon: const Icon(Icons.filter_list),
-            tooltip: 'Lọc theo trạng thái',
-            onSelected: _changeFilter,
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: null,
-                child: Row(
-                  children: [
-                    if (_approvedFilter == null)
-                      const Icon(Icons.check, size: 20)
-                    else
-                      const SizedBox(width: 20),
-                    const SizedBox(width: 8),
-                    const Text('Tất cả'),
-                  ],
-                ),
+    return AppScaffold(
+      title: 'Đánh giá',
+      actions: [
+        PopupMenuButton<bool?>(
+          icon: const Icon(Icons.filter_list),
+          tooltip: 'Lọc theo trạng thái',
+          onSelected: _changeFilter,
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              value: null,
+              child: Row(
+                children: [
+                  if (_approvedFilter == null)
+                    const Icon(Icons.check, size: 20)
+                  else
+                    const SizedBox(width: 20),
+                  const SizedBox(width: 8),
+                  const Text('Tất cả'),
+                ],
               ),
-              PopupMenuItem(
-                value: true,
-                child: Row(
-                  children: [
-                    if (_approvedFilter == true)
-                      const Icon(Icons.check, size: 20)
-                    else
-                      const SizedBox(width: 20),
-                    const SizedBox(width: 8),
-                    const Text('Đã duyệt'),
-                  ],
-                ),
+            ),
+            PopupMenuItem(
+              value: true,
+              child: Row(
+                children: [
+                  if (_approvedFilter == true)
+                    const Icon(Icons.check, size: 20)
+                  else
+                    const SizedBox(width: 20),
+                  const SizedBox(width: 8),
+                  const Text('Đã duyệt'),
+                ],
               ),
-              PopupMenuItem(
-                value: false,
-                child: Row(
-                  children: [
-                    if (_approvedFilter == false)
-                      const Icon(Icons.check, size: 20)
-                    else
-                      const SizedBox(width: 20),
-                    const SizedBox(width: 8),
-                    const Text('Chưa duyệt'),
-                  ],
-                ),
+            ),
+            PopupMenuItem(
+              value: false,
+              child: Row(
+                children: [
+                  if (_approvedFilter == false)
+                    const Icon(Icons.check, size: 20)
+                  else
+                    const SizedBox(width: 20),
+                  const SizedBox(width: 8),
+                  const Text('Chưa duyệt'),
+                ],
               ),
-            ],
-          ),
-        ],
-      ),
-      body: Column(
+            ),
+          ],
+        ),
+      ],
+      body: (context, scrollController) => Column(
         children: [
           if (_isLoading) const LinearProgressIndicator(minHeight: 2),
-          Expanded(child: _buildContent(ratings)),
+          Expanded(child: _buildContent(ratings, scrollController)),
           _buildPaginationControls(pagination),
         ],
       ),
     );
   }
 
-  Widget _buildContent(List<Rating> ratings) {
+  Widget _buildContent(List<Rating> ratings, ScrollController scrollController) {
     if (_isLoading && _page == null && _error == null) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -282,15 +281,15 @@ class _RatingListScreenState extends State<RatingListScreen> {
 
     return RefreshIndicator(
       onRefresh: () => _loadRatings(page: _currentPage),
-      child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      child: ListView.builder(
+        controller: scrollController,
+        padding: EdgeInsets.zero,
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: ratings.length,
-        separatorBuilder: (context, _) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final rating = ratings[index];
           final isActioning = _actioningIds.contains(rating.id);
-          return _RatingCard(
+          return _RatingTile(
             rating: rating,
             isActioning: isActioning,
             onToggleApproval: () => _toggleApproval(rating),
@@ -339,8 +338,8 @@ class _RatingListScreenState extends State<RatingListScreen> {
   }
 }
 
-class _RatingCard extends StatelessWidget {
-  const _RatingCard({
+class _RatingTile extends StatelessWidget {
+  const _RatingTile({
     required this.rating,
     required this.isActioning,
     required this.onToggleApproval,
@@ -357,138 +356,146 @@ class _RatingCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final user = rating.user;
     final rateable = rating.rateable;
+    final displayName = user != null
+        ? (user.name.isNotEmpty ? user.name : user.username)
+        : null;
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (user != null) ...[
-                        Row(
-                          children: [
-                            const Icon(Icons.person, size: 16),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                user.name.isNotEmpty
-                                    ? user.name
-                                    : user.username,
-                                style: Theme.of(context).textTheme.titleSmall
-                                    ?.copyWith(fontWeight: FontWeight.w600),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                      ],
-                      if (rateable != null) ...[
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.shopping_bag,
-                              size: 16,
-                              color: colorScheme.primary,
-                            ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                rateable.name,
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(
-                                      color: colorScheme.onSurfaceVariant,
-                                    ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+            width: 0.5,
+          ),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildApprovalBadge(context, rating.approved),
-                    const SizedBox(height: 4),
-                    _buildStars(rating.rating),
+                    if (displayName != null)
+                      Text(
+                        displayName,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    if (rateable != null) ...[
+                      if (displayName != null) const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.shopping_bag_outlined,
+                            size: 12,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 3),
+                          Expanded(
+                            child: Text(
+                              rateable.name,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
-              ],
-            ),
-            if (rating.comment != null && rating.comment!.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  rating.comment!,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
+              ),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  _ApprovalChip(approved: rating.approved),
+                  const SizedBox(height: 4),
+                  _buildStars(rating.rating),
+                ],
               ),
             ],
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                if (rating.createdAt != null) ...[
-                  Icon(
-                    Icons.access_time,
-                    size: 14,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    DateHelper.formatDateTime(rating.createdAt!),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-                const Spacer(),
-                if (isActioning)
-                  const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                else ...[
-                  IconButton(
-                    icon: Icon(
-                      rating.approved ? Icons.cancel : Icons.check_circle,
-                      color: rating.approved
-                          ? colorScheme.outline
-                          : colorScheme.primary,
-                    ),
-                    tooltip: rating.approved ? 'Hủy duyệt' : 'Duyệt',
-                    onPressed: onToggleApproval,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.delete_outline, color: colorScheme.error),
-                    tooltip: 'Xóa',
-                    onPressed: onDelete,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ],
-              ],
+          ),
+          if (rating.comment != null && rating.comment!.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              rating.comment!,
+              style: TextStyle(
+                fontSize: 11,
+                color: colorScheme.onSurfaceVariant,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
-        ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              if (rating.createdAt != null) ...[
+                Icon(
+                  Icons.access_time,
+                  size: 12,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 3),
+                Text(
+                  DateHelper.formatDateTime(rating.createdAt!),
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+              const Spacer(),
+              if (isActioning)
+                const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              else ...[
+                IconButton(
+                  icon: Icon(
+                    rating.approved ? Icons.cancel : Icons.check_circle,
+                    size: 20,
+                    color: rating.approved
+                        ? colorScheme.outline
+                        : colorScheme.primary,
+                  ),
+                  tooltip: rating.approved ? 'Hủy duyệt' : 'Duyệt',
+                  onPressed: onToggleApproval,
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.delete_outline,
+                    size: 20,
+                    color: colorScheme.error,
+                  ),
+                  tooltip: 'Xóa',
+                  onPressed: onDelete,
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                ),
+              ],
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -501,39 +508,43 @@ class _RatingCard extends StatelessWidget {
         (index) => Icon(
           index < rating ? Icons.star : Icons.star_border,
           color: Colors.amber,
-          size: 18,
+          size: 14,
         ),
       ),
     );
   }
+}
 
-  Widget _buildApprovalBadge(BuildContext context, bool approved) {
+class _ApprovalChip extends StatelessWidget {
+  const _ApprovalChip({required this.approved});
+
+  final bool approved;
+
+  @override
+  Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final backgroundColor = approved
-        ? colorScheme.primaryContainer
-        : colorScheme.surfaceContainerHighest;
-    final textColor = approved
-        ? colorScheme.onPrimaryContainer
-        : colorScheme.onSurfaceVariant;
+    final color = approved ? colorScheme.primary : colorScheme.onSurfaceVariant;
     final icon = approved ? Icons.check_circle_outline : Icons.pending_outlined;
     final label = approved ? 'Đã duyệt' : 'Chưa duyệt';
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(20),
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: color.withValues(alpha: 0.22)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: textColor),
-          const SizedBox(width: 6),
+          Icon(icon, size: 12, color: color),
+          const SizedBox(width: 3),
           Text(
             label,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: textColor,
+            style: TextStyle(
+              fontSize: 10,
               fontWeight: FontWeight.w600,
+              color: color,
             ),
           ),
         ],

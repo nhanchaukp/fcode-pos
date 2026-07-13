@@ -4,7 +4,8 @@ import 'package:fcode_pos/screens/customer/customer_upsert_screen.dart';
 import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/services/customer_service.dart';
 import 'package:fcode_pos/services/order_service.dart';
-import 'package:fcode_pos/ui/components/order_status_badge.dart';
+import 'package:fcode_pos/ui/components/badge/buyer_type_badge.dart';
+import 'package:fcode_pos/ui/components/badge/order_status_badge.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/functions.dart';
@@ -298,7 +299,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen>
             ),
             if (user.buyerType != null) ...[
               const SizedBox(height: 8),
-              _buildBuyerTypeBadge(user.buyerType!, colorScheme),
+              BuyerTypeBadge(buyerType: user.buyerType!),
             ],
             const SizedBox(height: 12),
             Container(
@@ -328,42 +329,6 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen>
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildBuyerTypeBadge(String buyerType, ColorScheme colorScheme) {
-    final isCompany = buyerType == 'company';
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: isCompany
-            ? colorScheme.secondaryContainer
-            : colorScheme.tertiaryContainer,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            isCompany ? Icons.business : Icons.person,
-            size: 14,
-            color: isCompany
-                ? colorScheme.onSecondaryContainer
-                : colorScheme.onTertiaryContainer,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            isCompany ? 'Doanh nghiệp' : 'Cá nhân',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: isCompany
-                  ? colorScheme.onSecondaryContainer
-                  : colorScheme.onTertiaryContainer,
-            ),
-          ),
-        ],
       ),
     );
   }

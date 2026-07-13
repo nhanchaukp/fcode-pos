@@ -2,8 +2,8 @@ import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/financial/financial_report_screen.dart';
 import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/services/order_service.dart';
-import 'package:fcode_pos/ui/components/animated_stat_text.dart';
-import 'package:fcode_pos/ui/components/skeleton.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
+import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/ui/dashboard/dashboard_components.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -131,58 +131,59 @@ class _DashboardScreenState extends State<DashboardScreen> {
       height: 1.2,
     );
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Báo cáo'),
-        actions: [
-          IconButton(
-            tooltip: 'Báo cáo tài chính',
-            icon: const Icon(Icons.bar_chart_outlined),
-            onPressed: () {
-              Navigator.of(context, rootNavigator: true).push(
-                MaterialPageRoute(
-                  builder: (context) => const FinancialReportScreen(),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: _error != null && _stats == null
-            ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+    return AppScaffold(
+      title: 'Báo cáo',
+      showBack: false,
+      actions: [
+        IconButton(
+          tooltip: 'Báo cáo tài chính',
+          visualDensity: VisualDensity.compact,
+          icon: const Icon(Icons.bar_chart_outlined),
+          onPressed: () {
+            Navigator.of(context, rootNavigator: true).push(
+              MaterialPageRoute(
+                builder: (context) => const FinancialReportScreen(),
+              ),
+            );
+          },
+        ),
+      ],
+      body: (context, scrollController) =>
+          _error != null && _stats == null
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        size: 48,
+                        color: Colors.red,
+                      ),
+                      const SizedBox(height: 16),
+                      Text('Lỗi: $_error'),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: _loadStats,
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Thử lại'),
+                      ),
+                    ],
+                  ),
+                )
+              : Column(
                   children: [
-                    const Icon(
-                      Icons.error_outline,
-                      size: 48,
-                      color: Colors.red,
-                    ),
-                    const SizedBox(height: 16),
-                    Text('Lỗi: $_error'),
-                    const SizedBox(height: 16),
-                    ElevatedButton.icon(
-                      onPressed: _loadStats,
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Thử lại'),
-                    ),
-                  ],
-                ),
-              )
-            : Column(
-                children: [
-                  if (_isLoading) const LinearProgressIndicator(minHeight: 2),
-                  Expanded(
-                    child: RefreshIndicator(
-                      onRefresh: _loadStats,
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        child: Column(
+                    if (_isLoading) const LinearProgressIndicator(minHeight: 2),
+                    Expanded(
+                      child: RefreshIndicator(
+                        onRefresh: _loadStats,
+                        child: SingleChildScrollView(
+                          controller: scrollController,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Card(
@@ -233,9 +234,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       width: double.infinity,
                                       child: GradientStatCard(
                                         title: 'Doanh thu',
-                                        value: AnimatedCurrencyText(
-                                          value: _stats!.totalMoney,
-                                          delay: Duration.zero,
+                                        value: Text(
+                                          CurrencyHelper.formatCurrency(
+                                            _stats!.totalMoney,
+                                          ),
                                           style: statValueStyle,
                                         ),
                                         percentage: '',
@@ -255,9 +257,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       width: double.infinity,
                                       child: GradientStatCard(
                                         title: 'Lợi nhuận',
-                                        value: AnimatedCurrencyText(
-                                          value: _stats!.revenue,
-                                          delay: kNumberAnimStagger,
+                                        value: Text(
+                                          CurrencyHelper.formatCurrency(
+                                            _stats!.revenue,
+                                          ),
                                           style: statValueStyle,
                                         ),
                                         percentage: '',
@@ -296,9 +299,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               final config = orderStatConfigs[index];
                               return GradientStatCard(
                                 title: config.title,
-                                value: AnimatedIntText(
-                                  value: config.count,
-                                  delay: kNumberAnimStagger * (index + 2),
+                                value: Text(
+                                  '${config.count}',
                                   style: statValueStyle,
                                 ),
                                 percentage: '',
@@ -392,10 +394,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                               .onSurfaceVariant,
                                                         ),
                                                   ),
-                                                  AnimatedIntText(
-                                                    value: order.itemsCount,
-                                                    suffix: ' sản phẩm',
-                                                    delay: kNumberAnimStagger * 2,
+                                                  Text(
+                                                    '${order.itemsCount} sản phẩm',
                                                     style: Theme.of(context)
                                                         .textTheme
                                                         .bodySmall
@@ -526,13 +526,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                         .w600,
                                                               ),
                                                         )
-                                                      : AnimatedIntText(
-                                                          value: item
-                                                              .daysRemaining,
-                                                          suffix: ' ngày',
-                                                          delay:
-                                                              kNumberAnimStagger *
-                                                                  3,
+                                                      : Text(
+                                                          '${item.daysRemaining} ngày',
                                                           style: Theme.of(context)
                                                               .textTheme
                                                               .labelSmall
@@ -567,7 +562,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ],
               ),
-      ),
     );
   }
 }
@@ -577,33 +571,155 @@ class _DashboardSkeletonContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return const Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SkeletonGradientStatCard(),
-        const SizedBox(height: 12),
-        const SkeletonGradientStatCard(),
-        const SizedBox(height: 16),
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: 1.8,
+        _StatCardSkeleton(),
+        SizedBox(height: 12),
+        _StatCardSkeleton(),
+        SizedBox(height: 16),
+        _StatGridSkeleton(),
+        SizedBox(height: 20),
+        _SkeletonLine(height: 16, widthFactor: 0.48),
+        SizedBox(height: 12),
+        _ListTileSkeleton(),
+        SizedBox(height: 12),
+        _ListTileSkeleton(),
+        SizedBox(height: 24),
+      ],
+    );
+  }
+}
+
+class _StatGridSkeleton extends StatelessWidget {
+  const _StatGridSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const spacing = 12.0;
+        final itemWidth = (constraints.maxWidth - spacing) / 2;
+        final itemHeight = itemWidth / 1.8;
+
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
           children: List.generate(
             4,
-            (_) => const SkeletonGradientStatCard(),
+            (_) => SizedBox(
+              width: itemWidth,
+              height: itemHeight,
+              child: const _StatCardSkeleton(),
+            ),
           ),
+        );
+      },
+    );
+  }
+}
+
+class _StatCardSkeleton extends StatelessWidget {
+  const _StatCardSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.75),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _SkeletonLine(height: 12, widthFactor: 0.42),
+          SizedBox(height: 10),
+          _SkeletonLine(height: 24, widthFactor: 0.58),
+        ],
+      ),
+    );
+  }
+}
+
+class _ListTileSkeleton extends StatelessWidget {
+  const _ListTileSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: const [
+            _SkeletonBox(width: 40, height: 40, radius: 10),
+            SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _SkeletonLine(height: 14, widthFactor: 0.62),
+                  SizedBox(height: 8),
+                  _SkeletonLine(height: 12, widthFactor: 0.45),
+                  SizedBox(height: 4),
+                  _SkeletonLine(height: 12, widthFactor: 0.35),
+                ],
+              ),
+            ),
+            SizedBox(width: 12),
+            _SkeletonBox(width: 20, height: 20, radius: 4),
+          ],
         ),
-        const SizedBox(height: 20),
-        const SkeletonLine(height: 16, widthFactor: 0.48),
-        const SizedBox(height: 12),
-        const SkeletonListTile(),
-        const SizedBox(height: 12),
-        const SkeletonListTile(),
-        const SizedBox(height: 24),
-      ],
+      ),
+    );
+  }
+}
+
+class _SkeletonLine extends StatelessWidget {
+  const _SkeletonLine({required this.height, required this.widthFactor});
+
+  final double height;
+  final double widthFactor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: FractionallySizedBox(
+        widthFactor: widthFactor,
+        child: _SkeletonBox(height: height),
+      ),
+    );
+  }
+}
+
+class _SkeletonBox extends StatelessWidget {
+  const _SkeletonBox({
+    this.width,
+    required this.height,
+    this.radius = 8,
+  });
+
+  final double? width;
+  final double height;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(radius),
+      ),
     );
   }
 }

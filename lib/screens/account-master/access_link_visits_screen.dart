@@ -2,6 +2,7 @@ import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/account_slot_service.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
+import 'package:fcode_pos/ui/components/badge/status_badges.dart';
 import 'package:flutter/material.dart';
 
 class AccessLinkVisitsScreen extends StatefulWidget {
@@ -228,7 +229,7 @@ class _VisitCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  _LocationStatusBadge(status: visit.locationStatus),
+                  LocationStatusBadge(status: visit.locationStatus),
                 ],
               ),
               const SizedBox(height: 6),
@@ -296,32 +297,6 @@ class _VisitCard extends StatelessWidget {
   }
 }
 
-class _LocationStatusBadge extends StatelessWidget {
-  const _LocationStatusBadge({required this.status});
-  final String? status;
-
-  @override
-  Widget build(BuildContext context) {
-    final ok = status?.toLowerCase() == 'success';
-    final color = ok ? Colors.green : Colors.orange;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        (status == null || status!.isEmpty) ? 'N/A' : status!,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
-      ),
-    );
-  }
-}
-
 // ── Visit Detail Sheet ────────────────────────────────────────────────────────
 
 class _VisitDetailSheet extends StatelessWidget {
@@ -364,7 +339,7 @@ class _VisitDetailSheet extends StatelessWidget {
                       ),
                     ),
                   ),
-                  _LocationStatusBadge(status: visit.locationStatus),
+                  LocationStatusBadge(status: visit.locationStatus),
                 ],
               ),
             ),

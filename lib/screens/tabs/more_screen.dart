@@ -4,8 +4,10 @@ import 'package:fcode_pos/providers/auth_provider.dart';
 import 'package:fcode_pos/providers/theme_provider.dart';
 import 'package:fcode_pos/screens/developer/developer_screen.dart';
 import 'package:fcode_pos/screens/login_screen.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/app_switch_tile.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
+import 'package:fcode_pos/ui/components/badge/status_badges.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -30,33 +32,34 @@ class MoreScreen extends ConsumerWidget {
 
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Cài đặt'),
-        actions: [
-          IconButton(
-            tooltip: 'Đăng xuất',
-            visualDensity: VisualDensity.compact,
-            onPressed: isLoading
-                ? null
-                : () async {
-                    await ref.read(authProvider.notifier).logout();
-                    if (context.mounted) {
-                      Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(
-                          builder: (_) => const LoginScreen(),
-                        ),
-                        (_) => false,
-                      );
-                      Toastr.success('Đã đăng xuất');
-                    }
-                  },
-            icon: const Icon(Icons.logout),
-          ),
-        ],
-      ),
-      body: ListView(
+    return AppScaffold(
+      title: 'Cài đặt',
+      showBack: false,
+      actions: [
+        IconButton(
+          tooltip: 'Đăng xuất',
+          visualDensity: VisualDensity.compact,
+          onPressed: isLoading
+              ? null
+              : () async {
+                  await ref.read(authProvider.notifier).logout();
+                  if (context.mounted) {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                        builder: (_) => const LoginScreen(),
+                      ),
+                      (_) => false,
+                    );
+                    Toastr.success('Đã đăng xuất');
+                  }
+                },
+          icon: const Icon(Icons.logout),
+        ),
+      ],
+      body: (context, scrollController) => ListView(
+        controller: scrollController,
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+        physics: const AlwaysScrollableScrollPhysics(),
         children: [
           _UserProfileCard(
             user: user,
@@ -521,9 +524,9 @@ class _UserProfileCard extends StatelessWidget {
                   spacing: 6,
                   runSpacing: 6,
                   children: [
-                    if (_hasTwoFactor) _twoFactorBadge(theme),
+                    if (_hasTwoFactor) const TwoFactorBadge(),
                     ..._roleNames.map(
-                      (name) => _roleBadge(name, colorScheme),
+                      (name) => RoleBadge(name: name),
                     ),
                   ],
                 ),
@@ -589,31 +592,6 @@ class _UserProfileCard extends StatelessWidget {
     );
   }
 
-  Widget _twoFactorBadge(ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.green.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.green.withValues(alpha: 0.25)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.shield_outlined, size: 12, color: Colors.green.shade700),
-          const SizedBox(width: 4),
-          Text(
-            '2FA',
-            style: theme.textTheme.labelSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: Colors.green.shade700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   String? _resolvePhotoUrl() {
     final profilePhoto = user?.profilePhotoUrl?.trim();
     if (profilePhoto != null && profilePhoto.isNotEmpty) return profilePhoto;
@@ -624,36 +602,4 @@ class _UserProfileCard extends StatelessWidget {
     return null;
   }
 
-}
-
-Widget _roleBadge(String name, ColorScheme colorScheme) {
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-    decoration: BoxDecoration(
-      color: colorScheme.secondaryContainer.withValues(alpha: 0.65),
-      borderRadius: BorderRadius.circular(20),
-      border: Border.all(
-        color: colorScheme.outlineVariant.withValues(alpha: 0.4),
-      ),
-    ),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          Icons.badge_outlined,
-          size: 12,
-          color: colorScheme.onSecondaryContainer,
-        ),
-        const SizedBox(width: 4),
-        Text(
-          name,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: colorScheme.onSecondaryContainer,
-          ),
-        ),
-      ],
-    ),
-  );
 }

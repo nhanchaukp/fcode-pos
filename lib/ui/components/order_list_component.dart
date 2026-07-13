@@ -4,7 +4,7 @@ import 'package:fcode_pos/utils/extensions/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/order/order_detail_screen.dart';
-import 'package:fcode_pos/ui/components/order_status_badge.dart';
+import 'package:fcode_pos/ui/components/badge/order_status_badge.dart';
 
 /// Chế độ hiển thị danh sách đơn hàng.
 enum OrderListViewMode {

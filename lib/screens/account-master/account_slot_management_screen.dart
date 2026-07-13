@@ -17,7 +17,7 @@ import 'package:fcode_pos/ui/components/dropdown/supply_dropdown.dart';
 import 'package:fcode_pos/ui/components/slot_edit_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:fcode_pos/ui/components/service_badge.dart';
+import 'package:fcode_pos/ui/components/badge/service_badge.dart';
 
 class AccountSlotManagementScreen extends StatefulWidget {
   const AccountSlotManagementScreen({super.key});

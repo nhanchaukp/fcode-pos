@@ -1,6 +1,6 @@
 import 'package:fcode_pos/models/icallme_voucher.dart';
 import 'package:fcode_pos/services/icallme_voucher_service.dart';
-import 'package:fcode_pos/ui/components/enum_badge.dart';
+import 'package:fcode_pos/ui/components/badge/enum_badge.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -347,9 +347,6 @@ class _CodeCard extends StatelessWidget {
             const SizedBox(height: 6),
             EnumBadge(
               value: voucher.status,
-              fontSize: 13,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              borderRadius: 20,
             ),
             const SizedBox(height: 4),
             Text(

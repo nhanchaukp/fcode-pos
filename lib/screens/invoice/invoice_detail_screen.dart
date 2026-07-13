@@ -2,7 +2,7 @@ import 'package:fcode_pos/enums.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/invoice/invoice_pdf_screen.dart';
 import 'package:fcode_pos/services/invoice_service.dart';
-import 'package:fcode_pos/ui/components/enum_badge.dart';
+import 'package:fcode_pos/ui/components/badge/enum_badge.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/extensions.dart';
@@ -208,9 +208,6 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
             EnumBadge(
               value: status,
               fallbackLabel: inv.status,
-              fontSize: 12,
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              borderRadius: 8,
             ),
           ],
         ),

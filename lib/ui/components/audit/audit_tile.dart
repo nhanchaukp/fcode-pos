@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:fcode_pos/models.dart';
+import 'package:fcode_pos/ui/components/badge/audit_event_badge.dart';
 import 'package:flutter/material.dart';
 
 /// Timeline-style audit log tile with support for created/updated/deleted events.
@@ -21,7 +22,7 @@ class _AuditTileState extends State<AuditTile> {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final audit = widget.audit;
-    final (eventColor, eventIcon, eventLabel) = _eventMeta(audit.event, cs);
+    final (eventColor, eventIcon, _) = eventMeta(audit.event, cs);
 
     return IntrinsicHeight(
       child: Row(
@@ -71,7 +72,7 @@ class _AuditTileState extends State<AuditTile> {
                   // Header row
                   Row(
                     children: [
-                      AuditEventBadge(label: eventLabel, color: eventColor),
+                      AuditEventBadge(event: audit.event),
                       const Spacer(),
                       AuditTimeText(audit.createdAt),
                     ],
@@ -130,50 +131,8 @@ class _AuditTileState extends State<AuditTile> {
 }
 
 // ---------------------------------------------------------------------------
-// Event metadata helpers
-// ---------------------------------------------------------------------------
-
-(Color, IconData, String) _eventMeta(String event, ColorScheme cs) {
-  return switch (event.toLowerCase()) {
-    'created' => (Colors.green, Icons.add_circle_outline, 'Tạo mới'),
-    'updated' => (Colors.orange, Icons.edit_outlined, 'Cập nhật'),
-    'deleted' => (Colors.red, Icons.delete_outline, 'Xóa'),
-    'restored' => (Colors.blue, Icons.restore, 'Khôi phục'),
-    _ => (cs.primary, Icons.history, event),
-  };
-}
-
-// ---------------------------------------------------------------------------
 // Public sub-widgets (reusable if needed outside the list)
 // ---------------------------------------------------------------------------
-
-class AuditEventBadge extends StatelessWidget {
-  const AuditEventBadge({required this.label, required this.color, super.key});
-
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withValues(alpha: 0.35), width: 0.8),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: color,
-          letterSpacing: 0.2,
-        ),
-      ),
-    );
-  }
-}
 
 class AuditTimeText extends StatelessWidget {
   const AuditTimeText(this.rawDate, {super.key});

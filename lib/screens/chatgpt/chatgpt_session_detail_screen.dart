@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:fcode_pos/models/chatgpt_models.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
+import 'package:fcode_pos/ui/components/badge/status_badges.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -136,7 +137,7 @@ class _SessionHeader extends StatelessWidget {
                       ),
                 ),
                 const SizedBox(height: 6),
-                _ExpiryBadge(session: session, colorScheme: colorScheme),
+                ExpiryBadge(isExpired: session.isExpired),
               ],
             ),
           ),
@@ -145,47 +146,6 @@ class _SessionHeader extends StatelessWidget {
     );
   }
 }
-
-class _ExpiryBadge extends StatelessWidget {
-  const _ExpiryBadge({required this.session, required this.colorScheme});
-
-  final ChatGptSession session;
-  final ColorScheme colorScheme;
-
-  @override
-  Widget build(BuildContext context) {
-    final expired = session.isExpired;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: expired
-            ? Colors.red.withValues(alpha: 0.12)
-            : Colors.green.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            expired ? Icons.error_outline : Icons.check_circle_outline,
-            size: 11,
-            color: expired ? Colors.red : Colors.green,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            expired ? 'Đã hết hạn' : 'Còn hiệu lực',
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-              color: expired ? Colors.red : Colors.green,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 // ── Info Section ──────────────────────────────────────────────────────────────
 
 class _InfoSection extends StatelessWidget {

@@ -1,5 +1,6 @@
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/mail_log_service.dart';
+import 'package:fcode_pos/ui/components/badge/mail_status_badge.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -129,7 +130,7 @@ class _MailLogDetailScreenState extends State<MailLogDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _MailStatusBadge(status: mail.status),
+            MailStatusBadge(status: mail.status),
             const SizedBox(height: 12),
             Text(
               mail.subject,
@@ -385,68 +386,6 @@ class _InfoRow extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _MailStatusBadge extends StatelessWidget {
-  const _MailStatusBadge({required this.status});
-
-  final String status;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    final (Color bg, Color fg, IconData icon, String label) =
-        switch (status.toLowerCase()) {
-      'sent' => (
-        colorScheme.primaryContainer,
-        colorScheme.onPrimaryContainer,
-        Icons.check_circle_outline,
-        'Đã gửi',
-      ),
-      'pending' => (
-        colorScheme.tertiaryContainer,
-        colorScheme.onTertiaryContainer,
-        Icons.hourglass_empty,
-        'Đang chờ',
-      ),
-      'failed' => (
-        colorScheme.errorContainer,
-        colorScheme.onErrorContainer,
-        Icons.error_outline,
-        'Thất bại',
-      ),
-      _ => (
-        colorScheme.surfaceContainerHighest,
-        colorScheme.onSurfaceVariant,
-        Icons.help_outline,
-        status,
-      ),
-    };
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 18, color: fg),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: textTheme.labelMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: fg,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

@@ -1,6 +1,9 @@
+import 'package:fcode_pos/enums.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/financial/financial_transaction_detail_screen.dart';
 import 'package:fcode_pos/services/finacial_service.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
+import 'package:fcode_pos/ui/components/badge/enum_badge.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/extensions.dart';
@@ -124,27 +127,33 @@ class _FinancialTransactionScreenState
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final hasFilters =
+        _dateFrom != null || _dateTo != null || _selectedType != null;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Giao dịch tài chính'),
-        actions: [
-          IconButton(
-            icon: Badge(
-              isLabelVisible:
-                  _dateFrom != null || _dateTo != null || _selectedType != null,
-              child: const Icon(Icons.filter_list),
-            ),
-            onPressed: _showFilterDialog,
+    return AppScaffold(
+      title: 'Giao dịch tài chính',
+      actions: [
+        IconButton(
+          visualDensity: VisualDensity.compact,
+          tooltip: 'Bộ lọc',
+          icon: Badge(
+            isLabelVisible: hasFilters,
+            child: const Icon(Icons.filter_list),
           ),
-          if (_dateFrom != null || _dateTo != null || _selectedType != null)
-            IconButton(icon: const Icon(Icons.clear), onPressed: _clearFilters),
-        ],
-      ),
-      body: Column(
+          onPressed: _showFilterDialog,
+        ),
+        if (hasFilters)
+          IconButton(
+            visualDensity: VisualDensity.compact,
+            tooltip: 'Xóa bộ lọc',
+            icon: const Icon(Icons.clear),
+            onPressed: _clearFilters,
+          ),
+      ],
+      body: (context, scrollController) => Column(
         children: [
-          if (_dateFrom != null || _dateTo != null || _selectedType != null)
-            _buildFilterChips(colorScheme),
+          if (_isLoading) const LinearProgressIndicator(minHeight: 2),
+          if (hasFilters) _buildFilterChips(colorScheme),
           if (_total > 0)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -155,7 +164,7 @@ class _FinancialTransactionScreenState
                 ),
               ),
             ),
-          Expanded(child: _buildBody()),
+          Expanded(child: _buildBody(scrollController)),
           if (_totalPages > 1) _buildPagination(colorScheme),
         ],
       ),
@@ -211,7 +220,7 @@ class _FinancialTransactionScreenState
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(ScrollController scrollController) {
     if (_isLoading && _transactions.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -259,11 +268,13 @@ class _FinancialTransactionScreenState
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      controller: scrollController,
+      padding: EdgeInsets.zero,
+      physics: const AlwaysScrollableScrollPhysics(),
       itemCount: _transactions.length,
       itemBuilder: (context, index) {
         final transaction = _transactions[index];
-        return _buildDismissibleTransactionCard(transaction, index);
+        return _buildDismissibleTransactionTile(transaction);
       },
     );
   }
@@ -311,28 +322,21 @@ class _FinancialTransactionScreenState
     }
   }
 
-  Widget _buildDismissibleTransactionCard(
-    FinancialTransaction transaction,
-    int index,
-  ) {
+  Widget _buildDismissibleTransactionTile(FinancialTransaction transaction) {
     return Dismissible(
       key: Key('transaction_${transaction.id}'),
       direction: DismissDirection.endToStart,
       confirmDismiss: (direction) async {
         await _deleteTransaction(transaction);
-        return false; // We handle the removal in _deleteTransaction
+        return false;
       },
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
-        margin: const EdgeInsets.only(bottom: 12),
-        decoration: BoxDecoration(
-          color: Colors.red,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: const Icon(Icons.delete_outline, color: Colors.white, size: 28),
+        color: Colors.red,
+        child: const Icon(Icons.delete_outline, color: Colors.white, size: 22),
       ),
-      child: _buildTransactionCard(transaction),
+      child: _buildTransactionTile(transaction),
     );
   }
 
@@ -340,9 +344,8 @@ class _FinancialTransactionScreenState
     final changed = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
-        builder: (_) => FinancialTransactionDetailScreen(
-          transactionId: transaction.id,
-        ),
+        builder: (_) =>
+            FinancialTransactionDetailScreen(transactionId: transaction.id),
       ),
     );
 
@@ -351,166 +354,135 @@ class _FinancialTransactionScreenState
     }
   }
 
-  Widget _buildTransactionCard(FinancialTransaction transaction) {
+  Widget _buildTransactionTile(FinancialTransaction transaction) {
     final colorScheme = Theme.of(context).colorScheme;
     final isIncome = transaction.category == 'revenue';
     final amountColor = isIncome ? Colors.green : Colors.red;
+    final status = FinancialTransactionStatus.fromValue(transaction.status);
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => _openTransactionDetail(transaction),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
+    return InkWell(
+      onTap: () => _openTransactionDetail(transaction),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+              width: 0.5,
+            ),
+          ),
+        ),
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header: Transaction ID và Status
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    transaction.transactionId,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          transaction.transactionId,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      EnumBadge(
+                        value: status,
+                        fallbackLabel: transaction.status,
+                      ),
+                    ],
                   ),
-                ),
-                _buildStatusBadge(transaction.status, colorScheme),
-              ],
-            ),
-
-            const SizedBox(height: 12),
-
-            // Type và Category
-            Row(
-              children: [
-                Icon(
-                  _getTypeIcon(transaction.type),
-                  size: 16,
-                  color: colorScheme.primary,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  _getTypeLabel(transaction.type),
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isIncome
-                        ? Colors.green.withValues(alpha: 0.1)
-                        : Colors.red.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    _getCategoryLabel(transaction.category),
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: amountColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            if (transaction.description != null &&
-                transaction.description!.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                transaction.description!,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: colorScheme.onSurfaceVariant.applyOpacity(0.8),
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-
-            const SizedBox(height: 12),
-
-            // Amount và Date
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                if (transaction.completedAt != null)
+                  const SizedBox(height: 4),
                   Row(
                     children: [
                       Icon(
-                        Icons.schedule_outlined,
-                        size: 14,
+                        _getTypeIcon(transaction.type),
+                        size: 12,
                         color: colorScheme.onSurfaceVariant,
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        DateHelper.formatDateTime(transaction.completedAt!),
-                        style: TextStyle(
-                          fontSize: 12,
+                      const SizedBox(width: 3),
+                      Expanded(
+                        child: Text(
+                          _getTypeLabel(transaction.type),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      _CategoryChip(
+                        label: _getCategoryLabel(transaction.category),
+                        color: amountColor,
+                      ),
+                    ],
+                  ),
+                  if (transaction.description != null &&
+                      transaction.description!.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      transaction.description!,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      if (transaction.completedAt != null) ...[
+                        Icon(
+                          Icons.schedule_outlined,
+                          size: 12,
                           color: colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 3),
+                        Expanded(
+                          child: Text(
+                            DateHelper.formatDateTime(transaction.completedAt!),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ] else
+                        const Spacer(),
+                      Text(
+                        CurrencyHelper.formatCurrency(
+                          transaction.amount.toInt(),
+                        ),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 14,
+                          color: amountColor,
                         ),
                       ),
                     ],
                   ),
-                Text(
-                  CurrencyHelper.formatCurrency(transaction.amount.toInt()),
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: amountColor,
-                  ),
-                ),
-              ],
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: colorScheme.onSurfaceVariant,
+              size: 18,
             ),
           ],
-        ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusBadge(String status, ColorScheme colorScheme) {
-    Color backgroundColor;
-    Color textColor;
-
-    switch (status.toLowerCase()) {
-      case 'completed':
-        backgroundColor = Colors.green.withValues(alpha: 0.15);
-        textColor = Colors.green.shade700;
-      case 'pending':
-        backgroundColor = Colors.orange.withValues(alpha: 0.15);
-        textColor = Colors.orange.shade700;
-      case 'failed':
-        backgroundColor = Colors.red.withValues(alpha: 0.15);
-        textColor = Colors.red.shade700;
-      default:
-        backgroundColor = colorScheme.surfaceContainerHighest;
-        textColor = colorScheme.onSurfaceVariant;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        _getStatusLabel(status),
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: textColor,
         ),
       ),
     );
@@ -601,18 +573,31 @@ class _FinancialTransactionScreenState
         return category;
     }
   }
+}
 
-  String _getStatusLabel(String status) {
-    switch (status.toLowerCase()) {
-      case 'completed':
-        return 'Hoàn thành';
-      case 'pending':
-        return 'Đang xử lý';
-      case 'failed':
-        return 'Thất bại';
-      default:
-        return status;
-    }
+class _CategoryChip extends StatelessWidget {
+  const _CategoryChip({required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 10,
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
   }
 }
 

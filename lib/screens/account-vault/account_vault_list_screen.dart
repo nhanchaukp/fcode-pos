@@ -5,6 +5,7 @@ import 'package:fcode_pos/screens/account-vault/account_vault_detail_screen.dart
 import 'package:fcode_pos/screens/account-vault/account_vault_upsert_screen.dart';
 import 'package:fcode_pos/services/account_vault_service.dart';
 import 'package:fcode_pos/ui/components/app_scaffold.dart';
+import 'package:fcode_pos/ui/components/badge/status_badges.dart';
 import 'package:flutter/material.dart';
 
 class AccountVaultListScreen extends StatefulWidget {
@@ -516,7 +517,7 @@ class _VaultTile extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      _StatusBadge(isActive: item.isActive),
+                      ActiveStatusBadge(isActive: item.isActive),
                     ],
                   ),
                   const SizedBox(height: 4),
@@ -553,22 +554,22 @@ class _VaultTile extends StatelessWidget {
                       runSpacing: 4,
                       children: [
                         if (item.hasPassword)
-                          _CredBadge(
+                          CredBadge(
                             icon: Icons.lock_outline,
                             label: 'Password',
                           ),
                         if (item.hasClientId)
-                          _CredBadge(
+                          CredBadge(
                             icon: Icons.vpn_key_outlined,
                             label: 'Client ID',
                           ),
                         if (item.hasRefreshToken)
-                          _CredBadge(
+                          CredBadge(
                             icon: Icons.refresh,
                             label: 'Refresh Token',
                           ),
                         if (item.hasTwoFactorSecret)
-                          _CredBadge(
+                          CredBadge(
                             icon: Icons.security,
                             label: '2FA',
                             color: Colors.orange,
@@ -612,69 +613,3 @@ class _VaultTile extends StatelessWidget {
     );
   }
 }
-
-class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.isActive});
-  final bool isActive;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isActive ? Colors.green : Colors.grey;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        isActive ? 'Đang dùng' : 'Vô hiệu',
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
-      ),
-    );
-  }
-}
-
-class _CredBadge extends StatelessWidget {
-  const _CredBadge({
-    required this.icon,
-    required this.label,
-    this.color,
-  });
-
-  final IconData icon;
-  final String label;
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final c = color ?? cs.primary;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-      decoration: BoxDecoration(
-        color: c.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: c),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: c,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-

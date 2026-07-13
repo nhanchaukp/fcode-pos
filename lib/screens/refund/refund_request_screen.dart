@@ -1,9 +1,10 @@
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/refund/refund_detail_screen.dart';
 import 'package:fcode_pos/services/refund_service.dart';
-import 'package:fcode_pos/ui/components/refund_reason_badge.dart';
-import 'package:fcode_pos/ui/components/refund_status_badge.dart';
-import 'package:fcode_pos/ui/components/refund_type_badge.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
+import 'package:fcode_pos/ui/components/badge/refund_reason_badge.dart';
+import 'package:fcode_pos/ui/components/badge/refund_status_badge.dart';
+import 'package:fcode_pos/ui/components/badge/refund_type_badge.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
@@ -96,84 +97,132 @@ class _RefundRequestScreenState extends ConsumerState<RefundRequestScreen> {
     _loadRefunds(page: 1);
   }
 
+  bool get _hasFilters =>
+      _selectedStatus != null ||
+      _selectedType != null ||
+      _selectedReason != null ||
+      _searchText.isNotEmpty;
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Yêu cầu hoàn tiền'),
-        actions: [
+    return AppScaffold(
+      title: 'Yêu cầu hoàn tiền',
+      enableSwipeBack: true,
+      actions: [
+        IconButton(
+          visualDensity: VisualDensity.compact,
+          tooltip: 'Bộ lọc',
+          icon: Badge(
+            isLabelVisible: _hasFilters,
+            child: const Icon(Icons.filter_list),
+          ),
+          onPressed: () => _showFilterBottomSheet(context),
+        ),
+        if (_hasFilters)
           IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: () => _showFilterBottomSheet(context),
-            tooltip: 'Bộ lọc',
+            visualDensity: VisualDensity.compact,
+            tooltip: 'Xóa bộ lọc',
+            icon: const Icon(Icons.clear),
+            onPressed: _resetFilters,
+          ),
+      ],
+      body: (context, scrollController) => Column(
+        children: [
+          if (_isLoading) const LinearProgressIndicator(minHeight: 2),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: _refreshAll,
+              child: _buildBody(context, scrollController),
+            ),
           ),
         ],
-      ),
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _refreshAll,
-          child: _buildBody(context),
-        ),
       ),
     );
   }
 
-  Widget _buildBody(BuildContext context) {
+  Widget _buildBody(BuildContext context, ScrollController scrollController) {
     final colorScheme = Theme.of(context).colorScheme;
 
     if (_isLoading && _refunds.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return ListView(
+        controller: scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: const [
+          SizedBox(height: 240, child: Center(child: CircularProgressIndicator())),
+        ],
+      );
     }
 
     if (_error != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.red),
-            const SizedBox(height: 16),
-            Text(
-              'Lỗi: $_error',
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.red),
+      return ListView(
+        controller: scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            height: 320,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(
+                      'Lỗi: $_error',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => _loadRefunds(),
+                    child: const Text('Thử lại'),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => _loadRefunds(),
-              child: const Text('Thử lại'),
-            ),
-          ],
-        ),
+          ),
+        ],
       );
     }
 
     if (_refunds.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.inbox_outlined, size: 48, color: Colors.grey),
-            const SizedBox(height: 16),
-            const Text(
-              'Không có yêu cầu hoàn tiền',
-              style: TextStyle(color: Colors.grey, fontSize: 16),
+      return ListView(
+        controller: scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: const [
+          SizedBox(
+            height: 320,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.inbox_outlined, size: 48, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text(
+                    'Không có yêu cầu hoàn tiền',
+                    style: TextStyle(color: Colors.grey, fontSize: 16),
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       );
     }
 
     return Column(
       children: [
         Expanded(
-          child: ListView.separated(
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+          child: ListView.builder(
+            controller: scrollController,
+            padding: EdgeInsets.zero,
             physics: const AlwaysScrollableScrollPhysics(),
             itemCount: _refunds.length,
-            separatorBuilder: (context, _) => const SizedBox(height: 8),
             itemBuilder: (context, index) {
               final refund = _refunds[index];
-              return _RefundCard(
+              return _RefundTile(
                 refund: refund,
                 isActioning: _actioningIds.contains(refund.id),
                 onTap: () async {
@@ -490,8 +539,8 @@ class _RefundRequestScreenState extends ConsumerState<RefundRequestScreen> {
   }
 }
 
-class _RefundCard extends StatelessWidget {
-  const _RefundCard({
+class _RefundTile extends StatelessWidget {
+  const _RefundTile({
     required this.refund,
     required this.isActioning,
     this.onTap,
@@ -508,7 +557,6 @@ class _RefundCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     final customerName = refund.user?.name ?? 'Khách hàng';
     final createdAtLabel = refund.createdAt != null
         ? DateHelper.formatDateTime(refund.createdAt!)
@@ -516,119 +564,160 @@ class _RefundCard extends StatelessWidget {
     final amountFormatted = CurrencyHelper.formatCurrency(
       refund.finalAmount.round(),
     );
+    final isPending = refund.status.toLowerCase() == 'pending';
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+              width: 0.5,
+            ),
+          ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Đơn hàng #${refund.shopOrderId}',
-                          style: textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: colorScheme.onSurfaceVariant,
-                            letterSpacing: 0.2,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
                           customerName,
-                          style: textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                      ],
-                    ),
-                  ),
-                  RefundStatusBadge(status: refund.status),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  RefundTypeBadge(type: refund.type),
-                  RefundReasonBadge(reason: refund.reason),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Icon(
-                    Icons.schedule_outlined,
-                    size: 16,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      createdAtLabel,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w500,
                       ),
-                    ),
+                      const SizedBox(width: 8),
+                      RefundStatusBadge(status: refund.status),
+                    ],
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                  const SizedBox(height: 4),
+                  Row(
                     children: [
-                      Text(
-                        'Số tiền hoàn',
-                        style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+                      Icon(
+                        Icons.receipt_outlined,
+                        size: 12,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 3),
+                      Expanded(
+                        child: Text(
+                          'Đơn hàng #${refund.shopOrderId}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      RefundTypeBadge(type: refund.type),
+                      RefundReasonBadge(reason: refund.reason),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.schedule_outlined,
+                        size: 12,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 3),
+                      Expanded(
+                        child: Text(
+                          createdAtLabel,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                       Text(
                         amountFormatted,
-                        style: textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 14,
                           color: colorScheme.primary,
                         ),
                       ),
                     ],
                   ),
-                ],
-              ),
-              if (refund.status.toLowerCase() == 'pending') ...[
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: isActioning ? null : onReject,
-                        icon: const Icon(Icons.close),
-                        label: Text(isActioning ? 'Đang xử lý...' : 'Từ chối'),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: isActioning ? null : onApprove,
-                        icon: const Icon(Icons.check),
-                        label: Text(isActioning ? 'Đang xử lý...' : 'Duyệt'),
-                      ),
+                  if (isPending) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Spacer(),
+                        if (isActioning)
+                          const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        else ...[
+                          IconButton(
+                            icon: Icon(
+                              Icons.close,
+                              size: 20,
+                              color: colorScheme.error,
+                            ),
+                            tooltip: 'Từ chối',
+                            onPressed: onReject,
+                            visualDensity: VisualDensity.compact,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                              minWidth: 32,
+                              minHeight: 32,
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(
+                              Icons.check_circle,
+                              size: 20,
+                              color: colorScheme.primary,
+                            ),
+                            tooltip: 'Duyệt',
+                            onPressed: onApprove,
+                            visualDensity: VisualDensity.compact,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                              minWidth: 32,
+                              minHeight: 32,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ],
-                ),
-              ],
-            ],
-          ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: colorScheme.onSurfaceVariant,
+              size: 18,
+            ),
+          ],
         ),
       ),
     );

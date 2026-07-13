@@ -2,7 +2,7 @@ import 'package:fcode_pos/enums.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/invoice/invoice_detail_screen.dart';
 import 'package:fcode_pos/services/invoice_service.dart';
-import 'package:fcode_pos/ui/components/enum_badge.dart';
+import 'package:fcode_pos/ui/components/badge/enum_badge.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/extensions.dart';
@@ -375,12 +375,6 @@ class _InvoiceCard extends StatelessWidget {
                   EnumBadge(
                     value: status,
                     fallbackLabel: invoice.status,
-                    fontSize: 11,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
-                    ),
-                    borderRadius: 6,
                   ),
                 ],
               ),

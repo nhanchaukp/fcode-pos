@@ -1,20 +1,23 @@
 import 'package:amazing_icons/twotone.dart';
+import 'package:fcode_pos/config/app_color.dart';
+import 'package:fcode_pos/ui/components/badge/badge_theme.dart';
 import 'package:fcode_pos/ui/components/badge_twotone_icon.dart';
 import 'package:flutter/material.dart';
 
+/// Badge icon-only hiển thị loại dịch vụ (Netflix, YouTube, ...).
 class ServiceBadge extends StatelessWidget {
   const ServiceBadge({
     super.key,
     required this.serviceType,
     this.size = 40,
     this.iconSize = 20,
-    this.borderRadius = 10,
+    this.borderRadius,
   });
 
   final String serviceType;
   final double size;
   final double iconSize;
-  final double borderRadius;
+  final double? borderRadius;
 
   static (TwotoneIconBuilder, Color) getServiceStyle(String serviceType) {
     switch (serviceType.toLowerCase()) {
@@ -29,19 +32,24 @@ class ServiceBadge extends StatelessWidget {
       case 'microsoft':
         return (AmazingIconTwotone.setting, const Color(0xFF00A4EF));
       default:
-        return (AmazingIconTwotone.infoCircle, const Color(0xFF9E9E9E));
+        return (AmazingIconTwotone.infoCircle, AppColor.gray);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final (icon, bgColor) = getServiceStyle(serviceType);
+    final resolvedRadius = AppBadgeTheme.borderRadius(
+      context,
+      override: borderRadius,
+    );
+
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(borderRadius),
+        borderRadius: BorderRadius.circular(resolvedRadius),
       ),
       alignment: Alignment.center,
       child: icon(size: iconSize, color: Colors.white, opacity: 0.35),

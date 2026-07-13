@@ -1,26 +1,28 @@
 import 'package:fcode_pos/enums.dart';
-import 'package:fcode_pos/ui/components/enum_badge.dart';
+import 'package:fcode_pos/ui/components/badge/badge_theme.dart';
+import 'package:fcode_pos/ui/components/badge/enum_badge.dart';
 import 'package:flutter/material.dart';
 
 class RefundReasonBadge extends StatelessWidget {
-  final String reason;
-  final double fontSize;
-  final EdgeInsets padding;
-
   const RefundReasonBadge({
     super.key,
     required this.reason,
-    this.fontSize = 12,
-    this.padding = const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    this.size = BadgeSize.compact,
+    this.fontSize,
+    this.padding,
   });
+
+  final String reason;
+  final BadgeSize size;
+  final double? fontSize;
+  final EdgeInsets? padding;
 
   @override
   Widget build(BuildContext context) {
-    final refundReason = RefundReason.fromValue(reason);
-
     return EnumBadge(
-      value: refundReason,
+      value: RefundReason.fromValue(reason),
       fallbackLabel: reason,
+      size: size,
       fontSize: fontSize,
       padding: padding,
     );

@@ -1,7 +1,7 @@
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/account_master_service.dart';
 import 'package:fcode_pos/ui/components/debounced_search_input.dart';
-import 'package:fcode_pos/ui/components/service_badge.dart';
+import 'package:fcode_pos/ui/components/badge/service_badge.dart';
 import 'package:flutter/material.dart';
 
 class AccountMasterDropdown extends StatefulWidget {

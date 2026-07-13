@@ -13,7 +13,7 @@ import 'package:fcode_pos/services/account_master_browser_session.dart';
 import 'package:fcode_pos/services/account_master_service.dart';
 import 'package:fcode_pos/services/account_slot_service.dart';
 import 'package:fcode_pos/ui/components/loading_icon.dart';
-import 'package:fcode_pos/ui/components/service_badge.dart';
+import 'package:fcode_pos/ui/components/badge/service_badge.dart';
 import 'package:fcode_pos/ui/components/slot_edit_sheet.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';

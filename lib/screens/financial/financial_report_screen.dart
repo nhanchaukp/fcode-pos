@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/finacial_service.dart';
 import 'package:fcode_pos/ui/components/animated_stat_text.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/dashboard/dashboard_components.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/extensions/colors.dart';
@@ -380,22 +381,21 @@ class _FinancialReportScreenState extends State<FinancialReportScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Báo cáo tài chính'),
-        // centerTitle: false,
-        // scrolledUnderElevation: 2,
-        actions: [
-          IconButton(
-            tooltip: _formatSelectedRange(),
-            icon: const Icon(Icons.calendar_month),
-            onPressed: _selectReportPeriod,
-          ),
-        ],
-      ),
-      body: RefreshIndicator(
+    return AppScaffold(
+      title: 'Báo cáo tài chính',
+      subtitle: _formatSelectedRange(),
+      actions: [
+        IconButton(
+          tooltip: 'Chọn kỳ báo cáo',
+          visualDensity: VisualDensity.compact,
+          icon: const Icon(Icons.calendar_month),
+          onPressed: _selectReportPeriod,
+        ),
+      ],
+      body: (context, scrollController) => RefreshIndicator(
         onRefresh: _refreshData,
         child: SingleChildScrollView(
+          controller: scrollController,
           physics: const AlwaysScrollableScrollPhysics(),
           padding: EdgeInsets.fromLTRB(
             16,
@@ -404,56 +404,56 @@ class _FinancialReportScreenState extends State<FinancialReportScreen> {
             24 + MediaQuery.paddingOf(context).bottom,
           ),
           child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Monthly Revenue Chart Section
-                DashboardSection(
-                  title: 'Doanh thu theo tháng',
-                  trailing: IconButton(
-                    icon: const Icon(Icons.refresh),
-                    tooltip: 'Làm mới',
-                    onPressed: _loadMonthlySummary,
-                  ),
-                  children: [
-                    if (_isLoadingMonthly)
-                      const _MonthlyRevenueChartSkeleton()
-                    else if (_monthlyError != null)
-                      _SectionErrorCard(
-                        message: _monthlyError!,
-                        onRetry: _loadMonthlySummary,
-                      )
-                    else if (_monthlySummaries.isEmpty)
-                      const _SectionEmptyCard(
-                        message: 'Chưa có dữ liệu doanh thu theo tháng',
-                      )
-                    else
-                      _MonthlyRevenueChart(data: _buildMonthlyRevenuePoints()),
-                  ],
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Monthly Revenue Chart Section
+              DashboardSection(
+                title: 'Doanh thu theo tháng',
+                trailing: IconButton(
+                  icon: const Icon(Icons.refresh),
+                  tooltip: 'Làm mới',
+                  onPressed: _loadMonthlySummary,
                 ),
-                const SizedBox(height: 24),
+                children: [
+                  if (_isLoadingMonthly)
+                    const _MonthlyRevenueChartSkeleton()
+                  else if (_monthlyError != null)
+                    _SectionErrorCard(
+                      message: _monthlyError!,
+                      onRetry: _loadMonthlySummary,
+                    )
+                  else if (_monthlySummaries.isEmpty)
+                    const _SectionEmptyCard(
+                      message: 'Chưa có dữ liệu doanh thu theo tháng',
+                    )
+                  else
+                    _MonthlyRevenueChart(data: _buildMonthlyRevenuePoints()),
+                ],
+              ),
+              const SizedBox(height: 24),
 
-                // Financial Report Detail Section
-                DashboardSection(
-                  title: 'Báo cáo chi tiết',
-                  children: [
-                    if (_isLoadingFinancial)
-                      const _FinancialReportSkeleton()
-                    else if (_financialError != null)
-                      _SectionErrorCard(
-                        message: _financialError!,
-                        onRetry: _loadFinancialReport,
-                      )
-                    else if (_financialReport != null)
-                      _FinancialReportContent(report: _financialReport!)
-                    else
-                      const _SectionEmptyCard(message: 'Không có dữ liệu'),
-                  ],
-                ),
-                const SizedBox(height: 24),
-              ],
-            ),
+              // Financial Report Detail Section
+              DashboardSection(
+                title: 'Báo cáo chi tiết',
+                children: [
+                  if (_isLoadingFinancial)
+                    const _FinancialReportSkeleton()
+                  else if (_financialError != null)
+                    _SectionErrorCard(
+                      message: _financialError!,
+                      onRetry: _loadFinancialReport,
+                    )
+                  else if (_financialReport != null)
+                    _FinancialReportContent(report: _financialReport!)
+                  else
+                    const _SectionEmptyCard(message: 'Không có dữ liệu'),
+                ],
+              ),
+              const SizedBox(height: 24),
+            ],
           ),
         ),
+      ),
     );
   }
 }

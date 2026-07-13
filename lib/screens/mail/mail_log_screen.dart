@@ -2,7 +2,8 @@ import 'package:fcode_pos/enums.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/mail/mail_log_detail_screen.dart';
 import 'package:fcode_pos/services/mail_log_service.dart';
-import 'package:fcode_pos/ui/components/enum_badge.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
+import 'package:fcode_pos/ui/components/badge/mail_status_badge.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:flutter/material.dart';
 
@@ -89,27 +90,24 @@ class _MailLogScreenState extends State<MailLogScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Nhật ký email'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: () => _showFilterBottomSheet(context),
-            tooltip: 'Bộ lọc',
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _refreshAll,
-          child: _buildBody(context),
+    return AppScaffold(
+      title: 'Nhật ký email',
+      actions: [
+        IconButton(
+          visualDensity: VisualDensity.compact,
+          icon: const Icon(Icons.filter_list),
+          onPressed: () => _showFilterBottomSheet(context),
+          tooltip: 'Bộ lọc',
         ),
+      ],
+      body: (context, scrollController) => RefreshIndicator(
+        onRefresh: _refreshAll,
+        child: _buildBody(context, scrollController),
       ),
     );
   }
 
-  Widget _buildBody(BuildContext context) {
+  Widget _buildBody(BuildContext context, ScrollController scrollController) {
     final colorScheme = Theme.of(context).colorScheme;
 
     if (_isLoading && _mailLogs.isEmpty) {
@@ -157,13 +155,13 @@ class _MailLogScreenState extends State<MailLogScreen> {
     return Column(
       children: [
         Expanded(
-          child: ListView.separated(
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+          child: ListView.builder(
+            controller: scrollController,
+            padding: EdgeInsets.zero,
             physics: const AlwaysScrollableScrollPhysics(),
             itemCount: _mailLogs.length,
-            separatorBuilder: (context, _) => const SizedBox(height: 8),
             itemBuilder: (context, index) {
-              return _MailLogCard(
+              return _MailLogTile(
                 mailLog: _mailLogs[index],
                 onTap: () {
                   Navigator.of(context).push(
@@ -346,8 +344,8 @@ class _MailLogScreenState extends State<MailLogScreen> {
   }
 }
 
-class _MailLogCard extends StatelessWidget {
-  const _MailLogCard({required this.mailLog, this.onTap});
+class _MailLogTile extends StatelessWidget {
+  const _MailLogTile({required this.mailLog, this.onTap});
 
   final MailLog mailLog;
   final VoidCallback? onTap;
@@ -355,95 +353,99 @@ class _MailLogCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     final sentAtLabel = mailLog.sentAt != null
         ? DateHelper.formatDateTime(mailLog.sentAt!)
         : (mailLog.createdAt != null
               ? DateHelper.formatDateTime(mailLog.createdAt!)
               : '—');
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+              width: 0.5,
+            ),
+          ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
                           mailLog.subject,
-                          style: textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Gửi đến: ${mailLog.firstRecipient}',
-                          style: textTheme.bodySmall?.copyWith(
+                      ),
+                      const SizedBox(width: 8),
+                      MailStatusBadge(status: mailLog.status),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.email_outlined,
+                        size: 12,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 3),
+                      Expanded(
+                        child: Text(
+                          mailLog.firstRecipient,
+                          style: TextStyle(
+                            fontSize: 12,
                             color: colorScheme.onSurfaceVariant,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  _MailStatusBadge(status: mailLog.status),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Icon(
-                    Icons.schedule_outlined,
-                    size: 16,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      sentAtLabel,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w500,
                       ),
-                    ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.schedule_outlined,
+                        size: 12,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 3),
+                      Text(
+                        sentAtLabel,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: colorScheme.onSurfaceVariant,
+              size: 18,
+            ),
+          ],
         ),
       ),
-    );
-  }
-}
-
-class _MailStatusBadge extends StatelessWidget {
-  const _MailStatusBadge({required this.status});
-
-  final String status;
-
-  @override
-  Widget build(BuildContext context) {
-    return EnumBadge(
-      value: MailLogStatus.fromValue(status),
-      fallbackLabel: status,
-      fontSize: 11,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      borderRadius: 12,
     );
   }
 }
