@@ -241,15 +241,8 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
   ) {
     return Navigator.push<AccountMaster>(
       navigatorContext,
-      PageRouteBuilder<AccountMaster>(
-        opaque: false,
-        barrierColor: null,
-        pageBuilder: (context, animation, secondaryAnimation) {
-          return AccountMasterBrowserScreen(session: session);
-        },
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(opacity: animation, child: child);
-        },
+      MaterialPageRoute<AccountMaster>(
+        builder: (context) => AccountMasterBrowserScreen(session: session),
       ),
     );
   }

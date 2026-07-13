@@ -9,7 +9,6 @@ import 'package:fcode_pos/services/product_service.dart';
 import 'package:fcode_pos/ui/components/customer_list_item.dart';
 import 'package:fcode_pos/ui/components/order_list_component.dart';
 import 'package:fcode_pos/ui/components/product_list_item.dart';
-import 'package:fcode_pos/ui/components/swipe_back_detector.dart';
 import 'package:fcode_pos/utils/extensions.dart';
 import 'package:flutter/material.dart';
 
@@ -126,9 +125,8 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
-    final canPop = Navigator.of(context).canPop();
 
-    final screen = Scaffold(
+    return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -144,13 +142,6 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
           _buildBottomBar(colorScheme, bottomInset),
         ],
       ),
-    );
-
-    if (!canPop) return screen;
-
-    return SwipeBackDetector(
-      onPop: () => Navigator.of(context).maybePop(),
-      child: screen,
     );
   }
 
@@ -341,10 +332,8 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
   Widget _buildProductResults() {
     if (_products.isEmpty) return _buildEmptyState('sản phẩm');
 
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+    return ListView.builder(
       itemCount: _products.length,
-      separatorBuilder: (context, _) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
         final product = _products[index];
         return ProductListItem(
@@ -365,10 +354,8 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
   Widget _buildCustomerResults() {
     if (_customers.isEmpty) return _buildEmptyState('khách hàng');
 
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+    return ListView.builder(
       itemCount: _customers.length,
-      separatorBuilder: (context, _) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
         final customer = _customers[index];
         return CustomerListItem(

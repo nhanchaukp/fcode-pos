@@ -200,7 +200,6 @@ class _AccountVaultDetailScreenState extends State<AccountVaultDetailScreen> {
         title: widget.item.email,
         subtitle: widget.item.provider,
         showBack: true,
-        enableSwipeBack: true,
         onBack: _popWithResult,
         actions: [
           if (_detail != null)

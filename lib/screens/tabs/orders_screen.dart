@@ -23,21 +23,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   OrderListViewMode _orderListViewMode = OrderListViewMode.full;
 
-  Route<T> _slideUpRoute<T>(Widget page) {
-    return PageRouteBuilder<T>(
-      pageBuilder: (context, animation, secondaryAnimation) => page,
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final tween = Tween(
-          begin: const Offset(0, 1),
-          end: Offset.zero,
-        ).chain(CurveTween(curve: Curves.easeOutCubic));
-        return SlideTransition(position: animation.drive(tween), child: child);
-      },
-      transitionDuration: const Duration(milliseconds: 300),
-      reverseTransitionDuration: const Duration(milliseconds: 250),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final filter = ref.watch(orderFilterProvider);
@@ -139,7 +124,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                _slideUpRoute(const GlobalSearchScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const GlobalSearchScreen(),
+                ),
               );
             },
             child: const Icon(Icons.search),
@@ -151,7 +138,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             onPressed: () {
               Navigator.push<bool>(
                 context,
-                _slideUpRoute(const OrderCreateScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const OrderCreateScreen(),
+                ),
               );
             },
             child: const Icon(Icons.add),

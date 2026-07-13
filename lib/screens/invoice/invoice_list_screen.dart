@@ -60,7 +60,6 @@ class _InvoiceListScreenState extends State<InvoiceListScreen>
 
     return AppScaffold(
       title: 'Hóa đơn điện tử',
-      enableSwipeBack: true,
       actions: [
         IconButton(
           icon: const Icon(Icons.refresh_outlined),

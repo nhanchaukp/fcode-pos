@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:fcode_pos/ui/components/swipe_back_detector.dart';
 import 'package:fcode_pos/ui/theme/tokens.dart';
 import 'package:flutter/material.dart';
 
@@ -29,7 +28,6 @@ class AppScaffold extends StatefulWidget {
     this.onSearchChanged,
     this.onSearchSubmitted,
     this.searchDebounce = const Duration(milliseconds: 350),
-    this.enableSwipeBack = false,
     this.floatingActionButton,
     this.bottomNavigationBar,
   });
@@ -66,9 +64,6 @@ class AppScaffold extends StatefulWidget {
 
   final Duration searchDebounce;
 
-  /// Bật vuốt từ cạnh trái để quay lại (gọi [onBack]).
-  final bool enableSwipeBack;
-
   /// Builder cho body, nhận [ScrollController] cần gắn vào scrollable chính.
   final Widget Function(BuildContext context, ScrollController controller) body;
 
@@ -87,7 +82,7 @@ class _AppScaffoldState extends State<AppScaffold> {
     final onBack = widget.onBack ?? () => Navigator.of(context).maybePop();
     final showBack = widget.showBack ?? Navigator.of(context).canPop();
 
-    final content = Scaffold(
+    return Scaffold(
       floatingActionButton: widget.floatingActionButton,
       bottomNavigationBar: widget.bottomNavigationBar,
       body: Column(
@@ -116,10 +111,6 @@ class _AppScaffoldState extends State<AppScaffold> {
         ],
       ),
     );
-
-    if (!widget.enableSwipeBack || !showBack) return content;
-
-    return SwipeBackDetector(onPop: onBack, child: content);
   }
 
   @override

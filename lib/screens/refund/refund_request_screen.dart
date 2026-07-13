@@ -107,7 +107,6 @@ class _RefundRequestScreenState extends ConsumerState<RefundRequestScreen> {
   Widget build(BuildContext context) {
     return AppScaffold(
       title: 'Yêu cầu hoàn tiền',
-      enableSwipeBack: true,
       actions: [
         IconButton(
           visualDensity: VisualDensity.compact,
