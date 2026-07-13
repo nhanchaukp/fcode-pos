@@ -2,6 +2,7 @@ import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/account_slot_service.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/badge/status_badges.dart';
 import 'package:flutter/material.dart';
 
@@ -73,76 +74,91 @@ class _AccessLinkVisitsScreenState extends State<AccessLinkVisitsScreen> {
     final items = _page?.items ?? [];
     final pagination = _page?.pagination;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Lịch sử truy cập'),
-            Text(
-              widget.accessLink.slug,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
+    return AppScaffold(
+      title: 'Lịch sử truy cập',
+      subtitle: widget.accessLink.slug,
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.refresh_outlined),
+          visualDensity: VisualDensity.compact,
+          tooltip: 'Làm mới',
+          onPressed: _loading ? null : () => _load(page: _currentPage),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh_outlined),
-            tooltip: 'Làm mới',
-            onPressed: _loading ? null : () => _load(page: _currentPage),
-          ),
+      ],
+      body: (context, scrollController) => Column(
+        children: [
+          if (_loading) const LinearProgressIndicator(minHeight: 2),
+          Expanded(child: _buildContent(items, scrollController)),
+          _buildPagination(pagination),
         ],
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            if (_loading) const LinearProgressIndicator(minHeight: 2),
-            Expanded(child: _buildContent(items)),
-            _buildPagination(pagination),
-          ],
-        ),
       ),
     );
   }
 
-  Widget _buildContent(List<AccessLinkVisit> items) {
+  Widget _buildContent(List<AccessLinkVisit> items, ScrollController scrollController) {
     if (_loading && _page == null && _error == null) {
-      return const Center(child: CircularProgressIndicator());
+      return ListView(
+        controller: scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: const [
+          SizedBox(height: 240, child: Center(child: CircularProgressIndicator())),
+        ],
+      );
     }
     if (_error != null) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.redAccent),
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Text(_error!, textAlign: TextAlign.center),
+      return ListView(
+        controller: scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            height: 320,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 48, color: Colors.redAccent),
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(_error!, textAlign: TextAlign.center),
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: () => _load(),
+                    child: const Text('Thử lại'),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 16),
-            FilledButton(onPressed: () => _load(), child: const Text('Thử lại')),
-          ],
-        ),
+          ),
+        ],
       );
     }
     if (items.isEmpty) {
-      return const Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.travel_explore_outlined, size: 48, color: Colors.grey),
-            SizedBox(height: 12),
-            Text('Chưa có lượt truy cập nào'),
-          ],
-        ),
+      return ListView(
+        controller: scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: const [
+          SizedBox(
+            height: 320,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.travel_explore_outlined, size: 48, color: Colors.grey),
+                  SizedBox(height: 12),
+                  Text('Chưa có lượt truy cập nào'),
+                ],
+              ),
+            ),
+          ),
+        ],
       );
     }
     return RefreshIndicator(
       onRefresh: () => _load(page: _currentPage),
       child: ListView.builder(
+        controller: scrollController,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: items.length,

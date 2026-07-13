@@ -1,5 +1,5 @@
+import 'package:fcode_pos/ui/components/badge/badge_bulk_icon.dart';
 import 'package:fcode_pos/ui/components/badge/badge_theme.dart';
-import 'package:fcode_pos/ui/components/badge_twotone_icon.dart';
 import 'package:flutter/material.dart';
 
 /// Badge cơ bản với label, màu và icon — dùng chung cho mọi badge tuỳ chỉnh.
@@ -9,7 +9,7 @@ class AppBadge extends StatelessWidget {
     required this.label,
     required this.color,
     this.icon,
-    this.twotoneIcon,
+    this.bulkIcon,
     this.fontSize,
     this.padding,
     this.borderRadius,
@@ -23,7 +23,7 @@ class AppBadge extends StatelessWidget {
   final String label;
   final Color color;
   final IconData? icon;
-  final TwotoneIconBuilder? twotoneIcon;
+  final BulkIconBuilder? bulkIcon;
   final double? fontSize;
   final EdgeInsets? padding;
   final double? borderRadius;
@@ -59,9 +59,9 @@ class AppBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (showIcon && (icon != null || twotoneIcon != null)) ...[
-            if (twotoneIcon != null)
-              twotoneIcon!(size: iconSize, color: color, opacity: 0.45)
+          if (showIcon && (icon != null || bulkIcon != null)) ...[
+            if (bulkIcon != null)
+              bulkIcon!(size: iconSize, color: color, opacity: 0.4)
             else
               Icon(icon, size: iconSize, color: color),
             const SizedBox(width: 4),

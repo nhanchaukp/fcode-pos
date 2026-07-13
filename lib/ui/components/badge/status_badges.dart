@@ -1,5 +1,7 @@
+import 'package:amazing_icons/bulk.dart';
 import 'package:fcode_pos/config/app_color.dart';
 import 'package:fcode_pos/ui/components/badge/app_badge.dart';
+import 'package:fcode_pos/ui/components/badge/badge_bulk_icon.dart';
 import 'package:fcode_pos/ui/components/badge/badge_theme.dart';
 import 'package:flutter/material.dart';
 
@@ -36,7 +38,7 @@ class CredBadge extends StatelessWidget {
     this.size = BadgeSize.compact,
   });
 
-  final IconData icon;
+  final BulkIconBuilder icon;
   final String label;
   final Color? color;
   final BadgeSize size;
@@ -47,7 +49,7 @@ class CredBadge extends StatelessWidget {
     return AppBadge(
       label: label,
       color: color ?? cs.primary,
-      icon: icon,
+      bulkIcon: icon,
       size: size,
     );
   }
@@ -96,7 +98,7 @@ class ExpiryBadge extends StatelessWidget {
     return AppBadge(
       label: isExpired ? 'Đã hết hạn' : 'Còn hiệu lực',
       color: isExpired ? AppColor.red : AppColor.green,
-      icon: isExpired ? Icons.error_outline : Icons.check_circle_outline,
+      bulkIcon: isExpired ? AmazingIconBulk.danger : AmazingIconBulk.tickCircle,
       size: size,
       fontWeight: FontWeight.bold,
     );
@@ -116,7 +118,7 @@ class RoleBadge extends StatelessWidget {
     return AppBadge(
       label: name,
       color: cs.onSecondaryContainer,
-      icon: Icons.badge_outlined,
+      bulkIcon: AmazingIconBulk.personalcard,
       size: size,
       backgroundColor: cs.secondaryContainer.withValues(alpha: 0.65),
       borderColor: cs.outlineVariant.withValues(alpha: 0.4),
@@ -135,7 +137,7 @@ class TwoFactorBadge extends StatelessWidget {
     return AppBadge(
       label: '2FA',
       color: AppColor.green,
-      icon: Icons.shield_outlined,
+      bulkIcon: AmazingIconBulk.shieldTick,
       size: size,
     );
   }

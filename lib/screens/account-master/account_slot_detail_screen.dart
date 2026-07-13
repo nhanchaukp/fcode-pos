@@ -1156,7 +1156,13 @@ class _AuditTileState extends State<_AuditTile> {
                       width: 1.5,
                     ),
                   ),
-                  child: Icon(eventIcon, size: 16, color: eventColor),
+                  child: Center(
+                    child: eventIcon(
+                      size: 16,
+                      color: eventColor,
+                      opacity: 0.4,
+                    ),
+                  ),
                 ),
                 if (!widget.isLast)
                   Expanded(

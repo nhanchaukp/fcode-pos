@@ -4,6 +4,8 @@ import 'package:fcode_pos/screens/customer/customer_upsert_screen.dart';
 import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/services/customer_service.dart';
 import 'package:fcode_pos/services/order_service.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
+import 'package:fcode_pos/ui/components/app_tab.dart';
 import 'package:fcode_pos/ui/components/badge/buyer_type_badge.dart';
 import 'package:fcode_pos/ui/components/badge/order_status_badge.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
@@ -98,38 +100,33 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Chi tiết khách hàng'),
-        actions: [
-          if (_user != null)
-            IconButton(
-              icon: const Icon(Icons.edit_outlined),
-              tooltip: 'Chỉnh sửa',
-              onPressed: _navigateToEdit,
-            ),
-          if (widget.userId != null && _user != null)
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: _loadCustomerDetail,
-            ),
-        ],
-        bottom: _user != null
-            ? TabBar(
-                controller: _tabController,
-                tabs: const [
-                  Tab(text: 'Thông tin', icon: Icon(Icons.person)),
-                  Tab(text: 'Đơn hàng', icon: Icon(Icons.shopping_bag)),
-                ],
-              )
-            : null,
-      ),
-      body: _buildBody(),
+    final cs = Theme.of(context).colorScheme;
+
+    return AppScaffold(
+      title: 'Chi tiết khách hàng',
+      subtitle: _user?.name,
+      actions: [
+        if (_user != null)
+          IconButton(
+            icon: const Icon(Icons.edit_outlined),
+            visualDensity: VisualDensity.compact,
+            tooltip: 'Chỉnh sửa',
+            onPressed: _navigateToEdit,
+          ),
+        if (widget.userId != null && _user != null)
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            visualDensity: VisualDensity.compact,
+            tooltip: 'Làm mới',
+            onPressed: _loadCustomerDetail,
+          ),
+      ],
+      body: (context, _) => _buildBody(cs),
     );
   }
 
-  Widget _buildBody() {
-    if (_isLoading) {
+  Widget _buildBody(ColorScheme cs) {
+    if (_isLoading && _user == null && _error == null) {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -156,9 +153,27 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen>
       return const Center(child: Text('Không tìm thấy thông tin khách hàng'));
     }
 
-    return TabBarView(
-      controller: _tabController,
-      children: [_buildInfoTab(), _buildOrdersTab()],
+    return Column(
+      children: [
+        Material(
+          color: cs.surface,
+          child: TabBar(
+            controller: _tabController,
+            isScrollable: true,
+            tabAlignment: TabAlignment.start,
+            tabs: const [
+              AppTab(icon: Icons.person_outline, text: 'Thông tin'),
+              AppTab(icon: Icons.shopping_bag_outlined, text: 'Đơn hàng'),
+            ],
+          ),
+        ),
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            children: [_buildInfoTab(), _buildOrdersTab()],
+          ),
+        ),
+      ],
     );
   }
 

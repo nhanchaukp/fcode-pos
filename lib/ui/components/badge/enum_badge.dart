@@ -2,7 +2,7 @@ import 'package:fcode_pos/config/app_color.dart';
 import 'package:fcode_pos/enums.dart';
 import 'package:fcode_pos/ui/components/badge/app_badge.dart';
 import 'package:fcode_pos/ui/components/badge/badge_theme.dart';
-import 'package:fcode_pos/ui/components/badge_twotone_icon.dart';
+import 'package:fcode_pos/ui/components/badge/badge_bulk_icon.dart';
 import 'package:flutter/material.dart';
 
 class EnumBadge extends StatelessWidget {
@@ -31,11 +31,13 @@ class EnumBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final resolvedBulkIcon = bulkIconFor(value);
+
     return AppBadge(
       label: value?.label ?? fallbackLabel ?? '--',
       color: value?.color ?? fallbackColor,
-      icon: value?.icon ?? fallbackIcon,
-      twotoneIcon: twotoneIconFor(value),
+      icon: resolvedBulkIcon == null ? (value?.icon ?? fallbackIcon) : null,
+      bulkIcon: resolvedBulkIcon,
       fontSize: fontSize,
       padding: padding,
       borderRadius: borderRadius,

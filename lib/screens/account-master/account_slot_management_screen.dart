@@ -12,11 +12,13 @@ import 'package:fcode_pos/services/account_master_service.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/string_helper.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/app_switch_tile.dart';
 import 'package:fcode_pos/ui/components/dropdown/supply_dropdown.dart';
 import 'package:fcode_pos/ui/components/slot_edit_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_sticky_header/flutter_sticky_header.dart';
 import 'package:fcode_pos/ui/components/badge/service_badge.dart';
 
 class AccountSlotManagementScreen extends StatefulWidget {
@@ -40,23 +42,22 @@ class _AccountSlotManagementScreenState
   bool? _selectedIsActive;
   bool _selectedIsFreeSlot = false;
   Supply? _selectedSupply;
-  String _searchQuery = '';
   int? _selectedDaysRemaining; // null means "Tất cả"
 
   final TextEditingController _searchController = TextEditingController();
+
+  bool get _hasFilters =>
+      _selectedServiceType != null ||
+      _selectedIsActive != null ||
+      _selectedDaysRemaining != null ||
+      _selectedIsFreeSlot ||
+      _selectedSupply != null;
 
   @override
   void initState() {
     super.initState();
     _accountSlotService = AccountSlotService();
     _accountMasterService = AccountMasterService();
-    _searchController.addListener(() {
-      if (mounted) {
-        setState(() {
-          _searchQuery = _searchController.text;
-        });
-      }
-    });
     _loadAccountMasters();
   }
 
@@ -79,7 +80,9 @@ class _AccountSlotManagementScreenState
       final response = await _accountSlotService.listMaster(
         serviceType: _selectedServiceType?.value,
         isActive: _selectedIsActive,
-        search: _searchQuery.isEmpty ? null : _searchQuery,
+        search: _searchController.text.trim().isEmpty
+            ? null
+            : _searchController.text.trim(),
         daysRemaining: _selectedDaysRemaining,
         isFreeSlot: _selectedIsFreeSlot ? true : null,
         supplyId: _selectedSupply?.id,
@@ -140,9 +143,8 @@ class _AccountSlotManagementScreenState
       _selectedIsFreeSlot = false;
       _selectedSupply = null;
       _selectedDaysRemaining = null;
-      _searchQuery = '';
-      _searchController.clear();
     });
+    _searchController.clear();
     _loadAccountMasters();
   }
 
@@ -156,11 +158,12 @@ class _AccountSlotManagementScreenState
       ),
       builder: (sheetContext) {
         final cs = Theme.of(sheetContext).colorScheme;
-        final labelStyle = Theme.of(sheetContext).textTheme.labelSmall?.copyWith(
-          color: cs.onSurfaceVariant,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.6,
-        );
+        final labelStyle = Theme.of(sheetContext).textTheme.labelSmall
+            ?.copyWith(
+              color: cs.onSurfaceVariant,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.6,
+            );
 
         return Padding(
           padding: EdgeInsets.only(
@@ -180,9 +183,7 @@ class _AccountSlotManagementScreenState
                       const SizedBox(width: 8),
                       Text(
                         'Bộ lọc',
-                        style: Theme.of(sheetContext)
-                            .textTheme
-                            .titleMedium
+                        style: Theme.of(sheetContext).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const Spacer(),
@@ -322,9 +323,8 @@ class _AccountSlotManagementScreenState
                           AppSwitchTile(
                             title: 'Chỉ hiện TK còn slot trống',
                             value: _selectedIsFreeSlot,
-                            onChanged: (v) => setSheetState(
-                              () => _selectedIsFreeSlot = v,
-                            ),
+                            onChanged: (v) =>
+                                setSheetState(() => _selectedIsFreeSlot = v),
                           ),
                           const SizedBox(height: 8),
                         ],
@@ -363,172 +363,165 @@ class _AccountSlotManagementScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 64,
-        automaticallyImplyLeading: false,
-        title: SearchBar(
-          controller: _searchController,
-          hintText: 'Tìm theo tên, username',
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          trailing: [
-            if (_searchQuery.isNotEmpty)
-              IconButton(
-                tooltip: 'Xóa',
-                icon: const Icon(Icons.close),
-                onPressed: () {
-                  _searchController.clear();
-                  setState(() {
-                    _searchQuery = '';
-                  });
-                  _loadAccountMasters();
-                },
+    return AppScaffold(
+      title: 'Kho tài khoản',
+      enableSearch: true,
+      searchHint: 'Tìm theo tên, ghi chú...',
+      searchController: _searchController,
+      onSearchChanged: (_) => _loadAccountMasters(),
+      onSearchSubmitted: (_) => _loadAccountMasters(),
+      actions: [
+        IconButton(
+          tooltip: 'Tạo tài khoản',
+          visualDensity: VisualDensity.compact,
+          icon: const Icon(Icons.add),
+          onPressed: () async {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AccountMasterUpsertScreen(),
               ),
-            IconButton(
-              icon: Badge(
-                isLabelVisible:
-                    _selectedServiceType != null ||
-                    _selectedIsActive != null ||
-                    _selectedDaysRemaining != null ||
-                    _selectedIsFreeSlot ||
-                    _selectedSupply != null,
-                child: const Icon(Icons.filter_list),
-              ),
-              onPressed: _showFilterBottomSheet,
-              tooltip: 'Bộ lọc',
-            ),
-            IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AccountMasterUpsertScreen(),
-                  ),
-                );
-                if (result == true) {
-                  _loadAccountMasters();
-                }
-              },
-              tooltip: 'Tạo tài khoản',
-            ),
-          ],
-          onSubmitted: (_) => _loadAccountMasters(),
-          textInputAction: TextInputAction.search,
-          elevation: const WidgetStatePropertyAll(0),
-          backgroundColor: WidgetStatePropertyAll(
-            Theme.of(context).colorScheme.surfaceContainerHigh,
-          ),
-          padding: const WidgetStatePropertyAll<EdgeInsets>(
-            EdgeInsets.symmetric(horizontal: 8),
-          ),
+            );
+            if (result == true) {
+              _loadAccountMasters();
+            }
+          },
         ),
-      ),
-      body: Column(
+        IconButton(
+          tooltip: 'Bộ lọc',
+          visualDensity: VisualDensity.compact,
+          icon: Badge(
+            isLabelVisible: _hasFilters,
+            child: const Icon(Icons.filter_list),
+          ),
+          onPressed: _showFilterBottomSheet,
+        ),
+        if (_hasFilters)
+          IconButton(
+            tooltip: 'Xóa bộ lọc',
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.clear),
+            onPressed: _resetFilters,
+          ),
+      ],
+      body: (context, scrollController) => Column(
         children: [
-          // Active filters display
-          if (_selectedServiceType != null ||
-              _selectedIsActive != null ||
-              _selectedDaysRemaining != null ||
-              _selectedIsFreeSlot ||
-              _selectedSupply != null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Wrap(
-                spacing: 8,
-                children: [
-                  if (_selectedServiceType != null)
-                    Chip(
-                      label: Text('Loại: ${_selectedServiceType!.label}'),
-                      onDeleted: () {
-                        setState(() {
-                          _selectedServiceType = null;
-                        });
-                        _loadAccountMasters();
-                      },
-                    ),
-                  if (_selectedIsActive != null)
-                    Chip(
-                      label: Text(
-                        _selectedIsActive!
-                            ? 'Đang hoạt động'
-                            : 'Không hoạt động',
-                      ),
-                      onDeleted: () {
-                        setState(() {
-                          _selectedIsActive = null;
-                        });
-                        _loadAccountMasters();
-                      },
-                    ),
-                  if (_selectedDaysRemaining != null)
-                    Chip(
-                      label: Text('Còn ≤ $_selectedDaysRemaining ngày'),
-                      onDeleted: () {
-                        setState(() {
-                          _selectedDaysRemaining = null;
-                        });
-                        _loadAccountMasters();
-                      },
-                    ),
-                  if (_selectedIsFreeSlot)
-                    Chip(
-                      label: const Text('Còn slot trống'),
-                      onDeleted: () {
-                        setState(() {
-                          _selectedIsFreeSlot = false;
-                        });
-                        _loadAccountMasters();
-                      },
-                    ),
-                  if (_selectedSupply != null)
-                    Chip(
-                      label: Text('NCC: ${_selectedSupply!.name}'),
-                      onDeleted: () {
-                        setState(() {
-                          _selectedSupply = null;
-                        });
-                        _loadAccountMasters();
-                      },
-                    ),
-                ],
-              ),
-            ),
-
-          // Content
-          Expanded(child: _buildBody()),
+          if (_isLoading) const LinearProgressIndicator(minHeight: 2),
+          if (_hasFilters) _buildActiveFilterChips(),
+          Expanded(child: _buildBody(scrollController)),
         ],
       ),
     );
   }
 
-  Widget _buildBody() {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+  Widget _buildActiveFilterChips() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Wrap(
+        spacing: 8,
+        children: [
+          if (_selectedServiceType != null)
+            Chip(
+              label: Text('Loại: ${_selectedServiceType!.label}'),
+              onDeleted: () {
+                setState(() {
+                  _selectedServiceType = null;
+                });
+                _loadAccountMasters();
+              },
+            ),
+          if (_selectedIsActive != null)
+            Chip(
+              label: Text(
+                _selectedIsActive! ? 'Đang hoạt động' : 'Không hoạt động',
+              ),
+              onDeleted: () {
+                setState(() {
+                  _selectedIsActive = null;
+                });
+                _loadAccountMasters();
+              },
+            ),
+          if (_selectedDaysRemaining != null)
+            Chip(
+              label: Text('Còn ≤ $_selectedDaysRemaining ngày'),
+              onDeleted: () {
+                setState(() {
+                  _selectedDaysRemaining = null;
+                });
+                _loadAccountMasters();
+              },
+            ),
+          if (_selectedIsFreeSlot)
+            Chip(
+              label: const Text('Còn slot trống'),
+              onDeleted: () {
+                setState(() {
+                  _selectedIsFreeSlot = false;
+                });
+                _loadAccountMasters();
+              },
+            ),
+          if (_selectedSupply != null)
+            Chip(
+              label: Text('NCC: ${_selectedSupply!.name}'),
+              onDeleted: () {
+                setState(() {
+                  _selectedSupply = null;
+                });
+                _loadAccountMasters();
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBody(ScrollController scrollController) {
+    if (_isLoading && _accountMasters.isEmpty && _error == null) {
+      return ListView(
+        controller: scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: const [
+          SizedBox(
+            height: 240,
+            child: Center(child: CircularProgressIndicator()),
+          ),
+        ],
+      );
     }
 
-    if (_error != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, size: 48, color: colorScheme.error),
-            const SizedBox(height: 16),
-            Text(
-              'Lỗi: $_error',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: colorScheme.error),
+    if (_error != null && _accountMasters.isEmpty) {
+      return ListView(
+        controller: scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            height: 320,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 48, color: colorScheme.error),
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(
+                      'Lỗi: $_error',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: colorScheme.error),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _loadAccountMasters,
+                    child: const Text('Thử lại'),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _loadAccountMasters,
-              child: const Text('Thử lại'),
-            ),
-          ],
-        ),
+          ),
+        ],
       );
     }
 
@@ -537,7 +530,6 @@ class _AccountSlotManagementScreenState
     if (_selectedDaysRemaining != null) {
       filteredAccounts = _accountMasters.where((account) {
         if (account.slots == null || account.slots!.isEmpty) return false;
-        // Check if any slot has daysUntilExpiry <= selected days
         return account.slots!.any(
           (slot) => slot.daysUntilExpiry <= _selectedDaysRemaining!,
         );
@@ -547,44 +539,56 @@ class _AccountSlotManagementScreenState
     if (filteredAccounts.isEmpty) {
       return RefreshIndicator(
         onRefresh: _loadAccountMasters,
-        child: SingleChildScrollView(
+        child: ListView(
+          controller: scrollController,
           physics: const AlwaysScrollableScrollPhysics(),
-          child: SizedBox(
-            height: MediaQuery.of(context).size.height * 0.5,
-            child: const Center(child: Text('Không tìm thấy tài khoản nào')),
-          ),
+          children: [
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.4,
+              child: const Center(child: Text('Không tìm thấy tài khoản nào')),
+            ),
+          ],
         ),
       );
     }
 
-    return RefreshIndicator(
-      onRefresh: _loadAccountMasters,
-      child: ListView.builder(
-        padding: const EdgeInsets.only(bottom: 24),
-        itemCount: filteredAccounts.length,
-        itemBuilder: (context, index) {
-          return _buildAccountMasterCard(filteredAccounts[index]);
-        },
+    return DefaultStickyHeaderController(
+      child: RefreshIndicator(
+        onRefresh: _loadAccountMasters,
+        child: CustomScrollView(
+          controller: scrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            for (var i = 0; i < filteredAccounts.length; i++) ...[
+              if (i > 0) const SliverToBoxAdapter(child: SizedBox(height: 8)),
+              _buildAccountStickySection(filteredAccounts[i]),
+            ],
+            const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildAccountMasterCard(AccountMaster accountMaster) {
-    final hasSlots =
-        accountMaster.slots != null && accountMaster.slots!.isNotEmpty;
+  SliverStickyHeader _buildAccountStickySection(AccountMaster accountMaster) {
+    return SliverStickyHeader(
+      header: _buildAccountHeader(accountMaster),
+      sliver: SliverToBoxAdapter(child: _buildAccountBody(accountMaster)),
+    );
+  }
+
+  Widget _buildAccountHeader(AccountMaster accountMaster) {
     final hasNotes =
         accountMaster.notes != null && accountMaster.notes!.isNotEmpty;
     final hasCostNotes =
         accountMaster.costNotes != null && accountMaster.costNotes!.isNotEmpty;
 
-    return Card(
-      margin: const EdgeInsets.only(top: 8),
-      clipBehavior: Clip.antiAlias,
+    return Material(
+      color: colorScheme.surfaceContainer,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Account header ────────────────────────────────────────────────
           ListTile(
             onTap: () => Navigator.push(
               context,
@@ -596,8 +600,8 @@ class _AccountSlotManagementScreenState
             contentPadding: const EdgeInsets.only(
               left: 16,
               right: 4,
-              top: 4,
-              bottom: 4,
+              top: 0,
+              bottom: 0,
             ),
             leading: ServiceBadge(serviceType: accountMaster.serviceType),
             title: Text(
@@ -693,11 +697,9 @@ class _AccountSlotManagementScreenState
               ],
             ),
           ),
-
-          // ── Notes ─────────────────────────────────────────────────────────
           if (hasNotes)
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              padding: const EdgeInsets.fromLTRB(8, 0, 8, 6),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -721,7 +723,7 @@ class _AccountSlotManagementScreenState
             ),
           if (hasCostNotes)
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              padding: EdgeInsets.fromLTRB(8, 0, 8, hasNotes ? 8 : 6),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -743,12 +745,25 @@ class _AccountSlotManagementScreenState
                 ],
               ),
             ),
-
-          // ── Slots ─────────────────────────────────────────────────────────
           Divider(
             height: 1,
-            color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+            color: colorScheme.outlineVariant.withValues(alpha: 0.45),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAccountBody(AccountMaster accountMaster) {
+    final hasSlots =
+        accountMaster.slots != null && accountMaster.slots!.isNotEmpty;
+
+    return Material(
+      color: colorScheme.surface,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
@@ -766,7 +781,6 @@ class _AccountSlotManagementScreenState
               ],
             ),
           ),
-
           if (!hasSlots)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -879,7 +893,10 @@ class _AccountSlotManagementScreenState
             const Divider(height: 1),
             ListTile(
               leading: const Icon(Icons.delete, color: Colors.red),
-              title: const Text('Xóa slot', style: TextStyle(color: Colors.red)),
+              title: const Text(
+                'Xóa slot',
+                style: TextStyle(color: Colors.red),
+              ),
               onTap: () {
                 Navigator.pop(context);
                 _deleteSlot(slot);
@@ -1220,4 +1237,3 @@ class _StatusDot extends StatelessWidget {
     );
   }
 }
-

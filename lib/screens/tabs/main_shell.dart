@@ -2,6 +2,8 @@ import 'package:fcode_pos/screens/tabs/report_screen.dart';
 import 'package:fcode_pos/screens/tabs/orders_screen.dart';
 import 'package:fcode_pos/screens/tabs/more_screen.dart';
 import 'package:fcode_pos/screens/tabs/product_hub_screen.dart';
+import 'package:amazing_icons/filled.dart';
+import 'package:amazing_icons/twotone.dart';
 import 'package:flutter/material.dart';
 
 class MainShell extends StatefulWidget {
@@ -33,6 +35,9 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    const iconSize = 24.0;
+
     return Scaffold(
       body: LayoutBuilder(
         builder: (context, constraints) {
@@ -66,25 +71,53 @@ class _MainShellState extends State<MainShell> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: _onTabSelected,
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.receipt_long_outlined),
-            selectedIcon: Icon(Icons.receipt_long),
+            icon: AmazingIconTwotone.receipt(
+              size: iconSize,
+              color: cs.onSurfaceVariant,
+            ),
+            selectedIcon: Icon(
+              AmazingIconFilled.receipt,
+              size: iconSize,
+              color: cs.onSecondaryContainer,
+            ),
             label: 'Đơn hàng',
           ),
           NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard),
+            icon: AmazingIconTwotone.chartSquare(
+              size: iconSize,
+              color: cs.onSurfaceVariant,
+            ),
+            selectedIcon: Icon(
+              AmazingIconFilled.chartSquare,
+              size: iconSize,
+              color: cs.onSecondaryContainer,
+            ),
             label: 'Báo cáo',
           ),
           NavigationDestination(
-            icon: Icon(Icons.widgets_outlined),
-            selectedIcon: Icon(Icons.widgets),
-            label: 'Quản lý',
+            icon: AmazingIconTwotone.category(
+              size: iconSize,
+              color: cs.onSurfaceVariant,
+            ),
+            selectedIcon: Icon(
+              AmazingIconFilled.category,
+              size: iconSize,
+              color: cs.onSecondaryContainer,
+            ),
+            label: 'Khám phá',
           ),
           NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
+            icon: AmazingIconTwotone.setting(
+              size: iconSize,
+              color: cs.onSurfaceVariant,
+            ),
+            selectedIcon: Icon(
+              AmazingIconFilled.setting,
+              size: iconSize,
+              color: cs.onSecondaryContainer,
+            ),
             label: 'Khác',
           ),
         ],

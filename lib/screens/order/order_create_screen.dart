@@ -1,6 +1,7 @@
 import 'package:fcode_pos/enums.dart' as enums;
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/order_service.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/dropdown/customer_dropdown.dart';
 import 'package:fcode_pos/ui/components/section_header.dart';
 import 'package:fcode_pos/ui/components/order_item_editor_modal.dart';
@@ -155,21 +156,21 @@ class _OrderCreateScreenState extends ConsumerState<OrderCreateScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.isClone ? 'Clone đơn hàng' : 'Tạo đơn hàng'),
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.check),
-            onPressed: _isLoading ? null : _handleCreate,
-            tooltip: widget.isClone ? 'Tạo đơn clone' : 'Tạo đơn',
-          ),
-        ],
-      ),
-      body: Form(
+    return AppScaffold(
+      title: widget.isClone ? 'Clone đơn hàng' : 'Tạo đơn hàng',
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.check),
+          visualDensity: VisualDensity.compact,
+          onPressed: _isLoading ? null : _handleCreate,
+          tooltip: widget.isClone ? 'Tạo đơn clone' : 'Tạo đơn',
+        ),
+      ],
+      bottomNavigationBar: _buildBottomBar(),
+      body: (context, scrollController) => Form(
         key: _formKey,
         child: CustomScrollView(
+          controller: scrollController,
           slivers: [
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
@@ -184,7 +185,6 @@ class _OrderCreateScreenState extends ConsumerState<OrderCreateScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomBar(),
     );
   }
 

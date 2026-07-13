@@ -12,6 +12,8 @@ import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/services/account_master_browser_session.dart';
 import 'package:fcode_pos/services/account_master_service.dart';
 import 'package:fcode_pos/services/account_slot_service.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
+import 'package:fcode_pos/ui/components/app_tab.dart';
 import 'package:fcode_pos/ui/components/loading_icon.dart';
 import 'package:fcode_pos/ui/components/badge/service_badge.dart';
 import 'package:fcode_pos/ui/components/slot_edit_sheet.dart';
@@ -40,7 +42,6 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
 
   // Fresh account master data
   late AccountMaster _accountMaster;
-  bool _accountMasterLoading = false;
   bool _syncingNetflix = false;
 
   // Tab 0: Slots
@@ -83,11 +84,8 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
     super.dispose();
   }
 
-  Future<void> _fetchAccountMaster({bool showLoading = true}) async {
+  Future<void> _fetchAccountMaster() async {
     if (!mounted) return;
-    if (showLoading) {
-      setState(() => _accountMasterLoading = true);
-    }
 
     try {
       final response = await _accountMasterService.getById(
@@ -100,13 +98,9 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
         _slotsLoaded = true;
         _slotsLoading = false;
         _slotsError = null;
-        _accountMasterLoading = false;
       });
     } catch (_) {
       if (!mounted) return;
-      setState(() {
-        _accountMasterLoading = false;
-      });
       _loadSlots();
     }
   }
@@ -289,89 +283,101 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_accountMaster.name),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.language),
-            tooltip: 'Mở trình duyệt',
-            onPressed: _openInAppBrowser,
-          ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
-            onSelected: (value) {
-              if (value == 'create_expense') {
-                _showCreateExpenseSheet();
-              } else if (value == 'edit_account') {
-                _showEditAccountScreen();
-              } else if (value == 'add_slot') {
-                _showAddSlotSheet();
-              } else if (value == 'sync_netflix') {
-                _syncNetflixInfo();
-              }
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'create_expense',
-                child: Row(
+    final cs = Theme.of(context).colorScheme;
+
+    return AppScaffold(
+      title: _accountMaster.name,
+      subtitle: _accountMaster.username,
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.language),
+          visualDensity: VisualDensity.compact,
+          tooltip: 'Mở trình duyệt',
+          onPressed: _openInAppBrowser,
+        ),
+        PopupMenuButton<String>(
+          icon: const Icon(Icons.more_vert),
+          onSelected: (value) {
+            if (value == 'create_expense') {
+              _showCreateExpenseSheet();
+            } else if (value == 'edit_account') {
+              _showEditAccountScreen();
+            } else if (value == 'add_slot') {
+              _showAddSlotSheet();
+            } else if (value == 'sync_netflix') {
+              _syncNetflixInfo();
+            }
+          },
+          itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 'create_expense',
+              child: Row(
+                children: [
+                  Icon(Icons.add_card, size: 16),
+                  SizedBox(width: 12),
+                  Text('Tạo chi phí'),
+                ],
+              ),
+            ),
+            if (_isNetflix)
+              PopupMenuItem(
+                value: 'sync_netflix',
+                enabled: !_syncingNetflix,
+                child: const Row(
                   children: [
-                    Icon(Icons.add_card, size: 16),
+                    Icon(Icons.sync, size: 16),
                     SizedBox(width: 12),
-                    Text('Tạo chi phí'),
+                    Text('Đồng bộ thông tin Netflix'),
                   ],
                 ),
               ),
-              if (_isNetflix)
-                PopupMenuItem(
-                  value: 'sync_netflix',
-                  enabled: !_syncingNetflix,
-                  child: const Row(
-                    children: [
-                      Icon(Icons.sync, size: 16),
-                      SizedBox(width: 12),
-                      Text('Đồng bộ thông tin Netflix'),
-                    ],
-                  ),
-                ),
-              const PopupMenuItem(
-                value: 'edit_account',
-                child: Row(
-                  children: [
-                    Icon(Icons.edit, size: 16),
-                    SizedBox(width: 12),
-                    Text('Chỉnh sửa tài khoản'),
-                  ],
-                ),
+            const PopupMenuItem(
+              value: 'edit_account',
+              child: Row(
+                children: [
+                  Icon(Icons.edit, size: 16),
+                  SizedBox(width: 12),
+                  Text('Chỉnh sửa tài khoản'),
+                ],
               ),
-              const PopupMenuItem(
-                value: 'add_slot',
-                child: Row(
-                  children: [
-                    Icon(Icons.add, size: 16),
-                    SizedBox(width: 12),
-                    Text('Thêm slot'),
-                  ],
-                ),
+            ),
+            const PopupMenuItem(
+              value: 'add_slot',
+              child: Row(
+                children: [
+                  Icon(Icons.add, size: 16),
+                  SizedBox(width: 12),
+                  Text('Thêm slot'),
+                ],
               ),
-            ],
-          ),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: 'Danh sách Slot'),
-            Tab(text: 'Giao dịch chi phí'),
+            ),
           ],
         ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
+      ],
+      body: (context, _) => Column(
         children: [
-          // Tab 0: Account Information + Slots
-          _buildSlotsTab(),
-          // Tab 1: Transactions
-          _buildTransactionsTab(),
+          Material(
+            color: cs.surface,
+            child: TabBar(
+              controller: _tabController,
+              tabs: const [
+                AppTab(icon: Icons.dns_outlined, text: 'Danh sách Slot'),
+                AppTab(
+                  icon: Icons.receipt_long_outlined,
+                  text: 'Giao dịch chi phí',
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildSlotsTab(),
+                _buildTransactionsTab(),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -382,7 +388,7 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
       _slotsLoaded = false;
       _slotsLoading = false;
     });
-    await _fetchAccountMaster(showLoading: false);
+    await _fetchAccountMaster();
   }
 
   Future<void> _refreshTransactions() async {
@@ -426,7 +432,6 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
           constraints: BoxConstraints(minHeight: _tabBodyMinHeight),
           child: Column(
             children: [
-              if (_accountMasterLoading) const LinearProgressIndicator(),
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -1231,8 +1236,13 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
             )
           : ListView.separated(
               physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(vertical: 4),
               itemCount: _transactions.length,
-              separatorBuilder: (_, _) => const Divider(),
+              separatorBuilder: (_, _) => Divider(
+                height: 1,
+                indent: 54,
+                color: colorScheme.outlineVariant.withValues(alpha: 0.35),
+              ),
               itemBuilder: (context, index) {
                 final transaction = _transactions[index];
                 return _buildTransactionCard(transaction);
@@ -1245,57 +1255,75 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
     final isExpense =
         transaction.type.toLowerCase() == 'expense' ||
         transaction.category.toLowerCase().contains('expense');
+    final textTheme = Theme.of(context).textTheme;
+    final description = transaction.description ?? transaction.transactionId;
+    final dateLabel = transaction.createdAt != null
+        ? DateHelper.formatDate(transaction.createdAt!)
+        : null;
+    final metaParts = <String>[
+      transaction.category,
+      ?dateLabel,
+      transaction.status,
+    ];
 
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      leading: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: isExpense
-              ? colorScheme.errorContainer
-              : colorScheme.primaryContainer,
-        ),
-        child: Icon(
-          isExpense ? Icons.trending_down : Icons.trending_up,
-          color: isExpense ? colorScheme.error : colorScheme.primary,
-        ),
-      ),
-      title: Text(transaction.description ?? transaction.transactionId),
-      subtitle: Column(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(height: 4),
-          Text(
-            'Danh mục: ${transaction.category}',
-            style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
-          ),
-          if (transaction.createdAt != null)
-            Text(
-              DateHelper.formatDate(transaction.createdAt!),
-              style: TextStyle(
-                fontSize: 12,
-                color: colorScheme.onSurfaceVariant,
-              ),
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              color: isExpense
+                  ? colorScheme.errorContainer
+                  : colorScheme.primaryContainer,
             ),
-        ],
-      ),
-      trailing: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text(
-            '${CurrencyHelper.formatCurrency(transaction.amount.toInt())} VND',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
+            child: Icon(
+              isExpense ? Icons.trending_down : Icons.trending_up,
+              size: 16,
               color: isExpense ? colorScheme.error : colorScheme.primary,
             ),
           ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  description,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  metaParts.join(' · '),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.bodySmall?.copyWith(
+                    fontSize: 11,
+                    color: colorScheme.onSurfaceVariant,
+                    height: 1.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
           Text(
-            transaction.status,
-            style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+            CurrencyHelper.formatCurrency(transaction.amount.toInt()),
+            style: textTheme.titleSmall?.copyWith(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: isExpense ? colorScheme.error : colorScheme.primary,
+              height: 1.2,
+            ),
           ),
         ],
       ),

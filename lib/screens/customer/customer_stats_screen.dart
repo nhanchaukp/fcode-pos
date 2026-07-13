@@ -3,6 +3,7 @@ import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/customer/customer_detail_screen.dart';
 import 'package:fcode_pos/services/customer_service.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -65,61 +66,88 @@ class _CustomerStatsScreenState extends State<CustomerStatsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Thống kê khách hàng'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+    return AppScaffold(
+      title: 'Thống kê khách hàng',
+      body: (context, scrollController) => Column(
+        children: [
+          if (_isLoading) const LinearProgressIndicator(minHeight: 2),
+          Expanded(child: _buildContent(scrollController)),
+        ],
       ),
-      body: _buildContent(),
     );
   }
 
-  Widget _buildContent() {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+  Widget _buildContent(ScrollController scrollController) {
+    if (_isLoading && _stats == null && _error == null) {
+      return ListView(
+        controller: scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: const [
+          SizedBox(height: 240, child: Center(child: CircularProgressIndicator())),
+        ],
+      );
     }
 
     if (_error != null) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.redAccent),
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                _error!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 15),
+      return ListView(
+        controller: scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            height: 320,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 48, color: Colors.redAccent),
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      _error!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 15),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: _loadStats,
+                    child: const Text('Thử lại'),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            FilledButton(onPressed: _loadStats, child: const Text('Thử lại')),
-          ],
-        ),
+          ),
+        ],
       );
     }
 
     if (_stats == null) {
-      return const Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.assessment_outlined, size: 48, color: Colors.grey),
-            SizedBox(height: 12),
-            Text('Không có dữ liệu thống kê'),
-          ],
-        ),
+      return ListView(
+        controller: scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: const [
+          SizedBox(
+            height: 320,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.assessment_outlined, size: 48, color: Colors.grey),
+                  SizedBox(height: 12),
+                  Text('Không có dữ liệu thống kê'),
+                ],
+              ),
+            ),
+          ),
+        ],
       );
     }
 
     return RefreshIndicator(
       onRefresh: _loadStats,
       child: ListView(
+        controller: scrollController,
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
         physics: const AlwaysScrollableScrollPhysics(),
         children: [

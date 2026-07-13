@@ -45,7 +45,13 @@ class _AuditTileState extends State<AuditTile> {
                       width: 1.5,
                     ),
                   ),
-                  child: Icon(eventIcon, size: 16, color: eventColor),
+                  child: Center(
+                    child: eventIcon(
+                      size: 16,
+                      color: eventColor,
+                      opacity: 0.4,
+                    ),
+                  ),
                 ),
                 if (!widget.isLast)
                   Expanded(
@@ -351,7 +357,6 @@ class _DiffRow extends StatelessWidget {
     required this.fieldKey,
     required this.oldVal,
     required this.newVal,
-    super.key,
   });
 
   final String fieldKey;

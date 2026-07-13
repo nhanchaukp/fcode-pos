@@ -133,7 +133,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return AppScaffold(
       title: 'Báo cáo',
-      showBack: false,
       actions: [
         IconButton(
           tooltip: 'Báo cáo tài chính',

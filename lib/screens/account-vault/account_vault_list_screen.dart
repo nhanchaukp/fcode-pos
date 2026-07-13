@@ -5,6 +5,7 @@ import 'package:fcode_pos/screens/account-vault/account_vault_detail_screen.dart
 import 'package:fcode_pos/screens/account-vault/account_vault_upsert_screen.dart';
 import 'package:fcode_pos/services/account_vault_service.dart';
 import 'package:fcode_pos/ui/components/app_scaffold.dart';
+import 'package:amazing_icons/bulk.dart';
 import 'package:fcode_pos/ui/components/badge/status_badges.dart';
 import 'package:flutter/material.dart';
 
@@ -555,22 +556,22 @@ class _VaultTile extends StatelessWidget {
                       children: [
                         if (item.hasPassword)
                           CredBadge(
-                            icon: Icons.lock_outline,
+                            icon: AmazingIconBulk.lock,
                             label: 'Password',
                           ),
                         if (item.hasClientId)
                           CredBadge(
-                            icon: Icons.vpn_key_outlined,
+                            icon: AmazingIconBulk.key,
                             label: 'Client ID',
                           ),
                         if (item.hasRefreshToken)
                           CredBadge(
-                            icon: Icons.refresh,
+                            icon: AmazingIconBulk.refresh,
                             label: 'Refresh Token',
                           ),
                         if (item.hasTwoFactorSecret)
                           CredBadge(
-                            icon: Icons.security,
+                            icon: AmazingIconBulk.security,
                             label: '2FA',
                             color: Colors.orange,
                           ),

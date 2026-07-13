@@ -1,14 +1,16 @@
+import 'package:amazing_icons/bulk.dart';
 import 'package:fcode_pos/ui/components/badge/app_badge.dart';
+import 'package:fcode_pos/ui/components/badge/badge_bulk_icon.dart';
 import 'package:fcode_pos/ui/components/badge/badge_theme.dart';
 import 'package:flutter/material.dart';
 
-(Color, IconData, String) eventMeta(String event, ColorScheme cs) {
+(Color, BulkIconBuilder, String) eventMeta(String event, ColorScheme cs) {
   return switch (event.toLowerCase()) {
-    'created' => (Colors.green, Icons.add_circle_outline, 'Tạo mới'),
-    'updated' => (Colors.orange, Icons.edit_outlined, 'Cập nhật'),
-    'deleted' => (Colors.red, Icons.delete_outline, 'Xóa'),
-    'restored' => (Colors.blue, Icons.restore, 'Khôi phục'),
-    _ => (cs.primary, Icons.history, event),
+    'created' => (Colors.green, AmazingIconBulk.addCircle, 'Tạo mới'),
+    'updated' => (Colors.orange, AmazingIconBulk.edit, 'Cập nhật'),
+    'deleted' => (Colors.red, AmazingIconBulk.trash, 'Xóa'),
+    'restored' => (Colors.blue, AmazingIconBulk.rotateLeft, 'Khôi phục'),
+    _ => (cs.primary, AmazingIconBulk.clock, event),
   };
 }
 
@@ -31,7 +33,7 @@ class AuditEventBadge extends StatelessWidget {
     return AppBadge(
       label: label,
       color: color,
-      icon: icon,
+      bulkIcon: icon,
       size: size,
       fontWeight: FontWeight.w700,
     );

@@ -1,4 +1,6 @@
 import 'package:fcode_pos/ui/components/audit/audit_log_list.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
+import 'package:fcode_pos/ui/components/app_tab.dart';
 import 'package:fcode_pos/ui/components/copyable_icon_text.dart';
 import 'package:fcode_pos/ui/components/skeleton.dart';
 import 'package:fcode_pos/enums.dart' as enums;
@@ -45,8 +47,6 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
   late TabController _tabController;
   bool _isUpdatingStatus = false;
   Uint8List? _qrImageBytes;
-
-
 
   @override
   void initState() {
@@ -163,8 +163,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
     if (_qrImageBytes == null) {
       final toastId = Toastr.loading('Đang tải mã QR...');
       try {
-        final response =
-            await http.get(Uri.parse(_order!.urlQrCodePayment!));
+        final response = await http.get(Uri.parse(_order!.urlQrCodePayment!));
         if (response.statusCode != 200) {
           throw Exception('HTTP ${response.statusCode}');
         }
@@ -358,60 +357,53 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: InkWell(
-          onTap: () {
-            Clipboard.setData(
-              ClipboardData(text: 'Đơn hàng ${widget.orderId}'),
-            );
-            Toastr.success('Đã copy mã đơn hàng ${widget.orderId}');
-          },
-          child: Text('ĐH #${widget.orderId}'),
+    final orderStatus = _order != null
+        ? enums.OrderStatus.fromValue(_order!.status)
+        : null;
+
+    return AppScaffold(
+      title: 'ĐH #${widget.orderId}',
+      subtitle: orderStatus?.label,
+      actions: [
+        IconButton(
+          visualDensity: VisualDensity.compact,
+          icon: const Icon(Icons.qr_code_rounded),
+          onPressed: _order != null ? () => _showQrCodeDialog() : null,
+          tooltip: 'Hiện thị mã QR',
         ),
-        actions: [
-          IconButton(
-            visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.qr_code),
-            onPressed: _order != null ? () => _showQrCodeDialog() : null,
-            tooltip: 'Hiện thị mã QR',
-          ),
-          IconButton(
-            visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.copy),
-            onPressed: _order != null ? () => _handleCloneOrder() : null,
-            tooltip: 'Clone đơn hàng',
-          ),
-          PopupMenuButton<_OrderDetailMenuAction>(
-            enabled: _order != null,
-            icon: const Icon(Icons.more_vert),
-            tooltip: 'Tùy chọn khác',
-            onSelected: _onMenuActionSelected,
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: _OrderDetailMenuAction.createInvoice,
-                child: ListTile(
-                  leading: Icon(Icons.receipt_long_outlined),
-                  title: Text('Tạo hóa đơn'),
-                  contentPadding: EdgeInsets.zero,
-                  dense: true,
-                ),
+        IconButton(
+          visualDensity: VisualDensity.compact,
+          icon: const Icon(Icons.copy_all_rounded),
+          onPressed: _order != null ? () => _handleCloneOrder() : null,
+          tooltip: 'Nhân bản đơn hàng',
+        ),
+        PopupMenuButton<_OrderDetailMenuAction>(
+          enabled: _order != null,
+          icon: const Icon(Icons.more_vert),
+          tooltip: 'Tùy chọn khác',
+          onSelected: _onMenuActionSelected,
+          itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: _OrderDetailMenuAction.createInvoice,
+              child: ListTile(
+                leading: Icon(Icons.receipt_long_outlined),
+                title: Text('Tạo hóa đơn'),
+                contentPadding: EdgeInsets.zero,
+                dense: true,
               ),
-              const PopupMenuItem(
-                value: _OrderDetailMenuAction.editOrder,
-                child: ListTile(
-                  leading: Icon(Icons.edit),
-                  title: Text('Chỉnh sửa'),
-                  contentPadding: EdgeInsets.zero,
-                  dense: true,
-                ),
+            ),
+            const PopupMenuItem(
+              value: _OrderDetailMenuAction.editOrder,
+              child: ListTile(
+                leading: Icon(Icons.edit),
+                title: Text('Chỉnh sửa'),
+                contentPadding: EdgeInsets.zero,
+                dense: true,
               ),
-            ],
-          ),
-        ],
-      ),
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: _buildBody(),
+            ),
+          ],
+        ),
+      ],
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: (_order != null && _tabController.index == 0)
           ? FloatingActionButton.extended(
@@ -420,6 +412,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
               label: const Text('Thêm sản phẩm'),
             )
           : null,
+      body: (context, _) => _buildBody(),
     );
   }
 
@@ -463,7 +456,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
         _buildOrderInfoCard(order),
 
         // Tab section
-        Container(
+        Material(
           color: Theme.of(context).scaffoldBackgroundColor,
           child: TabBar(
             controller: _tabController,
@@ -471,52 +464,23 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
             isScrollable: true,
             tabAlignment: TabAlignment.start,
             tabs: [
+              const AppTab(icon: Icons.shopping_bag_outlined, text: 'Sản phẩm'),
               Tab(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.shopping_bag, size: 18),
-                    const SizedBox(width: 6),
-                    const Text('Sản phẩm'),
-                  ],
-                ),
-              ),
-              Tab(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.payment, size: 18),
+                    const Icon(Icons.payment, size: 16),
                     const SizedBox(width: 6),
                     const Text('Thanh toán'),
                     if (order.paymentHistories.isNotEmpty) ...[
                       const SizedBox(width: 4),
-                      Badge.count(
-                        count: order.paymentHistories.length,
-                      ),
+                      Badge.count(count: order.paymentHistories.length),
                     ],
                   ],
                 ),
               ),
-              Tab(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.money_off, size: 18),
-                    const SizedBox(width: 6),
-                    const Text('Hoàn tiền'),
-                  ],
-                ),
-              ),
-              Tab(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.history, size: 18),
-                    const SizedBox(width: 6),
-                    const Text('Lịch sử'),
-                  ],
-                ),
-              ),
+              const AppTab(icon: Icons.money_off_outlined, text: 'Hoàn tiền'),
+              const AppTab(icon: Icons.history, text: 'Lịch sử'),
             ],
           ),
         ),
@@ -1602,10 +1566,7 @@ class _OrderDetailSkeleton extends StatelessWidget {
               (index) => Expanded(
                 child: Padding(
                   padding: EdgeInsets.only(left: index == 0 ? 0 : 6),
-                  child: SkeletonBox(
-                    height: 48,
-                    radius: 8,
-                  ),
+                  child: SkeletonBox(height: 48, radius: 8),
                 ),
               ),
             ),
@@ -1662,5 +1623,3 @@ class _OrderProductItemSkeleton extends StatelessWidget {
     );
   }
 }
-
-

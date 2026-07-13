@@ -1,6 +1,8 @@
 import 'package:fcode_pos/screens/account-master/account_slot_management_screen.dart';
 import 'package:fcode_pos/screens/account-vault/account_vault_list_screen.dart';
 import 'package:fcode_pos/screens/customer/customer_list_screen.dart';
+import 'package:fcode_pos/screens/customer/customer_stats_screen.dart';
+import 'package:fcode_pos/screens/financial/financial_report_screen.dart';
 import 'package:fcode_pos/screens/invoice/invoice_list_screen.dart';
 import 'package:fcode_pos/screens/product-supply/product_cost_screen.dart';
 import 'package:fcode_pos/screens/products/product_list_screen.dart';
@@ -14,11 +16,13 @@ import 'package:fcode_pos/screens/icallme/icallme_voucher_screen.dart';
 import 'package:fcode_pos/screens/rating/rating_list_screen.dart';
 import 'package:fcode_pos/screens/coupon/coupon_list_screen.dart';
 import 'package:fcode_pos/screens/telegram-bot/telegram_bot_hub_screen.dart';
-import 'package:amazing_icons/twotone.dart';
+import 'package:fcode_pos/screens/tabs/report_screen.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
+import 'package:amazing_icons/bulk.dart';
 import 'package:flutter/material.dart';
 
-/// Builder cho icon twotone của amazing_icons.
-typedef TwotoneIconBuilder =
+/// Builder cho icon bulk của amazing_icons.
+typedef BulkIconBuilder =
     Widget Function({double size, Color color, double opacity});
 
 class ProductHubScreen extends StatelessWidget {
@@ -30,73 +34,73 @@ class ProductHubScreen extends StatelessWidget {
       items: [
         _Item(
           'Sản phẩm',
-          AmazingIconTwotone.box,
+          AmazingIconBulk.box,
           Colors.blue,
           (c) => const ProductListScreen(),
         ),
         _Item(
           'Kho tài khoản',
-          AmazingIconTwotone.key,
+          AmazingIconBulk.key,
           Colors.purple,
           (c) => const AccountSlotManagementScreen(),
         ),
         _Item(
           'Ví tài khoản',
-          AmazingIconTwotone.shieldSecurity,
+          AmazingIconBulk.shieldSecurity,
           Colors.deepPurple,
           (c) => const AccountVaultListScreen(),
         ),
         _Item(
           'Nhà cung cấp',
-          AmazingIconTwotone.truck,
+          AmazingIconBulk.truck,
           Colors.orange,
           (c) => const SuppliersScreen(),
         ),
         _Item(
           'Hoàn tiền',
-          AmazingIconTwotone.moneyRecive,
+          AmazingIconBulk.moneyRecive,
           Colors.red,
           (c) => const RefundRequestScreen(),
         ),
         _Item(
           'Giá nhập',
-          AmazingIconTwotone.tag,
+          AmazingIconBulk.tag,
           Colors.teal,
           (c) => const ProductCostScreen(),
         ),
         _Item(
           'Khách hàng',
-          AmazingIconTwotone.profile2user,
+          AmazingIconBulk.profile2user,
           Colors.indigo,
           (c) => const CustomerListScreen(),
         ),
         _Item(
           'Nhật ký email',
-          AmazingIconTwotone.email,
+          AmazingIconBulk.email,
           Colors.pink,
           (c) => const MailLogScreen(),
         ),
         _Item(
           'Tài chính',
-          AmazingIconTwotone.wallet,
+          AmazingIconBulk.wallet,
           Colors.green,
           (c) => const FinancialTransactionScreen(),
         ),
         _Item(
           'Đánh giá',
-          AmazingIconTwotone.medalStar,
+          AmazingIconBulk.medalStar,
           Colors.amber,
           (c) => const RatingListScreen(),
         ),
         _Item(
           'Mã giảm giá',
-          AmazingIconTwotone.ticketDiscount,
+          AmazingIconBulk.ticketDiscount,
           Colors.deepPurple,
           (c) => const CouponListScreen(),
         ),
         _Item(
           'Hóa đơn ĐT',
-          AmazingIconTwotone.receiptText,
+          AmazingIconBulk.receiptText,
           Colors.cyan,
           (c) => const InvoiceListScreen(),
         ),
@@ -107,27 +111,50 @@ class ProductHubScreen extends StatelessWidget {
       items: [
         _Item(
           'Google Adsense',
-          AmazingIconTwotone.statusUp,
+          AmazingIconBulk.statusUp,
           Colors.deepOrange,
           (c) => const AdsenseScreen(),
         ),
         _Item(
           'ChatGPT',
-          AmazingIconTwotone.messageProgramming,
+          AmazingIconBulk.messageProgramming,
           Colors.blueGrey,
           (c) => const ChatGptSessionScreen(),
         ),
         _Item(
           'Icallme',
-          AmazingIconTwotone.ticket,
+          AmazingIconBulk.ticket,
           Colors.deepPurple,
           (c) => const IcallmeVoucherScreen(),
         ),
         _Item(
           'Telegram Bot',
-          AmazingIconTwotone.send2,
+          AmazingIconBulk.send2,
           Colors.lightBlue,
           (c) => const TelegramBotHubScreen(),
+        ),
+      ],
+    ),
+    _Section(
+      title: 'Báo cáo',
+      items: [
+        _Item(
+          'Doanh thu',
+          AmazingIconBulk.chart,
+          Colors.pink,
+          (c) => const DashboardScreen(),
+        ),
+        _Item(
+          'Tài chính',
+          AmazingIconBulk.chartSquare,
+          Colors.green,
+          (c) => const FinancialReportScreen(),
+        ),
+        _Item(
+          'Khách hàng',
+          AmazingIconBulk.profile2user,
+          Colors.indigo,
+          (c) => const CustomerStatsScreen(),
         ),
       ],
     ),
@@ -135,15 +162,16 @@ class ProductHubScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Khám phá')),
-      body: SafeArea(
-        child: ListView.separated(
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 28),
-          itemCount: _sections.length,
-          separatorBuilder: (_, _) => const SizedBox(height: 20),
-          itemBuilder: (context, i) => _SectionView(section: _sections[i]),
-        ),
+    return AppScaffold(
+      title: 'Khám phá',
+      showBack: false,
+      body: (context, scrollController) => ListView.separated(
+        controller: scrollController,
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 28),
+        physics: const AlwaysScrollableScrollPhysics(),
+        itemCount: _sections.length,
+        separatorBuilder: (_, _) => const SizedBox(height: 20),
+        itemBuilder: (context, i) => _SectionView(section: _sections[i]),
       ),
     );
   }
@@ -255,7 +283,7 @@ class _Section {
 class _Item {
   const _Item(this.title, this.icon, this.color, this.builder);
   final String title;
-  final TwotoneIconBuilder icon;
+  final BulkIconBuilder icon;
   final Color color;
   final WidgetBuilder builder;
 }

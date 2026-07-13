@@ -1,4 +1,5 @@
 import 'package:fcode_pos/enums.dart' as enums;
+import 'package:fcode_pos/ui/components/badge/badge_bulk_icon.dart';
 import 'package:fcode_pos/utils/extensions/colors.dart';
 import 'package:flutter/material.dart';
 
@@ -60,7 +61,7 @@ class _OrderStatusSplitButtonState extends State<OrderStatusSplitButton> {
                   widget.onStatusSelected(status);
                   _menuController.close();
                 },
-          leadingIcon: Icon(status.icon, size: 16, color: status.color),
+          leadingIcon: _OrderStatusIcon(status: status, size: 16),
           trailingIcon: isCurrent
               ? Icon(Icons.check, size: 14, color: status.color)
               : null,
@@ -88,7 +89,7 @@ class _OrderStatusSplitButtonState extends State<OrderStatusSplitButton> {
                           () => _toggleMenu(controller)),
                 label: currentStatus.label,
                 color: statusColor,
-                icon: currentStatus.icon,
+                status: currentStatus,
               ),
               _SplitButtonDivider(color: statusColor),
               _SplitButtonIconSegment(
@@ -115,18 +116,37 @@ class _OrderStatusSplitButtonState extends State<OrderStatusSplitButton> {
   }
 }
 
+class _OrderStatusIcon extends StatelessWidget {
+  const _OrderStatusIcon({
+    required this.status,
+    this.size = 14,
+  });
+
+  final enums.OrderStatus status;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final bulkIcon = bulkIconFor(status);
+    if (bulkIcon != null) {
+      return bulkIcon(size: size, color: status.color, opacity: 0.4);
+    }
+    return Icon(status.icon, size: size, color: status.color);
+  }
+}
+
 class _SplitButtonSegment extends StatelessWidget {
   const _SplitButtonSegment({
     required this.onPressed,
     required this.label,
     required this.color,
-    required this.icon,
+    required this.status,
   });
 
   final VoidCallback? onPressed;
   final String label;
   final Color color;
-  final IconData icon;
+  final enums.OrderStatus status;
 
   @override
   Widget build(BuildContext context) {
@@ -145,7 +165,7 @@ class _SplitButtonSegment extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 14, color: color),
+            _OrderStatusIcon(status: status, size: 14),
             const SizedBox(width: 4),
             Flexible(
               child: Text(label, overflow: TextOverflow.ellipsis, maxLines: 1),

@@ -1,55 +1,47 @@
-import 'package:amazing_icons/bulk.dart';
-import 'package:fcode_pos/config/app_color.dart';
+import 'package:amazing_icons/twotone.dart';
 import 'package:fcode_pos/ui/components/badge/badge_bulk_icon.dart';
-import 'package:fcode_pos/ui/components/badge/badge_theme.dart';
 import 'package:flutter/material.dart';
 
-/// Badge icon-only hiển thị loại dịch vụ (Netflix, YouTube, ...).
 class ServiceBadge extends StatelessWidget {
   const ServiceBadge({
     super.key,
     required this.serviceType,
     this.size = 40,
     this.iconSize = 20,
-    this.borderRadius,
+    this.borderRadius = 10,
   });
 
   final String serviceType;
   final double size;
   final double iconSize;
-  final double? borderRadius;
+  final double borderRadius;
 
   static (BulkIconBuilder, Color) getServiceStyle(String serviceType) {
     switch (serviceType.toLowerCase()) {
       case 'netflix':
-        return (AmazingIconBulk.monitor, const Color(0xFFE50914));
+        return (AmazingIconTwotone.monitor, const Color(0xFFE50914));
       case 'youtube':
-        return (AmazingIconBulk.youtube, const Color(0xFFFF0000));
+        return (AmazingIconTwotone.youtube, const Color(0xFFFF0000));
       case 'google_one':
-        return (AmazingIconBulk.googlePlay, const Color(0xFF4285F4));
+        return (AmazingIconTwotone.googlePlay, const Color(0xFF4285F4));
       case 'chatgpt':
-        return (AmazingIconBulk.messageProgramming, const Color(0xFF10A37F));
+        return (AmazingIconTwotone.messageProgramming, const Color(0xFF10A37F));
       case 'microsoft':
-        return (AmazingIconBulk.setting, const Color(0xFF00A4EF));
+        return (AmazingIconTwotone.setting, const Color(0xFF00A4EF));
       default:
-        return (AmazingIconBulk.infoCircle, AppColor.gray);
+        return (AmazingIconTwotone.infoCircle, const Color(0xFF9E9E9E));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final (icon, bgColor) = getServiceStyle(serviceType);
-    final resolvedRadius = AppBadgeTheme.borderRadius(
-      context,
-      override: borderRadius,
-    );
-
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(resolvedRadius),
+        borderRadius: BorderRadius.circular(borderRadius),
       ),
       alignment: Alignment.center,
       child: icon(size: iconSize, color: Colors.white, opacity: 0.35),

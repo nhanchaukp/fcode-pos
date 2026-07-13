@@ -1,6 +1,6 @@
 import 'package:amazing_icons/twotone.dart';
 import 'package:fcode_pos/models.dart';
-import 'package:fcode_pos/ui/components/badge_twotone_icon.dart';
+import 'package:fcode_pos/ui/components/badge/badge_bulk_icon.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:flutter/material.dart';
 
@@ -175,7 +175,7 @@ class ProductListItemSkeleton extends StatelessWidget {
 class _MetaChip extends StatelessWidget {
   const _MetaChip({required this.icon, required this.label});
 
-  final TwotoneIconBuilder icon;
+  final BulkIconBuilder icon;
   final String label;
 
   @override
@@ -220,7 +220,7 @@ class _FactChip extends StatelessWidget {
     required this.color,
   });
 
-  final TwotoneIconBuilder icon;
+  final BulkIconBuilder icon;
   final String label;
   final Color color;
 

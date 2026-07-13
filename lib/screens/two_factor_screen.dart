@@ -18,6 +18,9 @@ class TwoFactorScreen extends ConsumerStatefulWidget {
 }
 
 class _TwoFactorScreenState extends ConsumerState<TwoFactorScreen> {
+  static const _overlapHeight = 32.0;
+  static const _sheetTopRadius = 32.0;
+
   final _formKey = GlobalKey<FormState>();
   final _codeController = TextEditingController();
   final _recoveryController = TextEditingController();
@@ -175,7 +178,7 @@ class _TwoFactorScreenState extends ConsumerState<TwoFactorScreen> {
       labelText: 'Recovery code',
       hintText: 'xxxx-xxxx-xxxx',
       filled: true,
-      fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+      fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
       prefixIcon: Icon(Icons.key_outlined, color: colorScheme.onSurfaceVariant),
       enabledBorder: border(
         colorScheme.outlineVariant.withValues(alpha: 0.6),
@@ -193,6 +196,8 @@ class _TwoFactorScreenState extends ConsumerState<TwoFactorScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isLoading = _status == Status.loading;
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final topSectionHeight = screenHeight * 0.38;
 
     return PopScope(
       canPop: false,
@@ -201,137 +206,217 @@ class _TwoFactorScreenState extends ConsumerState<TwoFactorScreen> {
         await _cancelAndPop();
       },
       child: Scaffold(
-        body: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                colorScheme.primary,
-                Color.lerp(colorScheme.primary, colorScheme.surface, 0.55)!,
-                colorScheme.surface,
-              ],
-              stops: const [0.0, 0.45, 1.0],
-            ),
-          ),
-          child: SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 24,
-                ),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 440),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: IconButton(
-                            onPressed: isLoading ? null : _cancelAndPop,
-                            icon: Icon(
-                              Icons.arrow_back_rounded,
-                              color: colorScheme.onPrimary,
-                            ),
-                            style: IconButton.styleFrom(
-                              backgroundColor: colorScheme.onPrimary.withValues(
-                                alpha: 0.12,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Image.asset(
-                          'assets/splash-logo.png',
-                          height: 72,
-                          width: 72,
-                          fit: BoxFit.contain,
-                        ),
-                        const SizedBox(height: 24),
-                        Text(
-                          'Xác thực 2 bước',
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.onPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _useRecoveryCode
-                              ? 'Nhập recovery code khi mất thiết bị 2FA'
-                              : 'Mở app Authenticator và nhập mã 6 số',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onPrimary.withValues(alpha: 0.85),
-                          ),
-                        ),
-                        const SizedBox(height: 40),
-                        if (_useRecoveryCode)
-                          TextFormField(
-                            controller: _recoveryController,
-                            decoration: _recoveryInputDecoration(colorScheme),
-                            enabled: !isLoading,
-                            validator: (value) {
-                              if (!_useRecoveryCode) return null;
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Vui lòng nhập recovery code';
-                              }
-                              return null;
-                            },
-                            textInputAction: TextInputAction.done,
-                            onFieldSubmitted: (_) => _handleVerify(),
-                          )
-                        else
-                          _buildPinInput(
-                            theme: theme,
-                            colorScheme: colorScheme,
-                            isLoading: isLoading,
-                          ),
-                        const SizedBox(height: 20),
-                        TextButton(
-                          onPressed: isLoading ? null : _toggleRecoveryMode,
-                          style: TextButton.styleFrom(
-                            foregroundColor: colorScheme.primary,
-                          ),
-                          child: Text(
-                            _useRecoveryCode
-                                ? 'Dùng mã từ Authenticator'
-                                : 'Dùng recovery code',
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        SizedBox(
-                          height: 52,
-                          child: FilledButton(
-                            onPressed: isLoading ? null : _handleVerify,
-                            style: FilledButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              textStyle: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            child: isLoading
-                                ? SizedBox(
-                                    width: 22,
-                                    height: 22,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2.5,
-                                      color: colorScheme.onPrimary,
-                                    ),
-                                  )
-                                : const Text('Xác nhận'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+        resizeToAvoidBottomInset: true,
+        backgroundColor: colorScheme.surface,
+        body: Stack(
+          children: [
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: topSectionHeight,
+              child: ColoredBox(
+                color: colorScheme.primary,
+                child: SafeArea(
+                  bottom: false,
+                  child: _buildTopSection(theme, colorScheme, isLoading),
                 ),
               ),
             ),
+            Positioned(
+              top: topSectionHeight - _overlapHeight,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: _buildBottomSheet(theme, colorScheme, isLoading),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTopSection(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    bool isLoading,
+  ) {
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  height: 96,
+                  width: 96,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: colorScheme.onPrimary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: colorScheme.onPrimary.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Image.asset(
+                    'assets/splash-logo.png',
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Xác thực 2 bước',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    color: colorScheme.onPrimary,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Bảo mật tài khoản của bạn',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onPrimary.withValues(alpha: 0.8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Align(
+          alignment: Alignment.topLeft,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 8, top: 4),
+            child: IconButton(
+              onPressed: isLoading ? null : _cancelAndPop,
+              icon: Icon(
+                Icons.arrow_back_rounded,
+                color: colorScheme.onPrimary,
+              ),
+              style: IconButton.styleFrom(
+                backgroundColor: colorScheme.onPrimary.withValues(alpha: 0.12),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBottomSheet(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    bool isLoading,
+  ) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(_sheetTopRadius),
+          topRight: Radius.circular(_sheetTopRadius),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withValues(alpha: 0.12),
+            blurRadius: 24,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(
+          24,
+          _sheetTopRadius + 8,
+          24,
+          24 + MediaQuery.paddingOf(context).bottom,
+        ),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _useRecoveryCode ? 'Recovery code' : 'Mã xác thực',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                _useRecoveryCode
+                    ? 'Nhập recovery code khi mất thiết bị 2FA'
+                    : 'Mở app Authenticator và nhập mã 6 số',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 28),
+              if (_useRecoveryCode)
+                TextFormField(
+                  controller: _recoveryController,
+                  decoration: _recoveryInputDecoration(colorScheme),
+                  enabled: !isLoading,
+                  validator: (value) {
+                    if (!_useRecoveryCode) return null;
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Vui lòng nhập recovery code';
+                    }
+                    return null;
+                  },
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) => _handleVerify(),
+                )
+              else
+                _buildPinInput(
+                  theme: theme,
+                  colorScheme: colorScheme,
+                  isLoading: isLoading,
+                ),
+              const SizedBox(height: 16),
+              Center(
+                child: TextButton(
+                  onPressed: isLoading ? null : _toggleRecoveryMode,
+                  child: Text(
+                    _useRecoveryCode
+                        ? 'Dùng mã từ Authenticator'
+                        : 'Dùng recovery code',
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: FilledButton(
+                  onPressed: isLoading ? null : _handleVerify,
+                  style: FilledButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    textStyle: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  child: isLoading
+                      ? SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: colorScheme.onPrimary,
+                          ),
+                        )
+                      : const Text('Xác nhận'),
+                ),
+              ),
+            ],
           ),
         ),
       ),

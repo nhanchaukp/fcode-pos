@@ -7,6 +7,7 @@ import 'package:fcode_pos/services/customer_service.dart';
 import 'package:fcode_pos/services/order_service.dart';
 import 'package:fcode_pos/services/product_service.dart';
 import 'package:fcode_pos/ui/components/customer_list_item.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/order_list_component.dart';
 import 'package:fcode_pos/ui/components/product_list_item.dart';
 import 'package:fcode_pos/utils/extensions.dart';
@@ -126,19 +127,12 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: const Text('Tìm kiếm'),
-        elevation: 0,
-      ),
-      body: Column(
+    return AppScaffold(
+      title: 'Tìm kiếm',
+      body: (context, scrollController) => Column(
         children: [
           if (_isSearching) const LinearProgressIndicator(minHeight: 2),
-          Expanded(child: _buildSearchResults()),
+          Expanded(child: _buildSearchResults(scrollController)),
           _buildBottomBar(colorScheme, bottomInset),
         ],
       ),
@@ -147,15 +141,16 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
 
   Widget _buildBottomBar(ColorScheme colorScheme, double bottomInset) {
     final hasQuery = _searchController.text.trim().isNotEmpty;
-    final safePadding = bottomInset > 0
-        ? 0.0
-        : MediaQuery.of(context).padding.bottom;
+    final viewPadding = MediaQuery.of(context).padding.bottom;
+    final bottomPadding = bottomInset > 0 ? 0.0 : viewPadding;
 
-    return Padding(
-      padding: EdgeInsets.only(bottom: safePadding),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
+    return Material(
+      color: colorScheme.surface,
+      child: Padding(
+        padding: EdgeInsets.only(bottom: bottomPadding),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
           Divider(
             height: 1,
             color: colorScheme.outlineVariant.applyOpacity(0.3),
@@ -251,51 +246,70 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
             ),
           ),
         ],
+        ),
       ),
     );
   }
 
-  Widget _buildSearchResults() {
+  Widget _buildSearchResults(ScrollController scrollController) {
     if (_error != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, size: 48, color: Colors.grey[400]),
-            const SizedBox(height: 12),
-            Text(
-              _error!,
-              style: TextStyle(color: Colors.grey[600], fontSize: 15),
+      return ListView(
+        controller: scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            height: 320,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 48, color: Colors.grey[400]),
+                  const SizedBox(height: 12),
+                  Text(
+                    _error!,
+                    style: TextStyle(color: Colors.grey[600], fontSize: 15),
+                  ),
+                  const SizedBox(height: 12),
+                  FilledButton.icon(
+                    onPressed: () => _performSearch(_searchController.text.trim()),
+                    icon: const Icon(Icons.refresh, size: 18),
+                    label: const Text('Thử lại'),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 12),
-            FilledButton.icon(
-              onPressed: () => _performSearch(_searchController.text.trim()),
-              icon: const Icon(Icons.refresh, size: 18),
-              label: const Text('Thử lại'),
-            ),
-          ],
-        ),
+          ),
+        ],
       );
     }
 
     if (_searchController.text.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.search, size: 48, color: Colors.grey[400]),
-            const SizedBox(height: 12),
-            Text(
-              'Nhập từ khóa để tìm kiếm',
-              style: TextStyle(color: Colors.grey[600], fontSize: 15),
+      return ListView(
+        controller: scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            height: 320,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.search, size: 48, color: Colors.grey[400]),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Nhập từ khóa để tìm kiếm',
+                    style: TextStyle(color: Colors.grey[600], fontSize: 15),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Mã đơn hàng, tên sản phẩm, tên khách hàng...',
+                    style: TextStyle(color: Colors.grey[400], fontSize: 13),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              'Mã đơn hàng, tên sản phẩm, tên khách hàng...',
-              style: TextStyle(color: Colors.grey[400], fontSize: 13),
-            ),
-          ],
-        ),
+          ),
+        ],
       );
     }
 
@@ -305,13 +319,19 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
       _SearchTab.customers => _customers.length,
     };
     if (_isSearching && activeCount == 0) {
-      return const Center(child: CircularProgressIndicator());
+      return ListView(
+        controller: scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: const [
+          SizedBox(height: 240, child: Center(child: CircularProgressIndicator())),
+        ],
+      );
     }
 
     return switch (_activeTab) {
       _SearchTab.orders => _buildOrderResults(),
-      _SearchTab.products => _buildProductResults(),
-      _SearchTab.customers => _buildCustomerResults(),
+      _SearchTab.products => _buildProductResults(scrollController),
+      _SearchTab.customers => _buildCustomerResults(scrollController),
     };
   }
 
@@ -329,10 +349,14 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
 
   // -- Product results --
 
-  Widget _buildProductResults() {
-    if (_products.isEmpty) return _buildEmptyState('sản phẩm');
+  Widget _buildProductResults(ScrollController scrollController) {
+    if (_products.isEmpty) {
+      return _buildEmptyState('sản phẩm', scrollController);
+    }
 
     return ListView.builder(
+      controller: scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
       itemCount: _products.length,
       itemBuilder: (context, index) {
         final product = _products[index];
@@ -351,10 +375,14 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
 
   // -- Customer results --
 
-  Widget _buildCustomerResults() {
-    if (_customers.isEmpty) return _buildEmptyState('khách hàng');
+  Widget _buildCustomerResults(ScrollController scrollController) {
+    if (_customers.isEmpty) {
+      return _buildEmptyState('khách hàng', scrollController);
+    }
 
     return ListView.builder(
+      controller: scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
       itemCount: _customers.length,
       itemBuilder: (context, index) {
         final customer = _customers[index];
@@ -373,24 +401,33 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
 
   // -- Shared --
 
-  Widget _buildEmptyState(String type) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.search_off, size: 48, color: Colors.grey[400]),
-          const SizedBox(height: 12),
-          Text(
-            'Không tìm thấy $type',
-            style: TextStyle(color: Colors.grey[600], fontSize: 15),
+  Widget _buildEmptyState(String type, ScrollController scrollController) {
+    return ListView(
+      controller: scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: [
+        SizedBox(
+          height: 320,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.search_off, size: 48, color: Colors.grey[400]),
+                const SizedBox(height: 12),
+                Text(
+                  'Không tìm thấy $type',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 15),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Thử tìm với từ khóa khác',
+                  style: TextStyle(color: Colors.grey[400], fontSize: 13),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            'Thử tìm với từ khóa khác',
-            style: TextStyle(color: Colors.grey[400], fontSize: 13),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

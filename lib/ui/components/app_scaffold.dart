@@ -29,6 +29,7 @@ class AppScaffold extends StatefulWidget {
     this.onSearchSubmitted,
     this.searchDebounce = const Duration(milliseconds: 350),
     this.floatingActionButton,
+    this.floatingActionButtonLocation,
     this.bottomNavigationBar,
   });
 
@@ -68,6 +69,7 @@ class AppScaffold extends StatefulWidget {
   final Widget Function(BuildContext context, ScrollController controller) body;
 
   final Widget? floatingActionButton;
+  final FloatingActionButtonLocation? floatingActionButtonLocation;
   final Widget? bottomNavigationBar;
 
   @override
@@ -83,7 +85,9 @@ class _AppScaffoldState extends State<AppScaffold> {
     final showBack = widget.showBack ?? Navigator.of(context).canPop();
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       floatingActionButton: widget.floatingActionButton,
+      floatingActionButtonLocation: widget.floatingActionButtonLocation,
       bottomNavigationBar: widget.bottomNavigationBar,
       body: Column(
         children: [
@@ -264,19 +268,22 @@ class _AppTopBar extends StatelessWidget {
   }
 
   Widget _buildSearchRow(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.m,
-        0,
-        AppSpacing.m,
-        AppSpacing.xs,
-      ),
-      child: _SearchField(
-        hint: searchHint,
-        controller: searchController,
-        onChanged: onSearchChanged,
-        onSubmitted: onSearchSubmitted,
-        debounce: searchDebounce,
+    return SizedBox(
+      height: _searchRowHeight,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.m,
+          0,
+          AppSpacing.m,
+          AppSpacing.xs,
+        ),
+        child: _SearchField(
+          hint: searchHint,
+          controller: searchController,
+          onChanged: onSearchChanged,
+          onSubmitted: onSearchSubmitted,
+          debounce: searchDebounce,
+        ),
       ),
     );
   }
@@ -355,51 +362,71 @@ class _SearchFieldState extends State<_SearchField> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final hasText = _controller.text.isNotEmpty;
 
-    return TextField(
-      controller: _controller,
-      style: const TextStyle(fontSize: 13),
-      textInputAction: TextInputAction.search,
-      onSubmitted: (v) {
-        final value = v.trim();
-        if (value == _lastNotified) return;
-        _debounce?.cancel();
-        _lastNotified = value;
-        widget.onSubmitted?.call(value);
-      },
-      decoration: InputDecoration(
-        isDense: true,
-        filled: true,
-        fillColor: cs.surfaceContainerHigh,
-        hintText: widget.hint,
-        hintStyle: TextStyle(
-          fontSize: 13,
-          color: cs.onSurfaceVariant.withValues(alpha: 0.55),
-        ),
-        prefixIcon: const Icon(Icons.search, size: 18),
-        prefixIconConstraints: const BoxConstraints(minWidth: 36, minHeight: 32),
-        suffixIcon: _controller.text.isEmpty
-            ? null
-            : IconButton(
-                tooltip: 'Xoá',
-                visualDensity: VisualDensity.compact,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                icon: const Icon(Icons.close, size: 16),
-                onPressed: _clear,
-              ),
-        contentPadding: const EdgeInsets.symmetric(vertical: 6),
-        border: OutlineInputBorder(
-          borderRadius: AppRadius.s,
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: AppRadius.s,
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: AppRadius.s,
-          borderSide: BorderSide.none,
+    return SizedBox(
+      height: 36,
+      child: TextField(
+        controller: _controller,
+        maxLines: 1,
+        style: const TextStyle(fontSize: 13, height: 1.2),
+        textInputAction: TextInputAction.search,
+        onSubmitted: (v) {
+          final value = v.trim();
+          if (value == _lastNotified) return;
+          _debounce?.cancel();
+          _lastNotified = value;
+          widget.onSubmitted?.call(value);
+        },
+        decoration: InputDecoration(
+          isDense: true,
+          isCollapsed: true,
+          filled: true,
+          fillColor: cs.surfaceContainerHigh,
+          hintText: widget.hint,
+          hintStyle: TextStyle(
+            fontSize: 13,
+            height: 1.2,
+            color: cs.onSurfaceVariant.withValues(alpha: 0.55),
+          ),
+          prefixIcon: const Icon(Icons.search, size: 18),
+          prefixIconConstraints: const BoxConstraints(
+            minWidth: 36,
+            minHeight: 36,
+            maxHeight: 36,
+          ),
+          suffixIcon: hasText
+              ? IconButton(
+                  tooltip: 'Xoá',
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 32,
+                    minHeight: 32,
+                    maxHeight: 32,
+                  ),
+                  icon: const Icon(Icons.close, size: 16),
+                  onPressed: _clear,
+                )
+              : const SizedBox(width: 32, height: 32),
+          suffixIconConstraints: const BoxConstraints(
+            minWidth: 32,
+            minHeight: 32,
+            maxHeight: 32,
+          ),
+          contentPadding: const EdgeInsets.symmetric(vertical: 10),
+          border: OutlineInputBorder(
+            borderRadius: AppRadius.s,
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: AppRadius.s,
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: AppRadius.s,
+            borderSide: BorderSide.none,
+          ),
         ),
       ),
     );
