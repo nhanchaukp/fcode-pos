@@ -32,7 +32,8 @@ class AccountMasterBrowserScreen extends StatefulWidget {
       _AccountMasterBrowserScreenState();
 }
 
-class _AccountMasterBrowserScreenState extends State<AccountMasterBrowserScreen> {
+class _AccountMasterBrowserScreenState
+    extends State<AccountMasterBrowserScreen> {
   final _browserService = AccountMasterBrowserService();
   final _accountMasterService = AccountMasterService();
 
@@ -151,9 +152,7 @@ class _AccountMasterBrowserScreenState extends State<AccountMasterBrowserScreen>
     await _hideAddressEditor();
     await _webController?.clearFocus();
     FocusManager.instance.primaryFocus?.unfocus();
-    await _webController?.loadUrl(
-      urlRequest: URLRequest(url: WebUri(url)),
-    );
+    await _webController?.loadUrl(urlRequest: URLRequest(url: WebUri(url)));
   }
 
   void _onTitleChanged(InAppWebViewController _, String? title) {
@@ -278,6 +277,7 @@ class _AccountMasterBrowserScreenState extends State<AccountMasterBrowserScreen>
         monthlyCost: account.monthlyCost,
         costNotes: account.costNotes,
         isActive: account.isActive,
+        showPassword: account.showPassword,
         cookies: cookies,
         details: account.details,
         supplyId: account.supply?.id,
@@ -286,7 +286,8 @@ class _AccountMasterBrowserScreenState extends State<AccountMasterBrowserScreen>
       final response = await _accountMasterService.update(account.id, data);
       if (!mounted) return;
 
-      final updated = response.data ??
+      final updated =
+          response.data ??
           AccountMaster(
             id: account.id,
             name: account.name,
@@ -299,6 +300,7 @@ class _AccountMasterBrowserScreenState extends State<AccountMasterBrowserScreen>
             monthlyCost: account.monthlyCost,
             costNotes: account.costNotes,
             isActive: account.isActive,
+            showPassword: account.showPassword,
             createdAt: account.createdAt,
             updatedAt: account.updatedAt,
             cookies: cookies,
@@ -347,9 +349,7 @@ class _AccountMasterBrowserScreenState extends State<AccountMasterBrowserScreen>
                       Expanded(
                         child: Text(
                           'Console log',
-                          style: Theme.of(sheetContext)
-                              .textTheme
-                              .titleMedium
+                          style: Theme.of(sheetContext).textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -393,7 +393,9 @@ class _AccountMasterBrowserScreenState extends State<AccountMasterBrowserScreen>
                       ? Center(
                           child: Text(
                             'Chưa có log từ trang web',
-                            style: TextStyle(color: colorScheme.onSurfaceVariant),
+                            style: TextStyle(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
                           ),
                         )
                       : ListView.separated(
@@ -410,8 +412,10 @@ class _AccountMasterBrowserScreenState extends State<AccountMasterBrowserScreen>
                                 color: colorScheme.surfaceContainerLow,
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
-                                  color: _levelColor(log.level, colorScheme)
-                                      .withValues(alpha: 0.35),
+                                  color: _levelColor(
+                                    log.level,
+                                    colorScheme,
+                                  ).withValues(alpha: 0.35),
                                 ),
                               ),
                               child: Column(
@@ -425,16 +429,23 @@ class _AccountMasterBrowserScreenState extends State<AccountMasterBrowserScreen>
                                           vertical: 2,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: _levelColor(log.level, colorScheme)
-                                              .withValues(alpha: 0.15),
-                                          borderRadius: BorderRadius.circular(4),
+                                          color: _levelColor(
+                                            log.level,
+                                            colorScheme,
+                                          ).withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
                                         ),
                                         child: Text(
                                           _levelLabel(log.level),
                                           style: TextStyle(
                                             fontSize: 11,
                                             fontWeight: FontWeight.bold,
-                                            color: _levelColor(log.level, colorScheme),
+                                            color: _levelColor(
+                                              log.level,
+                                              colorScheme,
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -828,8 +839,7 @@ class _AccountMasterBrowserScreenState extends State<AccountMasterBrowserScreen>
     return topInset + _toolbarHeight + progressHeight;
   }
 
-  bool get _canShowWebView =>
-      _webViewAttached || _session.canAttachWebView;
+  bool get _canShowWebView => _webViewAttached || _session.canAttachWebView;
 
   Widget _buildInAppWebView() {
     if (_webViewWidget != null) {

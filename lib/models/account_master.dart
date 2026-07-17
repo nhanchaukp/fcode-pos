@@ -35,6 +35,9 @@ class AccountMaster {
   /// Whether the account is active.
   final bool isActive;
 
+  /// Whether the account allow show password for access link of slot show
+  final bool showPassword;
+
   /// Creation date.
   final DateTime? createdAt;
 
@@ -68,6 +71,7 @@ class AccountMaster {
     this.monthlyCost,
     this.costNotes,
     required this.isActive,
+    required this.showPassword,
     this.createdAt,
     this.updatedAt,
     this.cookies,
@@ -94,6 +98,7 @@ class AccountMaster {
       monthlyCost: asInt(map['monthly_cost']),
       costNotes: map['cost_notes']?.toString(),
       isActive: map['is_active'] == true || map['is_active'] == 1,
+      showPassword: map['show_password'] == true || map['show_password'] == 1,
       createdAt: map['created_at'] != null
           ? DateTime.parse(map['created_at'].toString())
           : null,
@@ -131,6 +136,7 @@ class AccountMaster {
       'monthly_cost': monthlyCost,
       'cost_notes': costNotes,
       'is_active': isActive,
+      'show_password': showPassword,
       'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
       'cookies': cookies,

@@ -197,8 +197,11 @@ class _SupplySelectSheet extends StatefulWidget {
 }
 
 class _SupplySelectSheetState extends State<_SupplySelectSheet> {
+  final _supplyService = SupplyService();
   late List<Supply> _filtered;
   late TextEditingController _searchController;
+  bool _isSearching = false;
+  String _lastQuery = '';
 
   @override
   void initState() {
@@ -211,6 +214,54 @@ class _SupplySelectSheetState extends State<_SupplySelectSheet> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  List<Supply> _filterLocal(String query) {
+    final q = query.toLowerCase();
+    return widget.supplies.where((supply) {
+      return supply.name.toLowerCase().contains(q) ||
+          (supply.content?.toLowerCase().contains(q) ?? false);
+    }).toList();
+  }
+
+  Future<void> _onSearch(String query) async {
+    if (!mounted) return;
+    final trimmed = query.trim();
+    _lastQuery = trimmed;
+
+    if (trimmed.isEmpty) {
+      setState(() {
+        _filtered = widget.supplies;
+        _isSearching = false;
+      });
+      return;
+    }
+
+    final localResults = _filterLocal(trimmed);
+    if (localResults.isNotEmpty) {
+      setState(() {
+        _filtered = localResults;
+        _isSearching = false;
+      });
+      return;
+    }
+
+    setState(() => _isSearching = true);
+    try {
+      final response = await _supplyService.list(search: trimmed, perPage: 20);
+      if (!mounted || _lastQuery != trimmed) return;
+      setState(() {
+        _filtered = response.data?.items ?? [];
+        _isSearching = false;
+      });
+    } catch (e) {
+      debugPrint('Error searching supplies: $e');
+      if (!mounted || _lastQuery != trimmed) return;
+      setState(() {
+        _filtered = [];
+        _isSearching = false;
+      });
+    }
   }
 
   @override
@@ -241,21 +292,20 @@ class _SupplySelectSheetState extends State<_SupplySelectSheet> {
                 controller: _searchController,
                 autofocus: true,
                 hintText: 'Tìm kiếm nhà cung cấp...',
-                onChanged: (query) {
-                  if (!mounted) return;
-                  final q = query.toLowerCase();
-                  setState(() {
-                    _filtered = widget.supplies.where((supply) {
-                      return supply.name.toLowerCase().contains(q) ||
-                          (supply.content?.toLowerCase().contains(q) ?? false);
-                    }).toList();
-                  });
-                },
+                onChanged: _onSearch,
               ),
               const SizedBox(height: 12),
               Flexible(
-                child: _filtered.isEmpty
-                    ? const Center(child: Text('Không có nhà cung cấp phù hợp'))
+                child: _isSearching
+                    ? const Center(child: CircularProgressIndicator())
+                    : _filtered.isEmpty
+                    ? Center(
+                        child: Text(
+                          _searchController.text.trim().isEmpty
+                              ? 'Không có nhà cung cấp'
+                              : 'Không có nhà cung cấp phù hợp',
+                        ),
+                      )
                     : ListView.builder(
                         itemCount: _filtered.length,
                         itemBuilder: (context, index) {

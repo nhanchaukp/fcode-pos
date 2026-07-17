@@ -1,5 +1,6 @@
 import 'package:fcode_pos/enums.dart' as enums;
 import 'package:fcode_pos/models.dart';
+import 'package:fcode_pos/providers/account_slot/account_slot_filter_provider.dart';
 import 'package:fcode_pos/screens/audit/audit_log_screen.dart';
 import 'package:fcode_pos/screens/customer/customer_detail_screen.dart';
 import 'package:fcode_pos/screens/order/order_detail_screen.dart';
@@ -18,26 +19,27 @@ import 'package:fcode_pos/ui/components/dropdown/supply_dropdown.dart';
 import 'package:fcode_pos/ui/components/slot_edit_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
 import 'package:fcode_pos/ui/components/badge/service_badge.dart';
 
-class AccountSlotManagementScreen extends StatefulWidget {
+class AccountSlotManagementScreen extends ConsumerStatefulWidget {
   const AccountSlotManagementScreen({super.key});
 
   @override
-  State<AccountSlotManagementScreen> createState() =>
+  ConsumerState<AccountSlotManagementScreen> createState() =>
       _AccountSlotManagementScreenState();
 }
 
 class _AccountSlotManagementScreenState
-    extends State<AccountSlotManagementScreen> {
+    extends ConsumerState<AccountSlotManagementScreen> {
   late AccountSlotService _accountSlotService;
   late AccountMasterService _accountMasterService;
   List<AccountMaster> _accountMasters = [];
   bool _isLoading = false;
   String? _error;
 
-  // Filters
+  // Filters (đồng bộ với accountSlotFilterProvider)
   enums.AccountMasterServiceType? _selectedServiceType;
   bool? _selectedIsActive;
   bool _selectedIsFreeSlot = false;
@@ -58,6 +60,15 @@ class _AccountSlotManagementScreenState
     super.initState();
     _accountSlotService = AccountSlotService();
     _accountMasterService = AccountMasterService();
+
+    final filter = ref.read(accountSlotFilterProvider);
+    _searchController.text = filter.search;
+    _selectedServiceType = filter.serviceType;
+    _selectedIsActive = filter.isActive;
+    _selectedIsFreeSlot = filter.isFreeSlot;
+    _selectedSupply = filter.supply;
+    _selectedDaysRemaining = filter.daysRemaining;
+
     _loadAccountMasters();
   }
 
@@ -69,6 +80,22 @@ class _AccountSlotManagementScreenState
 
   ColorScheme get colorScheme => Theme.of(context).colorScheme;
 
+  void _persistFilter({String? search}) {
+    ref.read(accountSlotFilterProvider.notifier).state = AccountSlotFilter(
+      search: search ?? _searchController.text.trim(),
+      serviceType: _selectedServiceType,
+      isActive: _selectedIsActive,
+      isFreeSlot: _selectedIsFreeSlot,
+      supply: _selectedSupply,
+      daysRemaining: _selectedDaysRemaining,
+    );
+  }
+
+  void _applySearch(String value) {
+    _persistFilter(search: value.trim());
+    _loadAccountMasters();
+  }
+
   Future<void> _loadAccountMasters() async {
     if (!mounted) return;
     setState(() {
@@ -76,16 +103,16 @@ class _AccountSlotManagementScreenState
       _error = null;
     });
 
+    final filter = ref.read(accountSlotFilterProvider);
+
     try {
       final response = await _accountSlotService.listMaster(
-        serviceType: _selectedServiceType?.value,
-        isActive: _selectedIsActive,
-        search: _searchController.text.trim().isEmpty
-            ? null
-            : _searchController.text.trim(),
-        daysRemaining: _selectedDaysRemaining,
-        isFreeSlot: _selectedIsFreeSlot ? true : null,
-        supplyId: _selectedSupply?.id,
+        serviceType: filter.serviceType?.value,
+        isActive: filter.isActive,
+        search: filter.search.isEmpty ? null : filter.search,
+        daysRemaining: filter.daysRemaining,
+        isFreeSlot: filter.isFreeSlot ? true : null,
+        supplyId: filter.supply?.id,
       );
 
       if (!mounted) return;
@@ -133,6 +160,7 @@ class _AccountSlotManagementScreenState
   }
 
   void _applyFilters() {
+    _persistFilter();
     _loadAccountMasters();
   }
 
@@ -145,6 +173,8 @@ class _AccountSlotManagementScreenState
       _selectedDaysRemaining = null;
     });
     _searchController.clear();
+    ref.read(accountSlotFilterProvider.notifier).state =
+        const AccountSlotFilter();
     _loadAccountMasters();
   }
 
@@ -368,8 +398,8 @@ class _AccountSlotManagementScreenState
       enableSearch: true,
       searchHint: 'Tìm theo tên, ghi chú...',
       searchController: _searchController,
-      onSearchChanged: (_) => _loadAccountMasters(),
-      onSearchSubmitted: (_) => _loadAccountMasters(),
+      onSearchChanged: _applySearch,
+      onSearchSubmitted: _applySearch,
       actions: [
         IconButton(
           tooltip: 'Tạo tài khoản',
@@ -406,7 +436,6 @@ class _AccountSlotManagementScreenState
       ],
       body: (context, scrollController) => Column(
         children: [
-          if (_isLoading) const LinearProgressIndicator(minHeight: 2),
           if (_hasFilters) _buildActiveFilterChips(),
           Expanded(child: _buildBody(scrollController)),
         ],
@@ -415,66 +444,52 @@ class _AccountSlotManagementScreenState
   }
 
   Widget _buildActiveFilterChips() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Wrap(
-        spacing: 8,
-        children: [
-          if (_selectedServiceType != null)
-            Chip(
-              label: Text('Loại: ${_selectedServiceType!.label}'),
-              onDeleted: () {
-                setState(() {
-                  _selectedServiceType = null;
-                });
-                _loadAccountMasters();
-              },
-            ),
-          if (_selectedIsActive != null)
-            Chip(
-              label: Text(
-                _selectedIsActive! ? 'Đang hoạt động' : 'Không hoạt động',
-              ),
-              onDeleted: () {
-                setState(() {
-                  _selectedIsActive = null;
-                });
-                _loadAccountMasters();
-              },
-            ),
-          if (_selectedDaysRemaining != null)
-            Chip(
-              label: Text('Còn ≤ $_selectedDaysRemaining ngày'),
-              onDeleted: () {
-                setState(() {
-                  _selectedDaysRemaining = null;
-                });
-                _loadAccountMasters();
-              },
-            ),
-          if (_selectedIsFreeSlot)
-            Chip(
-              label: const Text('Còn slot trống'),
-              onDeleted: () {
-                setState(() {
-                  _selectedIsFreeSlot = false;
-                });
-                _loadAccountMasters();
-              },
-            ),
-          if (_selectedSupply != null)
-            Chip(
-              label: Text('NCC: ${_selectedSupply!.name}'),
-              onDeleted: () {
-                setState(() {
-                  _selectedSupply = null;
-                });
-                _loadAccountMasters();
-              },
-            ),
-        ],
+    final chips = <Widget>[
+      if (_selectedServiceType != null)
+        _ActiveFilterChip(
+          label: _selectedServiceType!.label,
+          onDeleted: () => _removeFilter(() => _selectedServiceType = null),
+        ),
+      if (_selectedIsActive != null)
+        _ActiveFilterChip(
+          label: _selectedIsActive! ? 'Active' : 'Inactive',
+          onDeleted: () => _removeFilter(() => _selectedIsActive = null),
+        ),
+      if (_selectedDaysRemaining != null)
+        _ActiveFilterChip(
+          label: '≤ $_selectedDaysRemaining ngày',
+          onDeleted: () => _removeFilter(() => _selectedDaysRemaining = null),
+        ),
+      if (_selectedIsFreeSlot)
+        _ActiveFilterChip(
+          label: 'Còn slot',
+          onDeleted: () => _removeFilter(() => _selectedIsFreeSlot = false),
+        ),
+      if (_selectedSupply != null)
+        _ActiveFilterChip(
+          label: _selectedSupply!.name,
+          onDeleted: () => _removeFilter(() => _selectedSupply = null),
+        ),
+    ];
+
+    if (chips.isEmpty) return const SizedBox.shrink();
+
+    return SizedBox(
+      height: 36,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        itemCount: chips.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 6),
+        itemBuilder: (_, i) => chips[i],
       ),
     );
+  }
+
+  void _removeFilter(VoidCallback update) {
+    setState(update);
+    _persistFilter();
+    _loadAccountMasters();
   }
 
   Widget _buildBody(ScrollController scrollController) {
@@ -1220,6 +1235,33 @@ class _AccountSlotManagementScreenState
 }
 
 // ── Helper widgets ────────────────────────────────────────────────────────────
+
+class _ActiveFilterChip extends StatelessWidget {
+  const _ActiveFilterChip({
+    required this.label,
+    required this.onDeleted,
+  });
+
+  final String label;
+  final VoidCallback onDeleted;
+
+  @override
+  Widget build(BuildContext context) {
+    return Chip(
+      label: Text(label, style: const TextStyle(fontSize: 12)),
+      deleteIcon: const Icon(Icons.close, size: 14),
+      onDeleted: onDeleted,
+      visualDensity: VisualDensity.compact,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      padding: EdgeInsets.zero,
+      labelPadding: const EdgeInsets.only(left: 8, right: 2),
+      deleteIconBoxConstraints: const BoxConstraints(
+        minWidth: 22,
+        minHeight: 22,
+      ),
+    );
+  }
+}
 
 class _StatusDot extends StatelessWidget {
   const _StatusDot({required this.isActive});

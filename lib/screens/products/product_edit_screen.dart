@@ -273,15 +273,8 @@ class _ProductEditScreenState extends State<ProductEditScreen> {
                         Expanded(
                           child: QuantityInput(
                             labelText: 'Tồn kho',
+                            minQuantity: 0,
                             controller: _instockController,
-                            validator: (v) {
-                              if (v == null || v.isEmpty) return null;
-                              final value = int.tryParse(v);
-                              if (value == null || value < 0) {
-                                return 'Tồn kho phải >= 0';
-                              }
-                              return null;
-                            },
                           ),
                         ),
                         const SizedBox(width: 10),

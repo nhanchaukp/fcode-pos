@@ -473,6 +473,16 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
               if (slotSupply != null) {
                 widget.itemData.supply = slotSupply;
               }
+              // Tính giá vốn lấy giá account master / max slot
+              final maxSlots = slot?.accountMaster?.maxSlots;
+              final monthlyCost = slot?.accountMaster?.monthlyCost;
+              if (maxSlots != null && monthlyCost != null) {
+                widget.itemData.priceSupply = (monthlyCost ~/ maxSlots).toInt();
+                widget.itemData.priceSupplyController.text = widget
+                    .itemData
+                    .priceSupply
+                    .toString();
+              }
             });
           },
         ),

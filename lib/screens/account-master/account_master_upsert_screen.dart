@@ -1,6 +1,7 @@
 import 'package:fcode_pos/enums.dart' as enums;
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/models/dto/account_master_data.dart';
+import 'package:fcode_pos/screens/account-master/account_master_detail_screen.dart';
 import 'package:fcode_pos/services/account_master_service.dart';
 import 'package:fcode_pos/ui/components/app_switch_tile.dart';
 import 'package:fcode_pos/ui/components/dropdown/account_master_service_type_dropdown.dart';
@@ -40,6 +41,7 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
   DateTime? _paymentDate;
   Supply? _selectedSupply;
   bool _isActive = true;
+  bool _showPassword = false;
   bool _isLoading = false;
 
   @override
@@ -71,6 +73,7 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
     _paymentDate = account?.paymentDate;
     _selectedSupply = account?.supply;
     _isActive = account?.isActive ?? true;
+    _showPassword = account?.showPassword ?? false;
   }
 
   @override
@@ -130,6 +133,7 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
             ? null
             : _costNotesController.text.trim(),
         isActive: _isActive,
+        showPassword: _showPassword,
         cookies: _cookiesController.text.trim().isEmpty
             ? null
             : _cookiesController.text.trim(),
@@ -141,19 +145,29 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
 
       if (_isUpdate) {
         await _accountMasterService.update(widget.accountMaster!.id, data);
-      } else {
-        await _accountMasterService.create(data);
+        if (!mounted) return;
+        Toastr.success('Cập nhật tài khoản thành công');
+        Navigator.pop(context, true);
+        return;
       }
 
+      final response = await _accountMasterService.create(data);
       if (!mounted) return;
 
-      Toastr.success(
-        _isUpdate
-            ? 'Cập nhật tài khoản thành công'
-            : 'Tạo tài khoản thành công',
-      );
+      Toastr.success('Tạo tài khoản thành công');
 
-      Navigator.pop(context, true);
+      final created = response.data;
+      if (created != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                AccountMasterDetailScreen(accountMaster: created),
+          ),
+        );
+      } else {
+        Navigator.pop(context, true);
+      }
     } catch (e) {
       if (!mounted) return;
       Toastr.error('Lỗi: ${e.toString()}');
@@ -308,6 +322,15 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
               subtitle: _isActive ? 'Active' : 'Inactive',
               value: _isActive,
               onChanged: (v) => setState(() => _isActive = v),
+            ),
+            const SizedBox(height: 8),
+            // Show Password
+            AppSwitchTile(
+              title: 'Hiển thị mật khẩu',
+              subtitle:
+                  'Mật khẩu sẽ hiển thị khi người dùng truy cập qua Access Link',
+              value: _showPassword,
+              onChanged: (v) => setState(() => _showPassword = v),
             ),
             const SizedBox(height: 24),
 

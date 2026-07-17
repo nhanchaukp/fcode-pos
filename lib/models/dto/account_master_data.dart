@@ -9,6 +9,7 @@ class AccountMasterData {
   final int? monthlyCost;
   final String? costNotes;
   final bool isActive;
+  final bool showPassword;
   final String? cookies;
   final String? details;
   final int? supplyId;
@@ -20,6 +21,7 @@ class AccountMasterData {
     required this.serviceType,
     required this.maxSlots,
     required this.isActive,
+    required this.showPassword,
     this.notes,
     this.paymentDate,
     this.monthlyCost,
@@ -37,9 +39,9 @@ class AccountMasterData {
       'service_type': serviceType,
       'max_slots': maxSlots,
       'is_active': isActive,
+      'show_password': showPassword,
       if (notes != null && notes!.isNotEmpty) 'notes': notes,
-      if (paymentDate != null)
-        'payment_date': paymentDate!.toIso8601String(),
+      if (paymentDate != null) 'payment_date': paymentDate!.toIso8601String(),
       if (monthlyCost != null) 'monthly_cost': monthlyCost,
       if (costNotes != null && costNotes!.isNotEmpty) 'cost_notes': costNotes,
       if (cookies != null && cookies!.isNotEmpty) 'cookies': cookies,

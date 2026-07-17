@@ -27,7 +27,7 @@ class AppScaffold extends StatefulWidget {
     this.searchController,
     this.onSearchChanged,
     this.onSearchSubmitted,
-    this.searchDebounce = const Duration(milliseconds: 350),
+    this.searchDebounce = const Duration(milliseconds: 550),
     this.floatingActionButton,
     this.floatingActionButtonLocation,
     this.bottomNavigationBar,
@@ -167,8 +167,9 @@ class _AppTopBar extends StatelessWidget {
     return AnimatedBuilder(
       animation: scrollController,
       builder: (context, _) {
-        final offset =
-            scrollController.hasClients ? scrollController.offset : 0.0;
+        final offset = scrollController.hasClients
+            ? scrollController.offset
+            : 0.0;
         // 0 = mở hết (ở đỉnh), 1 = thu gọn hết (đã cuộn xuống).
         final collapse = enableSearch
             ? (offset / _searchRowHeight).clamp(0.0, 1.0)
