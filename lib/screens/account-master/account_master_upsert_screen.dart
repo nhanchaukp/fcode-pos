@@ -161,8 +161,7 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) =>
-                AccountMasterDetailScreen(accountMaster: created),
+            builder: (_) => AccountMasterDetailScreen(accountMaster: created),
           ),
         );
       } else {
