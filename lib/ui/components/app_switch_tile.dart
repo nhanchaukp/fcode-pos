@@ -39,10 +39,8 @@ class AppSwitchTile extends StatelessWidget {
       child: SwitchListTile(
         dense: true,
         visualDensity: VisualDensity.compact,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-        secondary: icon != null
-            ? Icon(icon, color: cs.primary)
-            : null,
+        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+        secondary: icon != null ? Icon(icon, color: cs.primary) : null,
         title: Text(title),
         subtitle: subtitle != null ? Text(subtitle!) : null,
         value: value,

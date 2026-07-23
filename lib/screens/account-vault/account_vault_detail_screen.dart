@@ -11,9 +11,17 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:otp/otp.dart';
 
 class AccountVaultDetailScreen extends StatefulWidget {
-  const AccountVaultDetailScreen({super.key, required this.item});
+  const AccountVaultDetailScreen({
+    super.key,
+    required this.item,
+    this.onChanged,
+  });
 
   final AccountVaultItem item;
+
+  /// Gọi khi có sửa/xóa. Dùng thay vì chặn pop bằng [PopScope]
+  /// để iOS vẫn vuốt back được.
+  final VoidCallback? onChanged;
 
   @override
   State<AccountVaultDetailScreen> createState() =>
@@ -29,6 +37,12 @@ class _AccountVaultDetailScreenState extends State<AccountVaultDetailScreen> {
 
   /// Đánh dấu có thay đổi (sửa/xóa) để list biết mà reload khi quay lại.
   bool _changed = false;
+
+  void _markChanged() {
+    if (_changed) return;
+    _changed = true;
+    widget.onChanged?.call();
+  }
 
   // OTP state
   String _otpCode = '';
@@ -112,7 +126,7 @@ class _AccountVaultDetailScreenState extends State<AccountVaultDetailScreen> {
       ),
     );
     if (result == true && mounted) {
-      _changed = true;
+      _markChanged();
       _fetchDetail();
     }
   }
@@ -142,7 +156,8 @@ class _AccountVaultDetailScreenState extends State<AccountVaultDetailScreen> {
       await _service.delete(vault.id);
       if (!mounted) return;
       Toastr.success('Đã xóa vault', context: context);
-      Navigator.of(context).pop(true);
+      _markChanged();
+      Navigator.of(context).pop();
     } catch (e) {
       if (!mounted) return;
       Toastr.error('Xóa thất bại', context: context);
@@ -162,10 +177,6 @@ class _AccountVaultDetailScreenState extends State<AccountVaultDetailScreen> {
     final text = 'Tài khoản: ${vault.email}\nMật khẩu: ${vault.password ?? ''}';
     Clipboard.setData(ClipboardData(text: text));
     Toastr.success('Đã sao chép thông tin tài khoản', context: context);
-  }
-
-  void _popWithResult() {
-    Navigator.of(context).pop(_changed);
   }
 
   // ── Mail reading ──────────────────────────────────────────────────────────
@@ -190,18 +201,11 @@ class _AccountVaultDetailScreenState extends State<AccountVaultDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-        _popWithResult();
-      },
-      child: AppScaffold(
-        title: widget.item.email,
-        subtitle: widget.item.provider,
-        showBack: true,
-        onBack: _popWithResult,
-        actions: [
+    return AppScaffold(
+      title: widget.item.email,
+      subtitle: widget.item.provider,
+      showBack: true,
+      actions: [
           if (_detail != null)
             IconButton(
               visualDensity: VisualDensity.compact,
@@ -257,8 +261,7 @@ class _AccountVaultDetailScreenState extends State<AccountVaultDetailScreen> {
             ],
           ),
         ],
-        body: (context, scrollController) => _buildBody(scrollController),
-      ),
+      body: (context, scrollController) => _buildBody(scrollController),
     );
   }
 

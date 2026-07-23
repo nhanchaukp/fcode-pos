@@ -4,6 +4,7 @@ import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/models/dto/update_financial_transaction_data.dart';
 import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/services/finacial_service.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/dropdown/financial_transaction_category_dropdown.dart';
 import 'package:fcode_pos/ui/components/dropdown/financial_transaction_status_dropdown.dart';
 import 'package:fcode_pos/ui/components/dropdown/financial_transaction_type_dropdown.dart';
@@ -18,9 +19,13 @@ class FinancialTransactionDetailScreen extends StatefulWidget {
   const FinancialTransactionDetailScreen({
     super.key,
     required this.transactionId,
+    this.onChanged,
   });
 
   final int transactionId;
+
+  /// Gọi khi có thay đổi. Tránh chặn pop bằng [PopScope] để iOS vẫn vuốt back được.
+  final VoidCallback? onChanged;
 
   @override
   State<FinancialTransactionDetailScreen> createState() =>
@@ -42,6 +47,12 @@ class _FinancialTransactionDetailScreenState
   bool _isEditing = false;
   String? _error;
   bool _changed = false;
+
+  void _markChanged() {
+    if (_changed) return;
+    _changed = true;
+    widget.onChanged?.call();
+  }
 
   enums.FinancialTransactionType? _selectedType;
   enums.FinancialTransactionCategory? _selectedCategory;
@@ -163,8 +174,8 @@ class _FinancialTransactionDetailScreenState
         setState(() {
           _transaction = response.data;
           _isEditing = false;
-          _changed = true;
         });
+        _markChanged();
         _bindForm(response.data!);
         Toastr.success('Cập nhật giao dịch thành công');
       } else {
@@ -174,7 +185,10 @@ class _FinancialTransactionDetailScreenState
       if (!mounted) return;
       Toastr.error(e.firstFieldError ?? e.message);
     } catch (e, st) {
-      debugPrintStack(stackTrace: st, label: 'Update financial transaction: $e');
+      debugPrintStack(
+        stackTrace: st,
+        label: 'Update financial transaction: $e',
+      );
       if (!mounted) return;
       Toastr.error('Không thể cập nhật giao dịch');
     } finally {
@@ -229,56 +243,51 @@ class _FinancialTransactionDetailScreenState
 
   @override
   Widget build(BuildContext context) {
+    final title = _transaction?.transactionId ?? 'Chi tiết giao dịch';
+    final status = _transaction == null
+        ? null
+        : enums.FinancialTransactionStatus.fromValue(_transaction!.status);
+
     return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, _) {
-        if (didPop || _isSaving) return;
-        Navigator.of(context).pop(_changed);
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: _isSaving
-                ? null
-                : () => Navigator.of(context).pop(_changed),
-          ),
-          title: Text(
-            _transaction?.transactionId ?? 'Chi tiết giao dịch',
-            style: const TextStyle(fontSize: 15),
-          ),
-          actions: [
-            if (_transaction != null && !_isLoading && _error == null) ...[
-              if (_isEditing) ...[
-                TextButton(
-                  onPressed: _isSaving ? null : _cancelEditing,
-                  child: const Text('Hủy'),
-                ),
-                TextButton(
-                  onPressed: _isSaving ? null : _saveChanges,
-                  child: _isSaving
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Lưu'),
-                ),
-              ] else
-                IconButton(
-                  tooltip: 'Chỉnh sửa',
-                  onPressed: _startEditing,
-                  icon: const Icon(Icons.edit_outlined),
-                ),
-            ],
+      // Chỉ chặn khi đang lưu; còn lại cho phép vuốt back trên iOS.
+      canPop: !_isSaving,
+      child: AppScaffold(
+        title: title,
+        subtitle: status?.label,
+        showBack: true,
+        onBack: _isSaving ? () {} : null,
+        actions: [
+          if (_transaction != null && !_isLoading && _error == null) ...[
+            if (_isEditing) ...[
+              TextButton(
+                onPressed: _isSaving ? null : _cancelEditing,
+                child: const Text('Hủy'),
+              ),
+              TextButton(
+                onPressed: _isSaving ? null : _saveChanges,
+                child: _isSaving
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Lưu'),
+              ),
+            ] else
+              IconButton(
+                tooltip: 'Chỉnh sửa',
+                visualDensity: VisualDensity.compact,
+                onPressed: _startEditing,
+                icon: const Icon(Icons.edit_outlined),
+              ),
           ],
-        ),
-        body: _buildBody(),
+        ],
+        body: (context, scrollController) => _buildBody(scrollController),
       ),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(ScrollController scrollController) {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -313,15 +322,20 @@ class _FinancialTransactionDetailScreenState
     return RefreshIndicator(
       onRefresh: _isEditing ? () async {} : _loadDetail,
       child: SingleChildScrollView(
+        controller: scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.only(bottom: 24),
-        child: _isEditing ? _buildEditForm(transaction) : _buildViewBody(transaction),
+        child: _isEditing
+            ? _buildEditForm(transaction)
+            : _buildViewBody(transaction),
       ),
     );
   }
 
   Widget _buildViewBody(FinancialTransaction transaction) {
-    final status = enums.FinancialTransactionStatus.fromValue(transaction.status);
+    final status = enums.FinancialTransactionStatus.fromValue(
+      transaction.status,
+    );
     final type = enums.FinancialTransactionType.fromValue(transaction.type);
     final category = enums.FinancialTransactionCategory.fromValue(
       transaction.category,
@@ -354,7 +368,8 @@ class _FinancialTransactionDetailScreenState
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  if (type != null) _enumChip(type.label, type.color, type.icon),
+                  if (type != null)
+                    _enumChip(type.label, type.color, type.icon),
                   if (category != null)
                     _enumChip(category.label, category.color, category.icon),
                 ],
@@ -381,9 +396,18 @@ class _FinancialTransactionDetailScreenState
               const SizedBox(height: 8),
               Divider(color: _colorScheme.outlineVariant.applyOpacity(0.5)),
               const SizedBox(height: 8),
-              _amountRow('Thực nhận', transaction.netAmount, isIncome, bold: true),
+              _amountRow(
+                'Thực nhận',
+                transaction.netAmount,
+                isIncome,
+                bold: true,
+              ),
               const SizedBox(height: 8),
-              _infoRow(Icons.payments_outlined, 'Tiền tệ', transaction.currency),
+              _infoRow(
+                Icons.payments_outlined,
+                'Tiền tệ',
+                transaction.currency,
+              ),
             ],
           ),
         ),
@@ -444,10 +468,7 @@ class _FinancialTransactionDetailScreenState
         ),
         if (transaction.notes != null && transaction.notes!.isNotEmpty) ...[
           const SizedBox(height: 8),
-          _section(
-            title: 'Ghi chú',
-            child: Text(transaction.notes!),
-          ),
+          _section(title: 'Ghi chú', child: Text(transaction.notes!)),
         ],
         if (transaction.userId != null || transaction.processedBy != null) ...[
           const SizedBox(height: 8),
@@ -487,9 +508,9 @@ class _FinancialTransactionDetailScreenState
           children: [
             Text(
               'Chỉnh sửa giao dịch',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(
@@ -743,14 +764,8 @@ class _FinancialTransactionDetailScreenState
         mainAxisSize: MainAxisSize.min,
         children: [
           if (value != null)
-            IconButton(
-              icon: const Icon(Icons.clear),
-              onPressed: onClear,
-            ),
-          IconButton(
-            icon: const Icon(Icons.event_outlined),
-            onPressed: onPick,
-          ),
+            IconButton(icon: const Icon(Icons.clear), onPressed: onClear),
+          IconButton(icon: const Icon(Icons.event_outlined), onPressed: onPick),
         ],
       ),
       onTap: onPick,
@@ -803,5 +818,4 @@ class _FinancialTransactionDetailScreenState
       ),
     );
   }
-
 }

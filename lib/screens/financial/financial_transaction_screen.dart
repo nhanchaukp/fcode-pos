@@ -341,15 +341,18 @@ class _FinancialTransactionScreenState
   }
 
   Future<void> _openTransactionDetail(FinancialTransaction transaction) async {
-    final changed = await Navigator.push<bool>(
+    var changed = false;
+    await Navigator.push<void>(
       context,
       MaterialPageRoute(
-        builder: (_) =>
-            FinancialTransactionDetailScreen(transactionId: transaction.id),
+        builder: (_) => FinancialTransactionDetailScreen(
+          transactionId: transaction.id,
+          onChanged: () => changed = true,
+        ),
       ),
     );
 
-    if (changed == true && mounted) {
+    if (changed && mounted) {
       _loadTransactions();
     }
   }

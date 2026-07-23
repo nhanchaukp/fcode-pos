@@ -222,10 +222,8 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
             AccountMasterUpsertScreen(accountMaster: _accountMaster),
       ),
     );
-    if (result == true) {
-      // Reload would be handled by returning to list screen
-      // ignore: use_build_context_synchronously
-      Navigator.of(context).pop(true);
+    if (result == true && mounted) {
+      await _fetchAccountMaster();
     }
   }
 

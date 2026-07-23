@@ -10,13 +10,13 @@ import 'package:fcode_pos/services/account_slot_service.dart';
 import 'package:fcode_pos/ui/components/app_tab.dart';
 import 'package:fcode_pos/ui/components/audit/audit_log_list.dart';
 import 'package:fcode_pos/ui/components/badge/audit_event_badge.dart';
+import 'package:fcode_pos/ui/components/in_app_browser.dart';
 import 'package:fcode_pos/ui/components/slot_edit_sheet.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:fcode_pos/utils/string_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class AccountSlotDetailScreen extends StatefulWidget {
   final AccountSlot slot;
@@ -697,16 +697,13 @@ class _AccessLinkCard extends StatelessWidget {
 
   const _AccessLinkCard({required this.link});
 
-  Future<void> _openUrl(BuildContext context) async {
-    final uri = Uri.tryParse(link.url);
-    if (uri == null) return;
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      if (context.mounted) {
-        Toastr.error('Không thể mở liên kết', context: context);
-      }
+  void _openUrl(BuildContext context) {
+    final url = link.url.trim();
+    if (url.isEmpty) {
+      Toastr.error('URL không hợp lệ', context: context);
+      return;
     }
+    InAppBrowser.open(context, url: url, title: 'Access Link');
   }
 
   void _copyUrl(BuildContext context) {

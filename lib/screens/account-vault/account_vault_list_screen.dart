@@ -102,14 +102,18 @@ class _AccountVaultListScreenState extends State<AccountVaultListScreen> {
   }
 
   void _openDetail(AccountVaultItem item) async {
-    final changed = await Navigator.push<bool>(
+    var changed = false;
+    await Navigator.push<void>(
       context,
       MaterialPageRoute(
-        builder: (_) => AccountVaultDetailScreen(item: item),
+        builder: (_) => AccountVaultDetailScreen(
+          item: item,
+          onChanged: () => changed = true,
+        ),
       ),
     );
     // Chỉ reload khi có thay đổi (sửa/xóa) ở trang chi tiết.
-    if (changed == true && mounted) _load(page: _currentPage);
+    if (changed && mounted) _load(page: _currentPage);
   }
 
   void _showFilterSheet() async {

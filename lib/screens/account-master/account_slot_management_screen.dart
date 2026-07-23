@@ -292,7 +292,7 @@ class _AccountSlotManagementScreenState
                                 ),
                               ),
                               ChoiceChip(
-                                label: const Text('Active'),
+                                label: const Text('Hoạt động'),
                                 selected: _selectedIsActive == true,
                                 showCheckmark: false,
                                 labelStyle: const TextStyle(fontSize: 12),
@@ -302,7 +302,7 @@ class _AccountSlotManagementScreenState
                                 ),
                               ),
                               ChoiceChip(
-                                label: const Text('Inactive'),
+                                label: const Text('Không hoạt động'),
                                 selected: _selectedIsActive == false,
                                 showCheckmark: false,
                                 labelStyle: const TextStyle(fontSize: 12),
@@ -321,6 +321,7 @@ class _AccountSlotManagementScreenState
                             children: [
                               for (final entry in {
                                 'Tất cả': null,
+                                '≤ 0': 0,
                                 '≤ 1': 1,
                                 '≤ 3': 3,
                                 '≤ 5': 5,
@@ -452,7 +453,7 @@ class _AccountSlotManagementScreenState
         ),
       if (_selectedIsActive != null)
         _ActiveFilterChip(
-          label: _selectedIsActive! ? 'Active' : 'Inactive',
+          label: _selectedIsActive! ? 'Hoạt động' : 'Không hoạt động',
           onDeleted: () => _removeFilter(() => _selectedIsActive = null),
         ),
       if (_selectedDaysRemaining != null)
@@ -1237,10 +1238,7 @@ class _AccountSlotManagementScreenState
 // ── Helper widgets ────────────────────────────────────────────────────────────
 
 class _ActiveFilterChip extends StatelessWidget {
-  const _ActiveFilterChip({
-    required this.label,
-    required this.onDeleted,
-  });
+  const _ActiveFilterChip({required this.label, required this.onDeleted});
 
   final String label;
   final VoidCallback onDeleted;
@@ -1251,14 +1249,14 @@ class _ActiveFilterChip extends StatelessWidget {
       label: Text(label, style: const TextStyle(fontSize: 12)),
       deleteIcon: const Icon(Icons.close, size: 14),
       onDeleted: onDeleted,
-      visualDensity: VisualDensity.compact,
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      // visualDensity: VisualDensity.compact,
+      // materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       padding: EdgeInsets.zero,
-      labelPadding: const EdgeInsets.only(left: 8, right: 2),
-      deleteIconBoxConstraints: const BoxConstraints(
-        minWidth: 22,
-        minHeight: 22,
-      ),
+      // labelPadding: const EdgeInsets.only(left: 8, right: 2),
+      // deleteIconBoxConstraints: const BoxConstraints(
+      //   minWidth: 22,
+      //   minHeight: 22,
+      // ),
     );
   }
 }
