@@ -241,6 +241,8 @@ class _AccountMasterBrowserScreenState
         _showAccountInfo();
       case 'save_cookie':
         _saveCookies();
+      case 'macro_scripts':
+        _showMacroSheet();
       case 'reload':
         _webController?.reload();
       case 'minimize':
@@ -624,6 +626,244 @@ class _AccountMasterBrowserScreenState
     );
   }
 
+  void _showMacroSheet() {
+    final account = _accountMaster;
+    final serviceType = account.serviceType;
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (sheetContext) {
+        final colorScheme = Theme.of(sheetContext).colorScheme;
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: colorScheme.outlineVariant,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Text(
+                'Macro Scripts',
+                style: Theme.of(sheetContext).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Chọn kịch bản tự động hóa cho trang web',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 16),
+              if (serviceType == 'netflix') ...[
+                ListTile(
+                  leading: const Icon(Icons.devices_outlined),
+                  title: const Text('Netflix: Đăng xuất thiết bị theo Profile'),
+                  subtitle: const Text(
+                    'Tự động tải danh sách và đăng xuất thiết bị của Profile chỉ định',
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    Navigator.of(sheetContext).pop();
+                    _runNetflixLogoutDevicesMacro();
+                  },
+                ),
+                const Divider(),
+              ],
+              ListTile(
+                leading: const Icon(Icons.cleaning_services_outlined),
+                title: const Text('Xóa Session Storage & Tải lại'),
+                subtitle: const Text(
+                  'Xóa LocalStorage, SessionStorage và tải lại trang',
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () async {
+                  Navigator.of(sheetContext).pop();
+                  await _webController?.evaluateJavascript(
+                    source: '''
+                      localStorage.clear();
+                      sessionStorage.clear();
+                      location.reload();
+                    ''',
+                  );
+                  if (mounted) {
+                    Toastr.success('Đã xóa Session Storage & tải lại trang', context: context);
+                  }
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _runNetflixLogoutDevicesMacro() async {
+    final slots = _accountMaster.slots ?? [];
+    final slotNames = slots.map((s) => s.name.trim()).where((n) => n.isNotEmpty).toList();
+
+    final textController = TextEditingController(text: slotNames.isNotEmpty ? slotNames.first : '1');
+
+    final selectedName = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Đăng xuất thiết bị Netflix'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Nhập tên Profile (Hồ sơ) cần đăng xuất các thiết bị khỏi tài khoản Netflix:',
+                    style: TextStyle(fontSize: 13),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: textController,
+                    decoration: const InputDecoration(
+                      labelText: 'Tên Profile',
+                      hintText: 'Ví dụ: 1, 2, Profile A...',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  if (slotNames.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    const Text('Gợi ý từ danh sách Slot:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: slotNames.map((name) {
+                        return ActionChip(
+                          label: Text(name),
+                          onPressed: () {
+                            textController.text = name;
+                            setDialogState(() {});
+                          },
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Hủy'),
+                ),
+                FilledButton.icon(
+                  icon: const Icon(Icons.play_arrow),
+                  label: const Text('Chạy Macro'),
+                  onPressed: () {
+                    final value = textController.text.trim();
+                    if (value.isNotEmpty) {
+                      Navigator.of(dialogContext).pop(value);
+                    }
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (selectedName == null || selectedName.isEmpty || !mounted) return;
+
+    Toastr.info('Đang chạy Macro đăng xuất hồ sơ "$selectedName"...', context: context);
+
+    final script = '''
+      (async function(profileName) {
+        if (!profileName || !profileName.trim()) {
+          console.error("[Macro] Vui lòng nhập tên hồ sơ!");
+          return { success: false, message: "Chưa nhập tên hồ sơ" };
+        }
+        
+        if (!location.href.includes('/manageaccountaccess')) {
+          console.log("[Macro] Đang chuyển hướng tới trang Quản lý thiết bị Netflix...");
+          location.href = 'https://www.netflix.com/manageaccountaccess';
+          return { success: false, message: "Đã chuyển hướng trang. Hãy đợi trang tải xong và bấm chạy lại macro." };
+        }
+
+        console.log(`[Macro] Bắt đầu tìm và đăng xuất thiết bị của hồ sơ: "\${profileName}"...`);
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        let expandCount = 0;
+        while (expandCount < 30) {
+          const showMoreBtn = document.querySelector('button[data-uia\$="show-more-button"]');
+
+          if (showMoreBtn && !showMoreBtn.disabled && showMoreBtn.offsetHeight > 0) {
+            showMoreBtn.click();
+            expandCount++;
+            await sleep(1200);
+          } else {
+            break;
+          }
+        }
+
+        const expandButtons = document.querySelectorAll('button[data-uia^="device-list"]');
+        for (const btn of expandButtons) {
+          btn.click();
+          await sleep(150);
+        }
+
+        const deviceItems = document.querySelectorAll('li[data-uia^="device-list+"]');
+        let signedOutCount = 0;
+        const targetNameLower = profileName.trim().toLowerCase();
+
+        for (const li of deviceItems) {
+          const profileEl = li.querySelector('p[data-uia\$="profile-name"]');
+          const profileText = (profileEl?.textContent || '').trim().toLowerCase();
+
+          if (profileText.includes(targetNameLower)) {
+            const deviceName = li.querySelector('h3[data-uia\$="title"]')?.textContent?.trim() || 'Thiết bị';
+            const signOutBtn = li.querySelector('button[data-uia\$="sign-out-button"]');
+            
+            if (signOutBtn) {
+              li.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              signOutBtn.click();
+              signedOutCount++;
+              console.log(`[Macro] Đã đăng xuất hồ sơ "\${profileName}" khỏi: \${deviceName}`);
+              await sleep(500);
+            }
+          }
+        }
+
+        console.log(`[Macro] Hoàn tất! Đã đăng xuất \${signedOutCount} thiết bị của hồ sơ "\${profileName}".`);
+        return { success: true, count: signedOutCount };
+      })('${selectedName.replaceAll("'", "\\'")}');
+    ''';
+
+    try {
+      await _webController?.evaluateJavascript(source: script);
+      if (mounted) {
+        Toastr.success('Đã gửi kịch bản đăng xuất đến trình duyệt. Mở Console Log để xem chi tiết.', context: context);
+      }
+    } catch (e) {
+      if (mounted) {
+        Toastr.error('Lỗi khi chạy kịch bản: $e', context: context);
+      }
+    }
+  }
+
   PreferredSizeWidget _buildBrowserAppBar() {
     final account = _accountMaster;
     final colorScheme = Theme.of(context).colorScheme;
@@ -772,6 +1012,16 @@ class _AccountMasterBrowserScreenState
                 Icon(Icons.save_outlined, size: 18),
                 SizedBox(width: 12),
                 Text('Lưu cookie'),
+              ],
+            ),
+          ),
+          const PopupMenuItem(
+            value: 'macro_scripts',
+            child: Row(
+              children: [
+                Icon(Icons.play_circle_outline, size: 18),
+                SizedBox(width: 12),
+                Text('Macro Scripts'),
               ],
             ),
           ),
