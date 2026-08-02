@@ -21,7 +21,7 @@ class AccountMasterBrowserService {
     }
 
     return switch (serviceType) {
-      'netflix' => 'https://www.netflix.com/',
+      'netflix' => 'https://www.netflix.com/account/profiles',
       'youtube' => 'https://www.youtube.com/',
       'google_one' => 'https://one.google.com/',
       'chatgpt' => 'https://chatgpt.com/',
@@ -98,8 +98,9 @@ class AccountMasterBrowserService {
       domain: cookieDomain,
       fallbackHost: uri.host,
     );
-    final defaultExpires =
-        DateTime.now().add(const Duration(days: 365)).millisecondsSinceEpoch;
+    final defaultExpires = DateTime.now()
+        .add(const Duration(days: 365))
+        .millisecondsSinceEpoch;
     final isHttps = uri.scheme == 'https';
 
     for (final entry in parsed) {
@@ -137,7 +138,9 @@ class AccountMasterBrowserService {
 
     if (filtered.isEmpty) return '';
 
-    return filtered.map((cookie) => '${cookie.name}=${cookie.value}').join('; ');
+    return filtered
+        .map((cookie) => '${cookie.name}=${cookie.value}')
+        .join('; ');
   }
 
   static bool _shouldUseHttpOnly(String name) {
@@ -186,8 +189,9 @@ class AccountMasterBrowserService {
     final rawDomain = cookie.domain?.toLowerCase() ?? '';
     if (rawDomain.isEmpty) return true;
 
-    final domain =
-        rawDomain.startsWith('.') ? rawDomain.substring(1) : rawDomain;
+    final domain = rawDomain.startsWith('.')
+        ? rawDomain.substring(1)
+        : rawDomain;
     return host == domain || host.endsWith('.$domain') || domain.endsWith(host);
   }
 

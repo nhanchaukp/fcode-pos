@@ -59,6 +59,8 @@ class AccountMaster {
 
   final Supply? supply;
 
+  final bool? hasExpenseThisMonth;
+
   AccountMaster({
     required this.id,
     required this.name,
@@ -81,6 +83,7 @@ class AccountMaster {
     this.externalSrc,
     this.externalConfig,
     this.supply,
+    this.hasExpenseThisMonth,
   });
 
   factory AccountMaster.fromJson(Map<String, dynamic> map) {
@@ -120,6 +123,11 @@ class AccountMaster {
       supply: map['supply'] != null
           ? Supply.fromJson(map['supply'] as Map<String, dynamic>)
           : null,
+      hasExpenseThisMonth:
+          map['has_expense_this_month'] == true ||
+              map['has_expense_this_month'] == 1
+          ? true
+          : null, // null means not checked yet
     );
   }
 
@@ -146,6 +154,7 @@ class AccountMaster {
       'external_src': externalSrc,
       'external_config': externalConfig,
       'supply': supply?.toMap(),
+      'has_expense_this_month': hasExpenseThisMonth,
     };
   }
 }

@@ -1,14 +1,15 @@
 import 'package:fcode_pos/config/environment.dart';
 import 'package:fcode_pos/enums.dart' as enums;
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/loading_icon.dart';
 import 'package:fcode_pos/ui/components/quantity_input.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/models/dto/product_update_data.dart';
 import 'package:fcode_pos/services/product_service.dart';
 import 'package:fcode_pos/api/api_exception.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:markdown_editor_plus/markdown_editor_plus.dart';
 import 'package:fcode_pos/ui/components/money_form_field.dart';
 
@@ -171,35 +172,44 @@ class _ProductEditScreenState extends State<ProductEditScreen> {
     }
   }
 
-  Future<void> _shareLink() async {
+  Future<void> _copyProductUrl() async {
     final url = '${Environment.baseURL}/${_product.slug}';
-    try {
-      await SharePlus.instance.share(ShareParams(text: url, title: url));
-    } catch (e) {
-      Toastr.error('Không thể chia sẻ liên kết sản phẩm.');
+    await Clipboard.setData(ClipboardData(text: url));
+    if (mounted) {
+      Toastr.success('Đã copy URL sản phẩm');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Cập nhật sản phẩm'),
-        actions: [
-          IconButton(
-            onPressed: _isLoading ? null : _shareLink,
-            visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.share_outlined),
+    return AppScaffold(
+      title: 'Cập nhật sản phẩm',
+      actions: [
+        IconButton(
+          tooltip: 'Copy URL sản phẩm',
+          visualDensity: VisualDensity.compact,
+          onPressed: _copyProductUrl,
+          icon: const Icon(Icons.link),
+        ),
+        IconButton(
+          tooltip: 'Lưu',
+          visualDensity: VisualDensity.compact,
+          onPressed: _isLoading || _isDetailLoading ? null : _submit,
+          icon: LoadingIcon(
+            icon: Icons.check,
+            loading: _isLoading,
           ),
-        ],
-      ),
-      body: _isDetailLoading
+        ),
+      ],
+      body: (context, scrollController) => _isDetailLoading
           ? const Center(child: CircularProgressIndicator())
           : Form(
               key: _formKey,
               child: ListView(
+                controller: scrollController,
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                physics: const AlwaysScrollableScrollPhysics(),
                 children: [
                   if (_error != null) ...[
                     Container(

@@ -1,4 +1,5 @@
 import 'package:fcode_pos/screens/account-master/account_slot_management_screen.dart';
+import 'package:fcode_pos/screens/account-master/account_master_stats_screen.dart';
 import 'package:fcode_pos/screens/account-vault/account_vault_list_screen.dart';
 import 'package:fcode_pos/screens/customer/customer_list_screen.dart';
 import 'package:fcode_pos/screens/customer/customer_stats_screen.dart';
@@ -155,6 +156,12 @@ class ProductHubScreen extends StatelessWidget {
           AmazingIconBulk.profile2user,
           Colors.indigo,
           (c) => const CustomerStatsScreen(),
+        ),
+        _Item(
+          'Tài khoản chính',
+          AmazingIconBulk.key,
+          Colors.indigo,
+          (c) => const AccountMasterStatsScreen(),
         ),
       ],
     ),

@@ -2,6 +2,7 @@ import 'package:fcode_pos/services/api_service.dart';
 import 'package:fcode_pos/services/api/api_response.dart';
 import 'package:fcode_pos/models/dto/account_expense_create_data.dart';
 import 'package:fcode_pos/models/dto/account_master_data.dart';
+import 'package:fcode_pos/models/dto/account_master_filter.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/utils/functions.dart';
 
@@ -18,6 +19,26 @@ class AccountMasterService {
       '/account-master',
       queryParameters: {'is_active': ?isActive, 'service_type': ?serviceType},
       parser: (json) => _parseAccountMasterList(json),
+    );
+  }
+
+  Future<ApiResponse<List<AccountMaster>>> filter({
+    required AccountMasterFilter filter,
+  }) {
+    return _api.get<List<AccountMaster>>(
+      '/account-master/filter',
+      queryParameters: filter.toJson(),
+      parser: (json) => _parseAccountMasterList(json),
+    );
+  }
+
+  Future<ApiResponse<AccountMasterStats>> stats({
+    required AccountMasterFilter filter,
+  }) {
+    return _api.get<AccountMasterStats>(
+      '/account-master/stats',
+      queryParameters: filter.toJson(),
+      parser: (json) => AccountMasterStats.fromJson(ensureMap(json)),
     );
   }
 
@@ -61,10 +82,7 @@ class AccountMasterService {
     );
   }
 
-  Future<ApiResponse<AccountMaster>> update(
-    int id,
-    AccountMasterData data,
-  ) {
+  Future<ApiResponse<AccountMaster>> update(int id, AccountMasterData data) {
     return _api.put<AccountMaster>(
       '/account-master/$id',
       data: data.toJson(),

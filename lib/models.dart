@@ -6,6 +6,8 @@ import 'package:fcode_pos/enums.dart' as enums;
 import 'package:fcode_pos/enums.dart';
 import 'utils/extensions.dart';
 
+export 'models/account_master_stats.dart';
+
 part 'models/model.dart';
 part 'models/user.dart';
 part 'models/order.dart';
