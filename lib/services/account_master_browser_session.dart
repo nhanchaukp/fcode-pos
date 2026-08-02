@@ -67,6 +67,8 @@ class AccountMasterBrowserSession {
       initialSettings: AccountMasterBrowserService.defaultSettings(),
       onWebViewCreated: (controller) async {
         webController = controller;
+        await InAppWebViewController.clearAllCache();
+        await _browserService.clearSession();
         if (injectAccountCookies) {
           await _browserService.injectCookies(
             cookies: accountMaster.cookies,

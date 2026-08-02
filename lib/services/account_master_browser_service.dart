@@ -73,6 +73,9 @@ class AccountMasterBrowserService {
           WebsiteDataType.WKWebsiteDataTypeIndexedDBDatabases,
           WebsiteDataType.WKWebsiteDataTypeDiskCache,
           WebsiteDataType.WKWebsiteDataTypeMemoryCache,
+          WebsiteDataType.WKWebsiteDataTypeWebSQLDatabases,
+          WebsiteDataType.WKWebsiteDataTypeFetchCache,
+          WebsiteDataType.WKWebsiteDataTypeServiceWorkerRegistrations,
         },
         date: DateTime.fromMillisecondsSinceEpoch(0),
       );
@@ -227,6 +230,7 @@ class AccountMasterBrowserService {
       domStorageEnabled: true,
       databaseEnabled: true,
       cacheEnabled: true,
+      clearCache: true,
       sharedCookiesEnabled: true,
       thirdPartyCookiesEnabled: true,
       useShouldOverrideUrlLoading: false,
