@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:fcode_pos/config/google_config.dart';
+import 'package:fcode_pos/services/notification_service.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -31,6 +33,7 @@ class AppInitializer {
     await _setupDeviceOrientation();
     await _setupLocaleData();
     await _setupGoogleSignIn();
+    await _setupFirebaseAndNotifications();
   }
 
   static void _setupToastr(ThemeMode themeMode) {
@@ -95,6 +98,18 @@ class AppInitializer {
       await GoogleSignIn.instance.initialize(clientId: clientId);
     } catch (_) {
       // Không block app startup nếu Google Sign-In chưa được cấu hình
+    }
+  }
+
+  /// Khởi tạo Firebase SDK & NotificationService (APNs + FCM)
+  static Future<void> _setupFirebaseAndNotifications() async {
+    try {
+      await Firebase.initializeApp();
+      await NotificationService.instance.initialize();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Firebase/Notification initialization skipped or failed: $e');
+      }
     }
   }
 }

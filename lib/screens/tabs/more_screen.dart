@@ -6,8 +6,9 @@ import 'package:fcode_pos/screens/developer/developer_screen.dart';
 import 'package:fcode_pos/screens/login_screen.dart';
 import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/app_switch_tile.dart';
-import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:fcode_pos/ui/components/badge/status_badges.dart';
+import 'package:fcode_pos/ui/components/in_app_browser.dart';
+import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -271,11 +272,10 @@ class MoreScreen extends ConsumerWidget {
                 color: colorScheme.onSurfaceVariant,
               ),
               onTap: () {
-                _showPlaceholderDialog(
+                InAppBrowser.open(
                   context,
+                  url: 'https://fcode.vn/page/dieu-khoan-su-dung',
                   title: 'Điều khoản sử dụng',
-                  content:
-                      'Nội dung điều khoản sẽ được cập nhật trong phiên bản sắp tới.',
                 );
               },
             ),
