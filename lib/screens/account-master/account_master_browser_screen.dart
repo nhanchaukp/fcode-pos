@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:fcode_pos/enums.dart' as enums;
 import 'package:fcode_pos/models/dto/account_master_data.dart';
 import 'package:fcode_pos/models.dart';
@@ -239,6 +240,8 @@ class _AccountMasterBrowserScreenState
     switch (value) {
       case 'account_info':
         _showAccountInfo();
+      case 'get_all_code':
+        _showGetAllCodeBottomSheet();
       case 'save_cookie':
         _saveCookies();
       case 'macro_scripts':
@@ -892,52 +895,39 @@ class _AccountMasterBrowserScreenState
                 ),
                 AppBar(
                   automaticallyImplyLeading: false,
-                  leadingWidth: _isEditingAddress ? 48 : 96,
+                  leadingWidth: _isEditingAddress ? 40 : 0,
                   leading: _isEditingAddress
                       ? IconButton(
-                          icon: const Icon(Icons.close),
+                          icon: const Icon(Icons.close, size: 20),
                           tooltip: 'Hủy nhập địa chỉ',
                           onPressed: _hideAddressEditor,
                         )
-                      : Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.arrow_back),
-                              tooltip: 'Quay lại trang trước',
-                              onPressed: _canGoBack ? _goBack : null,
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.arrow_forward),
-                              tooltip: 'Tiến tới trang sau',
-                              onPressed: _canGoForward ? _goForward : null,
-                            ),
-                          ],
-                        ),
+                      : null,
                   title: _isEditingAddress
                       ? TextField(
                           controller: _addressController,
                           focusNode: _addressFocusNode,
-                          style: const TextStyle(fontSize: 14),
+                          style: const TextStyle(fontSize: 13),
                           keyboardType: TextInputType.url,
                           textInputAction: TextInputAction.go,
                           autocorrect: false,
                           decoration: InputDecoration(
-                            hintText: 'Nhập địa chỉ web',
+                            hintText: 'Nhập địa chỉ web...',
                             prefixIcon: Icon(
                               Icons.public,
-                              size: 20,
+                              size: 16,
                               color: colorScheme.onSurfaceVariant,
                             ),
                             isDense: true,
                             filled: true,
                             fillColor: colorScheme.surfaceContainerHighest,
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(8),
                               borderSide: BorderSide.none,
                             ),
                             contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
+                              horizontal: 8,
+                              vertical: 6,
                             ),
                           ),
                           onSubmitted: _navigateToAddress,
@@ -950,15 +940,16 @@ class _AccountMasterBrowserScreenState
                             children: [
                               Text(
                                 account.name,
-                                style: const TextStyle(fontSize: 16),
+                                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
                                 _pageTitle ?? _initialUrl,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.normal,
+                                  color: colorScheme.onSurfaceVariant,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -994,6 +985,17 @@ class _AccountMasterBrowserScreenState
         icon: const Icon(Icons.more_vert),
         onSelected: _handleMenuAction,
         itemBuilder: (context) => [
+          if (_isNetflix)
+            const PopupMenuItem(
+              value: 'get_all_code',
+              child: Row(
+                children: [
+                  Icon(Icons.key, size: 18),
+                  SizedBox(width: 12),
+                  Text('Lấy mã Netflix'),
+                ],
+              ),
+            ),
           const PopupMenuItem(
             value: 'account_info',
             child: Row(
@@ -1091,6 +1093,89 @@ class _AccountMasterBrowserScreenState
 
   bool get _canShowWebView => _webViewAttached || _session.canAttachWebView;
 
+  bool get _isNetflix =>
+      _accountMaster.serviceType == enums.AccountMasterServiceType.netflix.value ||
+      _accountMaster.serviceType == 'netflix';
+
+  void _showGetAllCodeBottomSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (sheetContext) {
+        return _GetAllCodeBottomSheet(
+          accountMaster: _accountMaster,
+          accountMasterService: _accountMasterService,
+          webController: _webController,
+        );
+      },
+    );
+  }
+
+  double _bottomBarHeight(BuildContext context) {
+    return 56.0 + MediaQuery.paddingOf(context).bottom;
+  }
+
+  Widget _buildBottomBar(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      height: _bottomBarHeight(context),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(
+          top: BorderSide(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+          ),
+        ),
+      ),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.paddingOf(context).bottom,
+        left: 8,
+        right: 8,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back),
+            tooltip: 'Quay lại',
+            onPressed: _canGoBack ? _goBack : null,
+          ),
+          IconButton(
+            icon: const Icon(Icons.arrow_forward),
+            tooltip: 'Tiến tới',
+            onPressed: _canGoForward ? _goForward : null,
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Tải lại trang',
+            onPressed: () => _webController?.reload(),
+          ),
+          if (_isNetflix)
+            FilledButton.icon(
+              onPressed: _showGetAllCodeBottomSheet,
+              icon: const Icon(Icons.key, size: 18),
+              label: const Text('Lấy mã'),
+            ),
+          IconButton(
+            icon: const Icon(Icons.play_circle_outline),
+            tooltip: 'Macro Scripts',
+            onPressed: _showMacroSheet,
+          ),
+          IconButton(
+            icon: const Icon(Icons.info_outline),
+            tooltip: 'Thông tin tài khoản',
+            onPressed: _showAccountInfo,
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildInAppWebView() {
     if (_webViewWidget != null) {
       return _webViewWidget!;
@@ -1128,6 +1213,7 @@ class _AccountMasterBrowserScreenState
     final colorScheme = Theme.of(context).colorScheme;
     final webViewTop = _webViewTop(context);
     final canShowWebView = _canShowWebView;
+    final bottomBarHeight = _bottomBarHeight(context);
 
     return PopScope(
       canPop: false,
@@ -1173,17 +1259,373 @@ class _AccountMasterBrowserScreenState
                         const Expanded(child: SizedBox()),
                       ],
                     ),
+              bottomNavigationBar: _buildBottomBar(context),
             ),
           ),
           if (canShowWebView)
             Positioned(
               left: 0,
               right: 0,
-              bottom: 0,
+              bottom: bottomBarHeight,
               top: webViewTop,
               child: _buildInAppWebView(),
             ),
         ],
+      ),
+    );
+  }
+}
+
+class _GetAllCodeBottomSheet extends StatefulWidget {
+  final AccountMaster accountMaster;
+  final AccountMasterService accountMasterService;
+  final InAppWebViewController? webController;
+
+  const _GetAllCodeBottomSheet({
+    required this.accountMaster,
+    required this.accountMasterService,
+    this.webController,
+  });
+
+  @override
+  State<_GetAllCodeBottomSheet> createState() => _GetAllCodeBottomSheetState();
+}
+
+class _GetAllCodeBottomSheetState extends State<_GetAllCodeBottomSheet> {
+  bool _isLoading = true;
+  String? _error;
+  dynamic _data;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final response = await widget.accountMasterService.getAllCode(
+        widget.accountMaster.id,
+      );
+      if (!mounted) return;
+
+      if (response.success) {
+        setState(() {
+          _data = response.data;
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _error = response.message ?? 'Không thể lấy danh sách mã';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = 'Lỗi: $e';
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _copyToClipboard(BuildContext context, String text, String label) {
+    Clipboard.setData(ClipboardData(text: text));
+    Toastr.success('Đã sao chép $label', context: context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.55,
+      minChildSize: 0.35,
+      maxChildSize: 0.85,
+      builder: (sheetContext, scrollController) {
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primaryContainer,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.key_outlined,
+                      color: colorScheme.onPrimaryContainer,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Mã Netflix',
+                          style: Theme.of(sheetContext)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          widget.accountMaster.name,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.refresh),
+                    tooltip: 'Tải lại mã',
+                    onPressed: _isLoading ? null : _fetchData,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(sheetContext).pop(),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: _buildBody(sheetContext, scrollController, colorScheme),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildBody(
+    BuildContext context,
+    ScrollController scrollController,
+    ColorScheme colorScheme,
+  ) {
+    if (_isLoading) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text('Đang gọi API lấy mã...'),
+          ],
+        ),
+      );
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 48, color: colorScheme.error),
+              const SizedBox(height: 12),
+              Text(
+                _error!,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: colorScheme.error),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: _fetchData,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Thử lại'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_data == null) {
+      return const Center(child: Text('Không có dữ liệu trả về'));
+    }
+
+    return ListView(
+      controller: scrollController,
+      padding: const EdgeInsets.all(16),
+      children: [
+        _buildParsedContent(context, colorScheme),
+        const SizedBox(height: 16),
+        ExpansionTile(
+          title: const Text('Xem JSON gốc', style: TextStyle(fontSize: 13)),
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: SelectableText(
+                const JsonEncoder.withIndent('  ').convert(_data),
+                style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildParsedContent(BuildContext context, ColorScheme colorScheme) {
+    final data = _data;
+
+    if (data is String) {
+      return _buildCodeCard(context, colorScheme, label: 'Mã / Link', value: data);
+    }
+
+    if (data is List) {
+      if (data.isEmpty) {
+        return const Center(child: Text('Danh sách mã trống'));
+      }
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: data.asMap().entries.map((entry) {
+          final idx = entry.key + 1;
+          final item = entry.value;
+          if (item is Map) {
+            final code = item['code'] ?? item['pin'] ?? item['otp'] ?? item['link'] ?? (item.values.isNotEmpty ? item.values.first : null);
+            return _buildCodeCard(
+              context,
+              colorScheme,
+              label: 'Mã #$idx',
+              value: code?.toString() ?? item.toString(),
+              subtitle: item['title']?.toString() ?? item['name']?.toString() ?? item['url']?.toString(),
+            );
+          }
+          return _buildCodeCard(
+            context,
+            colorScheme,
+            label: 'Mã #$idx',
+            value: item.toString(),
+          );
+        }).toList(),
+      );
+    }
+
+    if (data is Map) {
+      final entries = data.entries.toList();
+      if (entries.isEmpty) {
+        return const Center(child: Text('Dữ liệu trống'));
+      }
+      return Column(
+        children: entries.map((e) {
+          return _buildCodeCard(
+            context,
+            colorScheme,
+            label: e.key.toString(),
+            value: e.value?.toString() ?? '',
+          );
+        }).toList(),
+      );
+    }
+
+    return SelectableText(data.toString());
+  }
+
+  Widget _buildCodeCard(
+    BuildContext context,
+    ColorScheme colorScheme, {
+    required String label,
+    required String value,
+    String? subtitle,
+  }) {
+    final isUrl = value.startsWith('http://') || value.startsWith('https://');
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 0,
+      color: colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: colorScheme.outlineVariant),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.primary,
+                  ),
+                ),
+                if (subtitle != null) ...[
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 8),
+            SelectableText(
+              value,
+              style: TextStyle(
+                fontSize: isUrl ? 13 : 18,
+                fontWeight: isUrl ? FontWeight.normal : FontWeight.bold,
+                fontFamily: isUrl ? null : 'monospace',
+                letterSpacing: isUrl ? null : 1.2,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                if (isUrl && widget.webController != null) ...[
+                  TextButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      widget.webController?.loadUrl(
+                        urlRequest: URLRequest(url: WebUri(value)),
+                      );
+                    },
+                    icon: const Icon(Icons.open_in_browser, size: 16),
+                    label: const Text('Mở trang này'),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                FilledButton.tonalIcon(
+                  onPressed: () => _copyToClipboard(context, value, label),
+                  icon: const Icon(Icons.copy, size: 16),
+                  label: const Text('Sao chép'),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

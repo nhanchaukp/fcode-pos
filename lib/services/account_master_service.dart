@@ -56,6 +56,32 @@ class AccountMasterService {
     );
   }
 
+  Future<ApiResponse<dynamic>> getAllCode(int id) {
+    return _api.get<dynamic>(
+      '/account-master/$id/get-all-code',
+      parser: (json) => json,
+    );
+  }
+
+  Future<ApiResponse<List<String>>> getExternalSources() {
+    return _api.get<List<String>>(
+      '/account-master/external-sources',
+      parser: (json) {
+        if (json is List) {
+          return json.map((e) => e.toString()).toList(growable: false);
+        }
+        if (json is Map) {
+          final items = json['items'] ?? json['data'] ?? json['external_sources'];
+          if (items is List) {
+            return items.map((e) => e.toString()).toList(growable: false);
+          }
+          return json.values.map((e) => e.toString()).toList(growable: false);
+        }
+        return <String>[];
+      },
+    );
+  }
+
   Future<ApiResponse<AccountMaster>> create(AccountMasterData data) {
     return _api.post<AccountMaster>(
       '/account-master',

@@ -8,6 +8,7 @@ import 'package:fcode_pos/config/environment.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/models/dto/login_result.dart';
 import 'package:fcode_pos/services/api_service.dart';
+import 'package:fcode_pos/services/notification_service.dart';
 import 'package:fcode_pos/storage/secure_storage.dart';
 import 'package:fcode_pos/storage/user_prefs.dart';
 
@@ -110,6 +111,9 @@ class AuthService {
   }
 
   Future<void> logout() async {
+    try {
+      await NotificationService.instance.deleteTokenFromServer();
+    } catch (_) {}
     await clearAuthSession();
     await SecureStorage.clear();
     await UserPrefs.clear();

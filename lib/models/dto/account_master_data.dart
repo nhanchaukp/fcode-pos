@@ -13,6 +13,8 @@ class AccountMasterData {
   final String? cookies;
   final String? details;
   final int? supplyId;
+  final String? externalSrc;
+  final Map<String, dynamic>? externalConfig;
 
   const AccountMasterData({
     required this.name,
@@ -29,6 +31,8 @@ class AccountMasterData {
     this.cookies,
     this.details,
     this.supplyId,
+    this.externalSrc,
+    this.externalConfig,
   });
 
   Map<String, dynamic> toJson() {
@@ -47,6 +51,9 @@ class AccountMasterData {
       if (cookies != null && cookies!.isNotEmpty) 'cookies': cookies,
       if (details != null && details!.isNotEmpty) 'details': details,
       if (supplyId != null) 'supply_id': supplyId,
+      if (externalSrc != null && externalSrc!.isNotEmpty) 'external_src': externalSrc,
+      if (externalConfig != null && externalConfig!.isNotEmpty)
+        'external_config': externalConfig,
     };
   }
 }

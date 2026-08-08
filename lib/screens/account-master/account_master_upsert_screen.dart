@@ -4,8 +4,10 @@ import 'package:fcode_pos/models/dto/account_master_data.dart';
 import 'package:fcode_pos/screens/account-master/account_master_detail_screen.dart';
 import 'package:fcode_pos/services/account_master_service.dart';
 import 'package:fcode_pos/ui/components/app_switch_tile.dart';
+import 'package:fcode_pos/ui/components/dropdown/account_master_external_source_dropdown.dart';
 import 'package:fcode_pos/ui/components/dropdown/account_master_service_type_dropdown.dart';
 import 'package:fcode_pos/ui/components/dropdown/supply_dropdown.dart';
+import 'package:fcode_pos/ui/components/key_value_editor.dart';
 import 'package:fcode_pos/ui/components/money_form_field.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +26,7 @@ class AccountMasterUpsertScreen extends StatefulWidget {
 
 class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _keyValueEditorKey = GlobalKey<KeyValueEditorState>();
   late AccountMasterService _accountMasterService;
 
   // Form controllers
@@ -37,6 +40,7 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
   late TextEditingController _costNotesController;
   late TextEditingController _cookiesController;
   late TextEditingController _detailsController;
+  String? _externalSrc;
 
   DateTime? _paymentDate;
   Supply? _selectedSupply;
@@ -69,6 +73,7 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
     );
     _cookiesController = TextEditingController(text: account?.cookies ?? '');
     _detailsController = TextEditingController(text: account?.details ?? '');
+    _externalSrc = account?.externalSrc;
 
     _paymentDate = account?.paymentDate;
     _selectedSupply = account?.supply;
@@ -111,6 +116,8 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
       return;
     }
 
+    final parsedExternalConfig = _keyValueEditorKey.currentState?.getValueMap();
+
     setState(() {
       _isLoading = true;
     });
@@ -141,6 +148,10 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
             ? null
             : _detailsController.text.trim(),
         supplyId: _selectedSupply?.id,
+        externalSrc: (_externalSrc != null && _externalSrc!.trim().isNotEmpty)
+            ? _externalSrc!.trim()
+            : null,
+        externalConfig: parsedExternalConfig,
       );
 
       if (_isUpdate) {
@@ -397,6 +408,34 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
               maxLines: 2,
             ),
             const SizedBox(height: 16),
+
+            // External Src Dropdown
+            AccountMasterExternalSourceDropdown(
+              initialValue: _externalSrc,
+              labelText: 'Nguồn ngoài',
+              onChanged: (value) {
+                setState(() {
+                  _externalSrc = value;
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // External Config Editor
+            Text(
+              'Cấu hình ngoài (external_config)',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 6),
+            KeyValueEditor(
+              key: _keyValueEditorKey,
+              initialValue: widget.accountMaster?.externalConfig,
+            ),
+            const SizedBox(height: 24),
 
             // Submit Button
             FilledButton.icon(

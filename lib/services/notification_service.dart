@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+import 'package:fcode_pos/services/deep_link_service.dart';
+import 'package:fcode_pos/services/fcm_token_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -28,14 +31,14 @@ class NotificationService {
 
   bool _isInitialized = false;
 
-  /// Kênh thông báo Android cho foreground notifications
+  /// Kênh thông báo Android cho foreground notifications cho đơn hàng POS Admin
   static const AndroidNotificationChannel _androidChannel =
       AndroidNotificationChannel(
-    'high_importance_channel', // id
-    'High Importance Notifications', // title
+    'pos_orders_channel', // id
+    'Đơn hàng POS Admin', // title
     description:
-        'This channel is used for important notifications.', // description
-    importance: Importance.high,
+        'Kênh nhận thông báo đơn hàng mới và cập nhật trạng thái đơn hàng.', // description
+    importance: Importance.max,
   );
 
   /// Khởi tạo Firebase Messaging và APNs / Local Notifications
@@ -66,10 +69,22 @@ class NotificationService {
       sound: true,
     );
 
-    // 4. Khởi tạo Local Notifications (hiển thị banner khi app đang mở ở foreground trên Android)
+    // 4. Subscribe topic chung cho POS Admin
+    try {
+      await _messaging.subscribeToTopic('pos_admin');
+      if (kDebugMode) {
+        print('Subscribed to FCM topic: pos_admin');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error subscribing to FCM topic pos_admin: $e');
+      }
+    }
+
+    // 5. Khởi tạo Local Notifications (hiển thị banner khi app đang mở ở foreground trên Android)
     await _initLocalNotifications(onNotificationOpened);
 
-    // 5. Đăng ký các Listeners lắng nghe tin nhắn
+    // 6. Đăng ký các Listeners lắng nghe tin nhắn
     _setupMessageListeners(onNotificationOpened);
 
     _isInitialized = true;
@@ -98,8 +113,21 @@ class NotificationService {
     await _localNotifications.initialize(
       initSettings,
       onDidReceiveNotificationResponse: (response) {
-        if (response.payload != null && onNotificationOpened != null) {
-          // Xử lý khi bấm vào local notification
+        if (response.payload != null && response.payload!.isNotEmpty) {
+          try {
+            final data = jsonDecode(response.payload!) as Map<String, dynamic>;
+            final clickAction = data['click_action'] as String?;
+            final orderId = data['order_id'] as String?;
+            if (clickAction != null && clickAction.isNotEmpty) {
+              DeepLinkService.handleDeepLink(clickAction);
+            } else if (orderId != null && orderId.isNotEmpty) {
+              DeepLinkService.handleDeepLink('fcode://order/$orderId');
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print('Error handling local notification response: $e');
+            }
+          }
         }
       },
     );
@@ -112,6 +140,25 @@ class NotificationService {
     }
   }
 
+  /// Xử lý điều hướng khi bấm vào thông báo
+  void _handleNotificationMessage(RemoteMessage message) {
+    final data = message.data;
+    if (data.isEmpty) return;
+
+    if (kDebugMode) {
+      print('Processing notification payload: $data');
+    }
+
+    final clickAction = data['click_action'] as String?;
+    final orderId = data['order_id'] as String?;
+
+    if (clickAction != null && clickAction.isNotEmpty) {
+      DeepLinkService.handleDeepLink(clickAction);
+    } else if (orderId != null && orderId.isNotEmpty) {
+      DeepLinkService.handleDeepLink('fcode://order/$orderId');
+    }
+  }
+
   /// Lắng nghe các trạng thái thông báo: Foreground, Background Click, Terminated Click
   void _setupMessageListeners(
     Function(RemoteMessage message)? onNotificationOpened,
@@ -120,6 +167,7 @@ class NotificationService {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       if (kDebugMode) {
         print('Foreground Message received: ${message.notification?.title}');
+        print('Data payload: ${message.data}');
       }
 
       final notification = message.notification;
@@ -146,6 +194,7 @@ class NotificationService {
               presentSound: true,
             ),
           ),
+          payload: jsonEncode(message.data),
         );
       }
     });
@@ -155,6 +204,7 @@ class NotificationService {
       if (kDebugMode) {
         print('App opened from background via notification: ${message.data}');
       }
+      _handleNotificationMessage(message);
       onNotificationOpened?.call(message);
     });
 
@@ -164,17 +214,84 @@ class NotificationService {
         if (kDebugMode) {
           print('App opened from terminated state via notification: ${message.data}');
         }
+        _handleNotificationMessage(message);
         onNotificationOpened?.call(message);
       }
     });
 
     // 4. Tự động lắng nghe khi FCM Token được làm mới
-    _messaging.onTokenRefresh.listen((newToken) {
+    _messaging.onTokenRefresh.listen((newToken) async {
       if (kDebugMode) {
         print('FCM Token Refreshed: $newToken');
       }
-      // Gửi token mới lên server của bạn tại đây
+      try {
+        await FcmTokenService().registerToken(newToken);
+      } catch (e) {
+        if (kDebugMode) {
+          print('Error syncing refreshed FCM token: $e');
+        }
+      }
     });
+  }
+
+  /// Hiển thị Local Notification thử nghiệm (hoặc với khoảng hoãn delay)
+  Future<void> showLocalNotification({
+    required String title,
+    required String body,
+    String? payload,
+    Duration? delay,
+  }) async {
+    if (delay != null && delay.inMilliseconds > 0) {
+      await Future.delayed(delay);
+    }
+    final id = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    await _localNotifications.show(
+      id,
+      title,
+      body,
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          _androidChannel.id,
+          _androidChannel.name,
+          channelDescription: _androidChannel.description,
+          icon: '@mipmap/ic_launcher',
+          importance: Importance.max,
+          priority: Priority.high,
+        ),
+        iOS: const DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
+      payload: payload,
+    );
+  }
+
+  /// Đồng bộ FCM Token hiện tại lên Server
+  Future<void> syncTokenWithServer() async {
+    try {
+      final token = await getFCMToken();
+      if (token != null && token.isNotEmpty) {
+        await FcmTokenService().registerToken(token);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error syncing FCM Token to server: $e');
+      }
+    }
+  }
+
+  /// Xóa FCM Token khỏi Server khi người dùng đăng xuất
+  Future<void> deleteTokenFromServer() async {
+    try {
+      final token = await getFCMToken();
+      await FcmTokenService().deleteToken(fcmToken: token);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error deleting FCM Token from server: $e');
+      }
+    }
   }
 
   /// Lấy FCM Token thiết bị
