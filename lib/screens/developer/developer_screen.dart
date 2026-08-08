@@ -3,6 +3,7 @@ import 'package:fcode_pos/services/deep_link_service.dart';
 import 'package:fcode_pos/services/fcm_token_service.dart';
 import 'package:fcode_pos/services/notification_service.dart';
 import 'package:fcode_pos/ui/components/app_switch_tile.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:toastr_flutter/toastr.dart'
@@ -512,6 +513,60 @@ class _DeveloperScreenState extends State<DeveloperScreen> {
                   onPressed: () {
                     DeepLinkService.handleDeepLink('fcode://order/81');
                   },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // ── SECTION 2.5: FIREBASE CRASHLYTICS DEBUG (Collapsible) ─────────
+          _buildCollapsibleSection(
+            title: 'FIREBASE CRASHLYTICS DEBUG',
+            icon: Icons.bug_report_outlined,
+            iconColor: Colors.red,
+            initiallyExpanded: false,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Kiểm thử ghi nhận báo cáo sự cố & lỗi ứng dụng lên Firebase Crashlytics Console:',
+                  style: TextStyle(fontSize: 12),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    FilledButton.icon(
+                      style: FilledButton.styleFrom(backgroundColor: Colors.red.shade700),
+                      icon: const Icon(Icons.flash_on, size: 16),
+                      label: const Text('Thử nghiệm Crash (Force Crash)', style: TextStyle(fontSize: 12)),
+                      onPressed: () {
+                        Toastr.error('Ứng dụng sẽ crash để test Crashlytics...');
+                        FirebaseCrashlytics.instance.crash();
+                      },
+                    ),
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.report_problem_outlined, size: 16),
+                      label: const Text('Ghi lỗi thủ công (recordError)', style: TextStyle(fontSize: 12)),
+                      onPressed: () {
+                        try {
+                          throw Exception('Lỗi thử nghiệm từ Developer Screen');
+                        } catch (e, s) {
+                          FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'Manual Test Error');
+                          Toastr.success('Đã gửi lỗi thử nghiệm lên Crashlytics!');
+                        }
+                      },
+                    ),
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.note_add_outlined, size: 16),
+                      label: const Text('Ghi log tùy chỉnh (log)', style: TextStyle(fontSize: 12)),
+                      onPressed: () {
+                        FirebaseCrashlytics.instance.log('Developer tested Crashlytics log at ${DateTime.now()}');
+                        Toastr.info('Đã ghi log custom vào Crashlytics!');
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:fcode_pos/config/google_config.dart';
 import 'package:fcode_pos/services/notification_service.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -101,14 +102,26 @@ class AppInitializer {
     }
   }
 
-  /// Khởi tạo Firebase SDK & NotificationService (APNs + FCM)
+  /// Khởi tạo Firebase SDK, Firebase Crashlytics & NotificationService (APNs + FCM)
   static Future<void> _setupFirebaseAndNotifications() async {
     try {
       await Firebase.initializeApp();
+
+      // Catch Flutter framework UI errors
+      FlutterError.onError = (errorDetails) {
+        FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
+      };
+
+      // Catch uncaught asynchronous errors from PlatformDispatcher
+      PlatformDispatcher.instance.onError = (error, stack) {
+        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+        return true;
+      };
+
       await NotificationService.instance.initialize();
     } catch (e) {
       if (kDebugMode) {
-        print('Firebase/Notification initialization skipped or failed: $e');
+        print('Firebase/Notification/Crashlytics initialization skipped or failed: $e');
       }
     }
   }

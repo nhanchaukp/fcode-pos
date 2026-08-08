@@ -171,14 +171,14 @@ class NotificationService {
       }
 
       final notification = message.notification;
-      final android = message.notification?.android;
+      final title = notification?.title ?? message.data['title'] ?? message.data['order_code'];
+      final body = notification?.body ?? message.data['body'] ?? message.data['customer_name'];
 
-      // Hiển thị Banner bằng Local Notification nếu có thông báo
-      if (notification != null && (android != null || Platform.isIOS)) {
+      if (title != null && title.isNotEmpty) {
         _localNotifications.show(
-          notification.hashCode,
-          notification.title,
-          notification.body,
+          notification?.hashCode ?? DateTime.now().millisecondsSinceEpoch ~/ 1000,
+          title,
+          body ?? '',
           NotificationDetails(
             android: AndroidNotificationDetails(
               _androidChannel.id,
