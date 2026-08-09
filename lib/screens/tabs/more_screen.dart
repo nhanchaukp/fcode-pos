@@ -1,6 +1,7 @@
 import 'package:fcode_pos/config/theme_colors.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/providers/auth_provider.dart';
+import 'package:fcode_pos/providers/notification_provider.dart';
 import 'package:fcode_pos/providers/theme_provider.dart';
 import 'package:fcode_pos/screens/developer/developer_screen.dart';
 import 'package:fcode_pos/screens/login_screen.dart';
@@ -23,6 +24,9 @@ class MoreScreen extends ConsumerWidget {
     final themeNotifier = ref.read(themeModeProvider.notifier);
     final paletteIndex = ref.watch(themePaletteIndexProvider);
     final paletteNotifier = ref.read(themePaletteIndexProvider.notifier);
+    final notificationEnabled = ref.watch(notificationEnabledProvider);
+    final notificationNotifier =
+        ref.read(notificationEnabledProvider.notifier);
 
     final user = authState.asData?.value;
     final isLoading = authState.isLoading;
@@ -66,6 +70,32 @@ class MoreScreen extends ConsumerWidget {
             user: user,
             isLoading: isLoading,
             colorScheme: colorScheme,
+          ),
+
+          const SizedBox(height: 16),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+            child: Text(
+              'Thông báo',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: colorScheme.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          AppSwitchTile(
+            icon: notificationEnabled
+                ? Icons.notifications_active_outlined
+                : Icons.notifications_off_outlined,
+            title: 'Thông báo đẩy',
+            subtitle: notificationEnabled
+                ? 'Nhận thông báo đơn hàng mới và cập nhật trạng thái'
+                : 'Đã tắt nhận thông báo đẩy từ hệ thống',
+            value: notificationEnabled,
+            onChanged: (value) {
+              notificationNotifier.setNotificationEnabled(value);
+            },
           ),
 
           const SizedBox(height: 16),

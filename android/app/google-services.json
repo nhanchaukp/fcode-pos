@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "269764048781",
+    "project_id": "chauthainhan-devapps",
+    "storage_bucket": "chauthainhan-devapps.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:269764048781:android:ee4d5cf035fc32132fafc4",
+        "android_client_info": {
+          "package_name": "com.nhanchaukp.fcode.pos"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC0KsIIxv3y7aHWKsy7pVtEiGakfNwKTqs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -7,6 +7,7 @@ import 'package:fcode_pos/enums.dart';
 import 'utils/extensions.dart';
 
 export 'models/account_master_stats.dart';
+export 'models/dto/account_master_code_item.dart';
 
 part 'models/model.dart';
 part 'models/user.dart';

@@ -17,6 +17,7 @@ import 'package:toastr_flutter/toastr.dart'
         ToastrShowMethod,
         ToastrTheme;
 import 'package:window_manager/window_manager.dart';
+import 'package:fcode_pos/firebase_options.dart';
 
 /// A utility class for initializing the Flutter application.
 ///
@@ -105,7 +106,9 @@ class AppInitializer {
   /// Khởi tạo Firebase SDK, Firebase Crashlytics & NotificationService (APNs + FCM)
   static Future<void> _setupFirebaseAndNotifications() async {
     try {
-      await Firebase.initializeApp();
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
 
       // Catch Flutter framework UI errors
       FlutterError.onError = (errorDetails) {
@@ -121,7 +124,9 @@ class AppInitializer {
       await NotificationService.instance.initialize();
     } catch (e) {
       if (kDebugMode) {
-        print('Firebase/Notification/Crashlytics initialization skipped or failed: $e');
+        print(
+          'Firebase/Notification/Crashlytics initialization skipped or failed: $e',
+        );
       }
     }
   }

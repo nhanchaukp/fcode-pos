@@ -279,6 +279,14 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
     }
   }
 
+  void _showGetAllCodeBottomSheet() {
+    showGetAllCodeBottomSheet(
+      context,
+      accountMaster: _accountMaster,
+      accountMasterService: _accountMasterService,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -288,6 +296,12 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
       subtitle: _accountMaster.username,
       actions: [
         IconButton(
+          icon: const Icon(Icons.vpn_key_outlined),
+          visualDensity: VisualDensity.compact,
+          tooltip: 'Lấy mã & link xác minh',
+          onPressed: _showGetAllCodeBottomSheet,
+        ),
+        IconButton(
           icon: const Icon(Icons.language),
           visualDensity: VisualDensity.compact,
           tooltip: 'Mở trình duyệt',
@@ -296,7 +310,9 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
         PopupMenuButton<String>(
           icon: const Icon(Icons.more_vert),
           onSelected: (value) {
-            if (value == 'create_expense') {
+            if (value == 'get_all_code') {
+              _showGetAllCodeBottomSheet();
+            } else if (value == 'create_expense') {
               _showCreateExpenseSheet();
             } else if (value == 'edit_account') {
               _showEditAccountScreen();
@@ -307,6 +323,16 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
             }
           },
           itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 'get_all_code',
+              child: Row(
+                children: [
+                  Icon(Icons.vpn_key_outlined, size: 16),
+                  SizedBox(width: 12),
+                  Text('Lấy mã & link xác minh'),
+                ],
+              ),
+            ),
             const PopupMenuItem(
               value: 'create_expense',
               child: Row(

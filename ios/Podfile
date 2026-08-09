@@ -4,6 +4,15 @@ platform :ios, '17.0'
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
+# Patch FlutterGeneratedPluginSwiftPackage Package.swift to iOS 15.0 if generated with 13.0
+swift_pkg_file = File.join(__dir__, 'Flutter', 'ephemeral', 'Packages', 'FlutterGeneratedPluginSwiftPackage', 'Package.swift')
+if File.exist?(swift_pkg_file)
+  pkg_content = File.read(swift_pkg_file)
+  if pkg_content.include?('.iOS("13.0")')
+    File.write(swift_pkg_file, pkg_content.gsub('.iOS("13.0")', '.iOS("15.0")'))
+  end
+end
+
 project 'Runner', {
   'Debug' => :debug,
   'Profile' => :release,

@@ -1,10 +1,10 @@
-import 'dart:convert';
 import 'package:fcode_pos/enums.dart' as enums;
 import 'package:fcode_pos/models/dto/account_master_data.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/account_master_browser_service.dart';
 import 'package:fcode_pos/services/account_master_browser_session.dart';
 import 'package:fcode_pos/services/account_master_service.dart';
+import 'package:fcode_pos/ui/components/in_app_browser.dart' as app_browser;
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -661,9 +661,9 @@ class _AccountMasterBrowserScreenState
               ),
               Text(
                 'Macro Scripts',
-                style: Theme.of(sheetContext).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  sheetContext,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 4),
               Text(
@@ -706,7 +706,10 @@ class _AccountMasterBrowserScreenState
                     ''',
                   );
                   if (mounted) {
-                    Toastr.success('Đã xóa Session Storage & tải lại trang', context: context);
+                    Toastr.success(
+                      'Đã xóa Session Storage & tải lại trang',
+                      context: context,
+                    );
                   }
                 },
               ),
@@ -719,9 +722,14 @@ class _AccountMasterBrowserScreenState
 
   Future<void> _runNetflixLogoutDevicesMacro() async {
     final slots = _accountMaster.slots ?? [];
-    final slotNames = slots.map((s) => s.name.trim()).where((n) => n.isNotEmpty).toList();
+    final slotNames = slots
+        .map((s) => s.name.trim())
+        .where((n) => n.isNotEmpty)
+        .toList();
 
-    final textController = TextEditingController(text: slotNames.isNotEmpty ? slotNames.first : '1');
+    final textController = TextEditingController(
+      text: slotNames.isNotEmpty ? slotNames.first : '1',
+    );
 
     final selectedName = await showDialog<String>(
       context: context,
@@ -749,7 +757,13 @@ class _AccountMasterBrowserScreenState
                   ),
                   if (slotNames.isNotEmpty) ...[
                     const SizedBox(height: 12),
-                    const Text('Gợi ý từ danh sách Slot:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Gợi ý từ danh sách Slot:',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 6),
                     Wrap(
                       spacing: 6,
@@ -791,9 +805,13 @@ class _AccountMasterBrowserScreenState
 
     if (selectedName == null || selectedName.isEmpty || !mounted) return;
 
-    Toastr.info('Đang chạy Macro đăng xuất hồ sơ "$selectedName"...', context: context);
+    Toastr.info(
+      'Đang chạy Macro đăng xuất hồ sơ "$selectedName"...',
+      context: context,
+    );
 
-    final script = '''
+    final script =
+        '''
       (async function(profileName) {
         if (!profileName || !profileName.trim()) {
           console.error("[Macro] Vui lòng nhập tên hồ sơ!");
@@ -858,7 +876,10 @@ class _AccountMasterBrowserScreenState
     try {
       await _webController?.evaluateJavascript(source: script);
       if (mounted) {
-        Toastr.success('Đã gửi kịch bản đăng xuất đến trình duyệt. Mở Console Log để xem chi tiết.', context: context);
+        Toastr.success(
+          'Đã gửi kịch bản đăng xuất đến trình duyệt. Mở Console Log để xem chi tiết.',
+          context: context,
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -940,7 +961,10 @@ class _AccountMasterBrowserScreenState
                             children: [
                               Text(
                                 account.name,
-                                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -985,17 +1009,6 @@ class _AccountMasterBrowserScreenState
         icon: const Icon(Icons.more_vert),
         onSelected: _handleMenuAction,
         itemBuilder: (context) => [
-          if (_isNetflix)
-            const PopupMenuItem(
-              value: 'get_all_code',
-              child: Row(
-                children: [
-                  Icon(Icons.key, size: 18),
-                  SizedBox(width: 12),
-                  Text('Lấy mã Netflix'),
-                ],
-              ),
-            ),
           const PopupMenuItem(
             value: 'account_info',
             child: Row(
@@ -1094,24 +1107,16 @@ class _AccountMasterBrowserScreenState
   bool get _canShowWebView => _webViewAttached || _session.canAttachWebView;
 
   bool get _isNetflix =>
-      _accountMaster.serviceType == enums.AccountMasterServiceType.netflix.value ||
+      _accountMaster.serviceType ==
+          enums.AccountMasterServiceType.netflix.value ||
       _accountMaster.serviceType == 'netflix';
 
   void _showGetAllCodeBottomSheet() {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (sheetContext) {
-        return _GetAllCodeBottomSheet(
-          accountMaster: _accountMaster,
-          accountMasterService: _accountMasterService,
-          webController: _webController,
-        );
-      },
+    showGetAllCodeBottomSheet(
+      context,
+      accountMaster: _accountMaster,
+      accountMasterService: _accountMasterService,
+      webController: _webController,
     );
   }
 
@@ -1276,25 +1281,49 @@ class _AccountMasterBrowserScreenState
   }
 }
 
-class _GetAllCodeBottomSheet extends StatefulWidget {
+void showGetAllCodeBottomSheet(
+  BuildContext context, {
+  required AccountMaster accountMaster,
+  AccountMasterService? accountMasterService,
+  InAppWebViewController? webController,
+}) {
+  showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+    ),
+    builder: (sheetContext) {
+      return GetAllCodeBottomSheet(
+        accountMaster: accountMaster,
+        accountMasterService: accountMasterService ?? AccountMasterService(),
+        webController: webController,
+      );
+    },
+  );
+}
+
+class GetAllCodeBottomSheet extends StatefulWidget {
   final AccountMaster accountMaster;
   final AccountMasterService accountMasterService;
   final InAppWebViewController? webController;
 
-  const _GetAllCodeBottomSheet({
+  const GetAllCodeBottomSheet({
+    super.key,
     required this.accountMaster,
     required this.accountMasterService,
     this.webController,
   });
 
   @override
-  State<_GetAllCodeBottomSheet> createState() => _GetAllCodeBottomSheetState();
+  State<GetAllCodeBottomSheet> createState() => _GetAllCodeBottomSheetState();
 }
 
-class _GetAllCodeBottomSheetState extends State<_GetAllCodeBottomSheet> {
+class _GetAllCodeBottomSheetState extends State<GetAllCodeBottomSheet> {
   bool _isLoading = true;
   String? _error;
-  dynamic _data;
+  List<AccountMasterCodeItem>? _items;
 
   @override
   void initState() {
@@ -1316,7 +1345,7 @@ class _GetAllCodeBottomSheetState extends State<_GetAllCodeBottomSheet> {
 
       if (response.success) {
         setState(() {
-          _data = response.data;
+          _items = response.data;
           _isLoading = false;
         });
       } else {
@@ -1337,6 +1366,13 @@ class _GetAllCodeBottomSheetState extends State<_GetAllCodeBottomSheet> {
   void _copyToClipboard(BuildContext context, String text, String label) {
     Clipboard.setData(ClipboardData(text: text));
     Toastr.success('Đã sao chép $label', context: context);
+  }
+
+  String? _formatItemTime(AccountMasterCodeItem item) {
+    if (item.createdAt != null) {
+      return DateFormat('HH:mm dd/MM/yyyy').format(item.createdAt!.toLocal());
+    }
+    return item.rawCreatedAt;
   }
 
   @override
@@ -1362,7 +1398,7 @@ class _GetAllCodeBottomSheetState extends State<_GetAllCodeBottomSheet> {
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      Icons.key_outlined,
+                      Icons.vpn_key_outlined,
                       color: colorScheme.onPrimaryContainer,
                       size: 20,
                     ),
@@ -1373,10 +1409,8 @@ class _GetAllCodeBottomSheetState extends State<_GetAllCodeBottomSheet> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Mã Netflix',
-                          style: Theme.of(sheetContext)
-                              .textTheme
-                              .titleMedium
+                          'Mã & Link xác minh',
+                          style: Theme.of(sheetContext).textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         Text(
@@ -1455,175 +1489,219 @@ class _GetAllCodeBottomSheetState extends State<_GetAllCodeBottomSheet> {
       );
     }
 
-    if (_data == null) {
-      return const Center(child: Text('Không có dữ liệu trả về'));
+    final items = _items;
+    if (items == null || items.isEmpty) {
+      return const Center(child: Text('Không tìm thấy mã hoặc link nào'));
     }
 
-    return ListView(
+    return ListView.builder(
       controller: scrollController,
-      padding: const EdgeInsets.all(16),
-      children: [
-        _buildParsedContent(context, colorScheme),
-        const SizedBox(height: 16),
-        ExpansionTile(
-          title: const Text('Xem JSON gốc', style: TextStyle(fontSize: 13)),
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: SelectableText(
-                const JsonEncoder.withIndent('  ').convert(_data),
-                style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
-              ),
-            ),
-          ],
-        ),
-      ],
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      itemCount: items.length,
+      itemBuilder: (ctx, index) {
+        final item = items[index];
+        return _buildCodeCard(ctx, colorScheme, item, index: index + 1);
+      },
     );
-  }
-
-  Widget _buildParsedContent(BuildContext context, ColorScheme colorScheme) {
-    final data = _data;
-
-    if (data is String) {
-      return _buildCodeCard(context, colorScheme, label: 'Mã / Link', value: data);
-    }
-
-    if (data is List) {
-      if (data.isEmpty) {
-        return const Center(child: Text('Danh sách mã trống'));
-      }
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: data.asMap().entries.map((entry) {
-          final idx = entry.key + 1;
-          final item = entry.value;
-          if (item is Map) {
-            final code = item['code'] ?? item['pin'] ?? item['otp'] ?? item['link'] ?? (item.values.isNotEmpty ? item.values.first : null);
-            return _buildCodeCard(
-              context,
-              colorScheme,
-              label: 'Mã #$idx',
-              value: code?.toString() ?? item.toString(),
-              subtitle: item['title']?.toString() ?? item['name']?.toString() ?? item['url']?.toString(),
-            );
-          }
-          return _buildCodeCard(
-            context,
-            colorScheme,
-            label: 'Mã #$idx',
-            value: item.toString(),
-          );
-        }).toList(),
-      );
-    }
-
-    if (data is Map) {
-      final entries = data.entries.toList();
-      if (entries.isEmpty) {
-        return const Center(child: Text('Dữ liệu trống'));
-      }
-      return Column(
-        children: entries.map((e) {
-          return _buildCodeCard(
-            context,
-            colorScheme,
-            label: e.key.toString(),
-            value: e.value?.toString() ?? '',
-          );
-        }).toList(),
-      );
-    }
-
-    return SelectableText(data.toString());
   }
 
   Widget _buildCodeCard(
     BuildContext context,
-    ColorScheme colorScheme, {
-    required String label,
-    required String value,
-    String? subtitle,
+    ColorScheme colorScheme,
+    AccountMasterCodeItem item, {
+    required int index,
   }) {
-    final isUrl = value.startsWith('http://') || value.startsWith('https://');
+    final hasCode = item.code != null && item.code!.trim().isNotEmpty;
+    final hasLink = item.link != null && item.link!.trim().isNotEmpty;
+    final hasMessage = item.message != null && item.message!.trim().isNotEmpty;
+    final formattedTime = _formatItemTime(item);
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 0,
-      color: colorScheme.surfaceContainerLow,
-      shape: RoundedRectangleBorder(
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: colorScheme.outlineVariant),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Row 1: Header - Badge index & Time
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.primary,
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(6),
                   ),
-                ),
-                if (subtitle != null) ...[
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
+                  child: Text(
+                    'Mã #$index',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onPrimaryContainer,
                     ),
                   ),
-                ],
-              ],
-            ),
-            const SizedBox(height: 8),
-            SelectableText(
-              value,
-              style: TextStyle(
-                fontSize: isUrl ? 13 : 18,
-                fontWeight: isUrl ? FontWeight.normal : FontWeight.bold,
-                fontFamily: isUrl ? null : 'monospace',
-                letterSpacing: isUrl ? null : 1.2,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                if (isUrl && widget.webController != null) ...[
-                  TextButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      widget.webController?.loadUrl(
-                        urlRequest: URLRequest(url: WebUri(value)),
-                      );
-                    },
-                    icon: const Icon(Icons.open_in_browser, size: 16),
-                    label: const Text('Mở trang này'),
-                  ),
-                  const SizedBox(width: 8),
-                ],
-                FilledButton.tonalIcon(
-                  onPressed: () => _copyToClipboard(context, value, label),
-                  icon: const Icon(Icons.copy, size: 16),
-                  label: const Text('Sao chép'),
                 ),
+                if (formattedTime != null && formattedTime.isNotEmpty)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.access_time_rounded,
+                        size: 13,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        formattedTime,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
               ],
             ),
+
+            // Message / Title line
+            if (hasMessage) ...[
+              const SizedBox(height: 8),
+              Text(
+                item.message!,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+            ],
+
+            // Verification Code Block
+            if (hasCode) ...[
+              const SizedBox(height: 8),
+              InkWell(
+                onTap: () => _copyToClipboard(context, item.code!, 'mã'),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerHigh,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: colorScheme.primary.withValues(alpha: 0.25),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.key_rounded,
+                        size: 18,
+                        color: colorScheme.primary,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: SelectableText(
+                          item.code!,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'monospace',
+                            letterSpacing: 1.2,
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        visualDensity: VisualDensity.compact,
+                        icon: Icon(
+                          Icons.copy_rounded,
+                          size: 18,
+                          color: colorScheme.primary,
+                        ),
+                        tooltip: 'Sao chép mã',
+                        onPressed: () =>
+                            _copyToClipboard(context, item.code!, 'mã'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+
+            // Clickable Link Block
+            if (hasLink) ...[
+              const SizedBox(height: 8),
+              InkWell(
+                onTap: () {
+                  if (widget.webController != null) {
+                    Navigator.of(context).pop();
+                    widget.webController?.loadUrl(
+                      urlRequest: URLRequest(url: WebUri(item.link!)),
+                    );
+                  } else {
+                    app_browser.InAppBrowser.open(
+                      context,
+                      url: item.link!,
+                      title: 'Link xác minh',
+                    );
+                  }
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color:
+                        colorScheme.tertiaryContainer.withValues(alpha: 0.35),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: colorScheme.tertiary.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.link_rounded,
+                        size: 18,
+                        color: colorScheme.tertiary,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          item.link!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: colorScheme.tertiary,
+                            decoration: TextDecoration.underline,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.open_in_new_rounded,
+                        size: 16,
+                        color: colorScheme.tertiary,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),

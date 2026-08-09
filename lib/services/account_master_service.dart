@@ -56,10 +56,10 @@ class AccountMasterService {
     );
   }
 
-  Future<ApiResponse<dynamic>> getAllCode(int id) {
-    return _api.get<dynamic>(
+  Future<ApiResponse<List<AccountMasterCodeItem>>> getAllCode(int id) {
+    return _api.get<List<AccountMasterCodeItem>>(
       '/account-master/$id/get-all-code',
-      parser: (json) => json,
+      parser: (json) => _parseAccountMasterCodeList(json),
     );
   }
 
@@ -163,4 +163,28 @@ List<AccountMaster> _parseAccountMasterList(dynamic data) {
   }
 
   return <AccountMaster>[];
+}
+
+List<AccountMasterCodeItem> _parseAccountMasterCodeList(dynamic data) {
+  if (data is List) {
+    return data
+        .map((item) => AccountMasterCodeItem.fromDynamic(item))
+        .toList(growable: false);
+  }
+
+  if (data is Map) {
+    final items = data['items'] ?? data['data'] ?? data['codes'];
+    if (items is List) {
+      return items
+          .map((item) => AccountMasterCodeItem.fromDynamic(item))
+          .toList(growable: false);
+    }
+    return [AccountMasterCodeItem.fromDynamic(data)];
+  }
+
+  if (data != null) {
+    return [AccountMasterCodeItem.fromDynamic(data)];
+  }
+
+  return <AccountMasterCodeItem>[];
 }

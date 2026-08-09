@@ -13,12 +13,12 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
-  if (kDebugMode) {
-    print('Handling background message: ${message.messageId}');
-    print('Title: ${message.notification?.title}');
-    print('Body: ${message.notification?.body}');
-    print('Data: ${message.data}');
-  }
+  print('================ [FCM BACKGROUND MESSAGE RECEIVED] ================');
+  print('Message ID: ${message.messageId}');
+  print('Title: ${message.notification?.title}');
+  print('Body: ${message.notification?.body}');
+  print('Data: ${message.data}');
+  print('==================================================================');
 }
 
 class NotificationService {
@@ -30,6 +30,37 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   bool _isInitialized = false;
+  bool _isNotificationEnabled = true;
+
+  bool get isNotificationEnabled => _isNotificationEnabled;
+
+  /// Bật / Tắt nhận thông báo đẩy từ hệ thống
+  Future<void> setNotificationEnabled(bool enabled) async {
+    _isNotificationEnabled = enabled;
+    if (enabled) {
+      await _messaging.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+      try {
+        await _messaging.subscribeToTopic('pos_admin');
+      } catch (_) {}
+      await syncTokenWithServer();
+    } else {
+      await _messaging.setForegroundNotificationPresentationOptions(
+        alert: false,
+        badge: false,
+        sound: false,
+      );
+      try {
+        await _messaging.unsubscribeFromTopic('pos_admin');
+      } catch (_) {}
+      try {
+        await FcmTokenService().deleteToken();
+      } catch (_) {}
+    }
+  }
 
   /// Kênh thông báo Android cho foreground notifications cho đơn hàng POS Admin
   static const AndroidNotificationChannel _androidChannel =
@@ -165,6 +196,8 @@ class NotificationService {
   ) {
     // 1. Khi nhận thông báo lúc App đang chạy Foreground
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      if (!_isNotificationEnabled) return;
+
       if (kDebugMode) {
         print('Foreground Message received: ${message.notification?.title}');
         print('Data payload: ${message.data}');
@@ -323,13 +356,13 @@ class NotificationService {
 
   /// In toàn bộ Token ra Console để Debug
   Future<void> logTokens() async {
-    if (kDebugMode) {
-      if (Platform.isIOS) {
-        final apnsToken = await getAPNsToken();
-        print('📱 APNs Token (iOS): $apnsToken');
-      }
-      final fcmToken = await getFCMToken();
-      print('🔥 FCM Token: $fcmToken');
+    print('================ [FIREBASE FCM DIAGNOSTIC LOGS] ================');
+    if (Platform.isIOS) {
+      final apnsToken = await getAPNsToken();
+      print('🍏 APNs Token (iOS): ${apnsToken ?? "NULL (Chưa lấy được từ Apple)"}');
     }
+    final fcmToken = await getFCMToken();
+    print('🔥 FCM Token: ${fcmToken ?? "NULL (Chưa lấy được từ FCM)"}');
+    print('================================================================');
   }
 }

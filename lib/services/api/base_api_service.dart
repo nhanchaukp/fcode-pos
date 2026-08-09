@@ -20,7 +20,7 @@ class BaseApiService {
     );
 
     dio.interceptors.addAll([
-      PrettyDioLogger(),
+      // PrettyDioLogger(), // Tắt Dio logger interceptor theo yêu cầu
       InterceptorsWrapper(
         onRequest: (options, handler) async {
           final token = await SecureStorage.getAccessToken();
