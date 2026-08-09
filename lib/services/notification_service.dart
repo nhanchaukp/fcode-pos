@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:fcode_pos/services/deep_link_service.dart';
 import 'package:fcode_pos/services/fcm_token_service.dart';
+import 'package:fcode_pos/services/notification_sound_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -77,6 +78,9 @@ class NotificationService {
     Function(RemoteMessage message)? onNotificationOpened,
   }) async {
     if (_isInitialized) return;
+
+    // 0. Khởi tạo nhạc chuông tùy chỉnh
+    await NotificationSoundService.instance.init();
 
     // 1. Kích hoạt Firebase Background Handler
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
@@ -213,19 +217,8 @@ class NotificationService {
           title,
           body ?? '',
           NotificationDetails(
-            android: AndroidNotificationDetails(
-              _androidChannel.id,
-              _androidChannel.name,
-              channelDescription: _androidChannel.description,
-              icon: '@mipmap/ic_launcher',
-              importance: Importance.max,
-              priority: Priority.high,
-            ),
-            iOS: const DarwinNotificationDetails(
-              presentAlert: true,
-              presentBadge: true,
-              presentSound: true,
-            ),
+            android: NotificationSoundService.instance.buildAndroidNotificationDetails(),
+            iOS: NotificationSoundService.instance.buildIosNotificationDetails(),
           ),
           payload: jsonEncode(message.data),
         );
@@ -283,19 +276,8 @@ class NotificationService {
       title,
       body,
       NotificationDetails(
-        android: AndroidNotificationDetails(
-          _androidChannel.id,
-          _androidChannel.name,
-          channelDescription: _androidChannel.description,
-          icon: '@mipmap/ic_launcher',
-          importance: Importance.max,
-          priority: Priority.high,
-        ),
-        iOS: const DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-        ),
+        android: NotificationSoundService.instance.buildAndroidNotificationDetails(),
+        iOS: NotificationSoundService.instance.buildIosNotificationDetails(),
       ),
       payload: payload,
     );

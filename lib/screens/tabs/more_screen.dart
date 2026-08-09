@@ -5,6 +5,8 @@ import 'package:fcode_pos/providers/notification_provider.dart';
 import 'package:fcode_pos/providers/theme_provider.dart';
 import 'package:fcode_pos/screens/developer/developer_screen.dart';
 import 'package:fcode_pos/screens/login_screen.dart';
+import 'package:fcode_pos/screens/settings/notification_sound_screen.dart';
+import 'package:fcode_pos/services/notification_sound_service.dart';
 import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/app_switch_tile.dart';
 import 'package:fcode_pos/ui/components/badge/status_badges.dart';
@@ -25,8 +27,7 @@ class MoreScreen extends ConsumerWidget {
     final paletteIndex = ref.watch(themePaletteIndexProvider);
     final paletteNotifier = ref.read(themePaletteIndexProvider.notifier);
     final notificationEnabled = ref.watch(notificationEnabledProvider);
-    final notificationNotifier =
-        ref.read(notificationEnabledProvider.notifier);
+    final notificationNotifier = ref.read(notificationEnabledProvider.notifier);
 
     final user = authState.asData?.value;
     final isLoading = authState.isLoading;
@@ -50,9 +51,7 @@ class MoreScreen extends ConsumerWidget {
                   await ref.read(authProvider.notifier).logout();
                   if (context.mounted) {
                     Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(
-                        builder: (_) => const LoginScreen(),
-                      ),
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
                       (_) => false,
                     );
                     Toastr.success('Đã đăng xuất');
@@ -89,13 +88,45 @@ class MoreScreen extends ConsumerWidget {
                 ? Icons.notifications_active_outlined
                 : Icons.notifications_off_outlined,
             title: 'Thông báo đẩy',
-            subtitle: notificationEnabled
-                ? 'Nhận thông báo đơn hàng mới và cập nhật trạng thái'
-                : 'Đã tắt nhận thông báo đẩy từ hệ thống',
+            subtitle: 'Nhận thông báo đơn hàng mới và cập nhật trạng thái',
             value: notificationEnabled,
             onChanged: (value) {
               notificationNotifier.setNotificationEnabled(value);
             },
+          ),
+          const SizedBox(height: 8),
+          Card(
+            elevation: 0,
+            margin: EdgeInsets.zero,
+            clipBehavior: Clip.antiAlias,
+            child: ListTile(
+              dense: true,
+              visualDensity: VisualDensity.compact,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 6,
+              ),
+              leading: Icon(
+                Icons.music_note_outlined,
+                color: colorScheme.primary,
+              ),
+              title: const Text('Nhạc chuông thông báo'),
+              subtitle: Text(
+                NotificationSoundService.instance.currentSound.title,
+              ),
+              trailing: Icon(
+                Icons.chevron_right,
+                color: colorScheme.onSurfaceVariant,
+              ),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const NotificationSoundScreen(),
+                  ),
+                );
+              },
+            ),
           ),
 
           const SizedBox(height: 16),
@@ -555,9 +586,7 @@ class _UserProfileCard extends StatelessWidget {
                   runSpacing: 6,
                   children: [
                     if (_hasTwoFactor) const TwoFactorBadge(),
-                    ..._roleNames.map(
-                      (name) => RoleBadge(name: name),
-                    ),
+                    ..._roleNames.map((name) => RoleBadge(name: name)),
                   ],
                 ),
               ),
@@ -578,9 +607,7 @@ class _UserProfileCard extends StatelessWidget {
   }
 
   bool get _hasUsername =>
-      user != null &&
-      user!.username.isNotEmpty &&
-      user!.username != user!.name;
+      user != null && user!.username.isNotEmpty && user!.username != user!.name;
 
   List<String> get _roleNames {
     final roles = user?.roles;
@@ -593,8 +620,9 @@ class _UserProfileCard extends StatelessWidget {
 
   Widget _buildAvatar() {
     final photoUrl = _resolvePhotoUrl();
-    final initial =
-        _displayName.isNotEmpty ? _displayName[0].toUpperCase() : 'U';
+    final initial = _displayName.isNotEmpty
+        ? _displayName[0].toUpperCase()
+        : 'U';
 
     return Container(
       decoration: BoxDecoration(
@@ -631,5 +659,4 @@ class _UserProfileCard extends StatelessWidget {
 
     return null;
   }
-
 }

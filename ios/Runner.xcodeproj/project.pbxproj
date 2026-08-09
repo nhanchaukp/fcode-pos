@@ -7,6 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F00000010000000000000000 /* anime_aah.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000000 /* anime_aah.m4a */; };
+		F00000010000000000000001 /* car_lock.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000001 /* car_lock.m4a */; };
+		F00000010000000000000002 /* codonkia_voice.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000002 /* codonkia_voice.m4a */; };
+		F00000010000000000000003 /* iphone_15_new_sound.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000003 /* iphone_15_new_sound.m4a */; };
+		F00000010000000000000004 /* mario_bros.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000004 /* mario_bros.m4a */; };
+		F00000010000000000000005 /* mario_coin.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000005 /* mario_coin.m4a */; };
+		F00000010000000000000006 /* minion_laugh.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000006 /* minion_laugh.m4a */; };
+		F00000010000000000000007 /* quack.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000007 /* quack.m4a */; };
+		F00000010000000000000008 /* snapchat_sound.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000008 /* snapchat_sound.m4a */; };
 		0E737CD73028794B00D25EEB /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0E737CD63028794B00D25EEB /* GoogleService-Info.plist */; };
 		0E737CD83028794B00D25EEB /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0E737CD63028794B00D25EEB /* GoogleService-Info.plist */; };
 		0E8DD66E2EA6B2EA0064511D /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7AC5B6F247DD4A00FE8AC3FA /* Pods_Runner.framework */; };
@@ -33,6 +42,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		F00000020000000000000000 /* anime_aah.m4a */ = {isa = PBXFileReference; lastKnownFileType = audio.m4a; path = anime_aah.m4a; sourceTree = "<group>"; };
+		F00000020000000000000001 /* car_lock.m4a */ = {isa = PBXFileReference; lastKnownFileType = audio.m4a; path = car_lock.m4a; sourceTree = "<group>"; };
+		F00000020000000000000002 /* codonkia_voice.m4a */ = {isa = PBXFileReference; lastKnownFileType = audio.m4a; path = codonkia_voice.m4a; sourceTree = "<group>"; };
+		F00000020000000000000003 /* iphone_15_new_sound.m4a */ = {isa = PBXFileReference; lastKnownFileType = audio.m4a; path = iphone_15_new_sound.m4a; sourceTree = "<group>"; };
+		F00000020000000000000004 /* mario_bros.m4a */ = {isa = PBXFileReference; lastKnownFileType = audio.m4a; path = mario_bros.m4a; sourceTree = "<group>"; };
+		F00000020000000000000005 /* mario_coin.m4a */ = {isa = PBXFileReference; lastKnownFileType = audio.m4a; path = mario_coin.m4a; sourceTree = "<group>"; };
+		F00000020000000000000006 /* minion_laugh.m4a */ = {isa = PBXFileReference; lastKnownFileType = audio.m4a; path = minion_laugh.m4a; sourceTree = "<group>"; };
+		F00000020000000000000007 /* quack.m4a */ = {isa = PBXFileReference; lastKnownFileType = audio.m4a; path = quack.m4a; sourceTree = "<group>"; };
+		F00000020000000000000008 /* snapchat_sound.m4a */ = {isa = PBXFileReference; lastKnownFileType = audio.m4a; path = snapchat_sound.m4a; sourceTree = "<group>"; };
 		0E737CD63028794B00D25EEB /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		0E926ABF2FA8F366008218D2 /* FlutterKeyboardFlickerFix.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FlutterKeyboardFlickerFix.m; sourceTree = "<group>"; };
 		0E9C89202EABBC59005893F9 /* RunnerDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RunnerDebug.entitlements; sourceTree = "<group>"; };
@@ -136,6 +154,15 @@
 		97C146F01CF9000F007C117D /* Runner */ = {
 			isa = PBXGroup;
 			children = (
+				F00000020000000000000000 /* anime_aah.m4a */,
+				F00000020000000000000001 /* car_lock.m4a */,
+				F00000020000000000000002 /* codonkia_voice.m4a */,
+				F00000020000000000000003 /* iphone_15_new_sound.m4a */,
+				F00000020000000000000004 /* mario_bros.m4a */,
+				F00000020000000000000005 /* mario_coin.m4a */,
+				F00000020000000000000006 /* minion_laugh.m4a */,
+				F00000020000000000000007 /* quack.m4a */,
+				F00000020000000000000008 /* snapchat_sound.m4a */,
 				0E926ABF2FA8F366008218D2 /* FlutterKeyboardFlickerFix.m */,
 				0E9C89202EABBC59005893F9 /* RunnerDebug.entitlements */,
 				97C146FA1CF9000F007C117D /* Main.storyboard */,
@@ -259,6 +286,15 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F00000010000000000000000 /* anime_aah.m4a in Resources */,
+				F00000010000000000000001 /* car_lock.m4a in Resources */,
+				F00000010000000000000002 /* codonkia_voice.m4a in Resources */,
+				F00000010000000000000003 /* iphone_15_new_sound.m4a in Resources */,
+				F00000010000000000000004 /* mario_bros.m4a in Resources */,
+				F00000010000000000000005 /* mario_coin.m4a in Resources */,
+				F00000010000000000000006 /* minion_laugh.m4a in Resources */,
+				F00000010000000000000007 /* quack.m4a in Resources */,
+				F00000010000000000000008 /* snapchat_sound.m4a in Resources */,
 				0E737CD83028794B00D25EEB /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -267,6 +303,15 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F00000010000000000000000 /* anime_aah.m4a in Resources */,
+				F00000010000000000000001 /* car_lock.m4a in Resources */,
+				F00000010000000000000002 /* codonkia_voice.m4a in Resources */,
+				F00000010000000000000003 /* iphone_15_new_sound.m4a in Resources */,
+				F00000010000000000000004 /* mario_bros.m4a in Resources */,
+				F00000010000000000000005 /* mario_coin.m4a in Resources */,
+				F00000010000000000000006 /* minion_laugh.m4a in Resources */,
+				F00000010000000000000007 /* quack.m4a in Resources */,
+				F00000010000000000000008 /* snapchat_sound.m4a in Resources */,
 				97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */,
 				0E737CD73028794B00D25EEB /* GoogleService-Info.plist in Resources */,
 				3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */,
