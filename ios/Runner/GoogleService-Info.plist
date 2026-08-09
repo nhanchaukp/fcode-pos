@@ -9,7 +9,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.nhanchaukp.fcode.pos</string>
+	<string>com.nhanchaukp.fcode.pos.RunnerTests</string>
 	<key>PROJECT_ID</key>
 	<string>chauthainhan-devapps</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:269764048781:ios:fba0c7d57d57e1fe2fafc4</string>
+	<string>1:269764048781:ios:c36d7fc97ca189942fafc4</string>
 </dict>
 </plist>
