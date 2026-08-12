@@ -7,6 +7,31 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0E737CD73028794B00D25EEB /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0E737CD63028794B00D25EEB /* GoogleService-Info.plist */; };
+		0E737CD83028794B00D25EEB /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0E737CD63028794B00D25EEB /* GoogleService-Info.plist */; };
+		0E8DD66E2EA6B2EA0064511D /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7AC5B6F247DD4A00FE8AC3FA /* Pods_Runner.framework */; };
+		0E926AC02FA8F366008218D2 /* FlutterKeyboardFlickerFix.m in Sources */ = {isa = PBXBuildFile; fileRef = 0E926ABF2FA8F366008218D2 /* FlutterKeyboardFlickerFix.m */; };
+		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
+		24C7CFAB873E27EE8C263117 /* mario_coin.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000005 /* mario_coin.m4a */; };
+		2944C89F99A9B3914DD03E34 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B2A84FDDED77F5D4C0EF14B /* Foundation.framework */; };
+		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
+		37CE7308AD554149B6AAA9BE /* iphone_15_new_sound.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000003 /* iphone_15_new_sound.m4a */; };
+		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
+		58E3BEF25DF7F171E85941DF /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B16BCA404F91D77924BD3C8E /* NotificationService.swift */; };
+		603DF6179E2BD54A1353607F /* codonkia_voice.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000002 /* codonkia_voice.m4a */; };
+		65B5551D716C25E280564624 /* quack.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000007 /* quack.m4a */; };
+		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
+		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
+		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
+		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
+		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
+		A5B291C9073E3804B56610C4 /* snapchat_sound.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000008 /* snapchat_sound.m4a */; };
+		AEB4D51646E44C4B87BFEA48 /* NotificationService.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 965E9D810E40BFC053222642 /* NotificationService.appex */; };
+		B475FA9048B2F46A23848882 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C8B5BF592804A9B53F95032 /* Pods_RunnerTests.framework */; };
+		B4DB5DFA4D2887A4C9CC0DCA /* mario_bros.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000004 /* mario_bros.m4a */; };
+		BF7144E8A792D0663C3ABD32 /* minion_laugh.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000006 /* minion_laugh.m4a */; };
+		C130D8F05375FFAFBCD3FBC2 /* anime_aah.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000000 /* anime_aah.m4a */; };
+		CC66DAB95663EF83A419B634 /* car_lock.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000001 /* car_lock.m4a */; };
 		F00000010000000000000000 /* anime_aah.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000000 /* anime_aah.m4a */; };
 		F00000010000000000000001 /* car_lock.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000001 /* car_lock.m4a */; };
 		F00000010000000000000002 /* codonkia_voice.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000002 /* codonkia_voice.m4a */; };
@@ -16,19 +41,15 @@
 		F00000010000000000000006 /* minion_laugh.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000006 /* minion_laugh.m4a */; };
 		F00000010000000000000007 /* quack.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000007 /* quack.m4a */; };
 		F00000010000000000000008 /* snapchat_sound.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000008 /* snapchat_sound.m4a */; };
-		0E737CD73028794B00D25EEB /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0E737CD63028794B00D25EEB /* GoogleService-Info.plist */; };
-		0E737CD83028794B00D25EEB /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0E737CD63028794B00D25EEB /* GoogleService-Info.plist */; };
-		0E8DD66E2EA6B2EA0064511D /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7AC5B6F247DD4A00FE8AC3FA /* Pods_Runner.framework */; };
-		0E926AC02FA8F366008218D2 /* FlutterKeyboardFlickerFix.m in Sources */ = {isa = PBXBuildFile; fileRef = 0E926ABF2FA8F366008218D2 /* FlutterKeyboardFlickerFix.m */; };
-		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
-		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
-		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
-		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
-		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
-		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
-		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
-		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
-		B475FA9048B2F46A23848882 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C8B5BF592804A9B53F95032 /* Pods_RunnerTests.framework */; };
+		F00000090000000000000000 /* anime_aah.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000000 /* anime_aah.m4a */; };
+		F00000090000000000000001 /* car_lock.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000001 /* car_lock.m4a */; };
+		F00000090000000000000002 /* codonkia_voice.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000002 /* codonkia_voice.m4a */; };
+		F00000090000000000000003 /* iphone_15_new_sound.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000003 /* iphone_15_new_sound.m4a */; };
+		F00000090000000000000004 /* mario_bros.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000004 /* mario_bros.m4a */; };
+		F00000090000000000000005 /* mario_coin.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000005 /* mario_coin.m4a */; };
+		F00000090000000000000006 /* minion_laugh.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000006 /* minion_laugh.m4a */; };
+		F00000090000000000000007 /* quack.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000007 /* quack.m4a */; };
+		F00000090000000000000008 /* snapchat_sound.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F00000020000000000000008 /* snapchat_sound.m4a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -39,23 +60,37 @@
 			remoteGlobalIDString = 97C146ED1CF9000F007C117D;
 			remoteInfo = Runner;
 		};
+		CA4083486914C73DB6B8284D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 69F22032D39C209A5EB35646;
+			remoteInfo = NotificationService;
+		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		473F5673F23207CE5E82DA75 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				AEB4D51646E44C4B87BFEA48 /* NotificationService.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
-		F00000020000000000000000 /* anime_aah.m4a */ = {isa = PBXFileReference; lastKnownFileType = audio.m4a; path = anime_aah.m4a; sourceTree = "<group>"; };
-		F00000020000000000000001 /* car_lock.m4a */ = {isa = PBXFileReference; lastKnownFileType = audio.m4a; path = car_lock.m4a; sourceTree = "<group>"; };
-		F00000020000000000000002 /* codonkia_voice.m4a */ = {isa = PBXFileReference; lastKnownFileType = audio.m4a; path = codonkia_voice.m4a; sourceTree = "<group>"; };
-		F00000020000000000000003 /* iphone_15_new_sound.m4a */ = {isa = PBXFileReference; lastKnownFileType = audio.m4a; path = iphone_15_new_sound.m4a; sourceTree = "<group>"; };
-		F00000020000000000000004 /* mario_bros.m4a */ = {isa = PBXFileReference; lastKnownFileType = audio.m4a; path = mario_bros.m4a; sourceTree = "<group>"; };
-		F00000020000000000000005 /* mario_coin.m4a */ = {isa = PBXFileReference; lastKnownFileType = audio.m4a; path = mario_coin.m4a; sourceTree = "<group>"; };
-		F00000020000000000000006 /* minion_laugh.m4a */ = {isa = PBXFileReference; lastKnownFileType = audio.m4a; path = minion_laugh.m4a; sourceTree = "<group>"; };
-		F00000020000000000000007 /* quack.m4a */ = {isa = PBXFileReference; lastKnownFileType = audio.m4a; path = quack.m4a; sourceTree = "<group>"; };
-		F00000020000000000000008 /* snapchat_sound.m4a */ = {isa = PBXFileReference; lastKnownFileType = audio.m4a; path = snapchat_sound.m4a; sourceTree = "<group>"; };
 		0E737CD63028794B00D25EEB /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		0E926ABF2FA8F366008218D2 /* FlutterKeyboardFlickerFix.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FlutterKeyboardFlickerFix.m; sourceTree = "<group>"; };
 		0E9C89202EABBC59005893F9 /* RunnerDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RunnerDebug.entitlements; sourceTree = "<group>"; };
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
+		29B5A9DEA77B0548EDC8D16E /* NotificationService.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = NotificationService.entitlements; sourceTree = "<group>"; };
+		2B2A84FDDED77F5D4C0EF14B /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		331C807B294A618700263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
 		331C8081294A63A400263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
@@ -68,6 +103,7 @@
 		78E0A7A72DC9AD7400C4905E /* FlutterGeneratedPluginSwiftPackage */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = FlutterGeneratedPluginSwiftPackage; path = Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage; sourceTree = "<group>"; };
 		7AC5B6F247DD4A00FE8AC3FA /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
+		965E9D810E40BFC053222642 /* NotificationService.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NotificationService.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
 		9740EEB31CF90195004384FC /* Generated.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Generated.xcconfig; path = Flutter/Generated.xcconfig; sourceTree = "<group>"; };
 		97C146EE1CF9000F007C117D /* Runner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Runner.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -77,7 +113,18 @@
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9AAEF3FADF29177722D56E5C /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 		A105BA14828154CC4F55EB64 /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
+		B16BCA404F91D77924BD3C8E /* NotificationService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		DE05709A17D3E9DC4C000700 /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
+		EF22D362B138D767D3AE5412 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F00000020000000000000000 /* anime_aah.m4a */ = {isa = PBXFileReference; lastKnownFileType = audio.m4a; path = anime_aah.m4a; sourceTree = "<group>"; };
+		F00000020000000000000001 /* car_lock.m4a */ = {isa = PBXFileReference; lastKnownFileType = audio.m4a; path = car_lock.m4a; sourceTree = "<group>"; };
+		F00000020000000000000002 /* codonkia_voice.m4a */ = {isa = PBXFileReference; lastKnownFileType = audio.m4a; path = codonkia_voice.m4a; sourceTree = "<group>"; };
+		F00000020000000000000003 /* iphone_15_new_sound.m4a */ = {isa = PBXFileReference; lastKnownFileType = audio.m4a; path = iphone_15_new_sound.m4a; sourceTree = "<group>"; };
+		F00000020000000000000004 /* mario_bros.m4a */ = {isa = PBXFileReference; lastKnownFileType = audio.m4a; path = mario_bros.m4a; sourceTree = "<group>"; };
+		F00000020000000000000005 /* mario_coin.m4a */ = {isa = PBXFileReference; lastKnownFileType = audio.m4a; path = mario_coin.m4a; sourceTree = "<group>"; };
+		F00000020000000000000006 /* minion_laugh.m4a */ = {isa = PBXFileReference; lastKnownFileType = audio.m4a; path = minion_laugh.m4a; sourceTree = "<group>"; };
+		F00000020000000000000007 /* quack.m4a */ = {isa = PBXFileReference; lastKnownFileType = audio.m4a; path = quack.m4a; sourceTree = "<group>"; };
+		F00000020000000000000008 /* snapchat_sound.m4a */ = {isa = PBXFileReference; lastKnownFileType = audio.m4a; path = snapchat_sound.m4a; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -98,9 +145,27 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E79BB8072D7514279709FF30 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2944C89F99A9B3914DD03E34 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1439E64B61FE0E6CEC7B5257 /* NotificationService */ = {
+			isa = PBXGroup;
+			children = (
+				B16BCA404F91D77924BD3C8E /* NotificationService.swift */,
+				EF22D362B138D767D3AE5412 /* Info.plist */,
+				29B5A9DEA77B0548EDC8D16E /* NotificationService.entitlements */,
+			);
+			path = NotificationService;
+			sourceTree = "<group>";
+		};
 		331C8082294A63A400263BE5 /* RunnerTests */ = {
 			isa = PBXGroup;
 			children = (
@@ -109,11 +174,20 @@
 			path = RunnerTests;
 			sourceTree = "<group>";
 		};
+		6191B1EFE49D058BDA91CD4F /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				2B2A84FDDED77F5D4C0EF14B /* Foundation.framework */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
 		776D579E274E308D28F4B11A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				7AC5B6F247DD4A00FE8AC3FA /* Pods_Runner.framework */,
 				6C8B5BF592804A9B53F95032 /* Pods_RunnerTests.framework */,
+				6191B1EFE49D058BDA91CD4F /* iOS */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -139,6 +213,7 @@
 				331C8082294A63A400263BE5 /* RunnerTests */,
 				D9814442004DD580B88852F3 /* Pods */,
 				776D579E274E308D28F4B11A /* Frameworks */,
+				1439E64B61FE0E6CEC7B5257 /* NotificationService */,
 			);
 			sourceTree = "<group>";
 		};
@@ -147,6 +222,7 @@
 			children = (
 				97C146EE1CF9000F007C117D /* Runner.app */,
 				331C8081294A63A400263BE5 /* RunnerTests.xctest */,
+				965E9D810E40BFC053222642 /* NotificationService.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -213,6 +289,23 @@
 			productReference = 331C8081294A63A400263BE5 /* RunnerTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		69F22032D39C209A5EB35646 /* NotificationService */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BF7D97EB4E0C6977357B651D /* Build configuration list for PBXNativeTarget "NotificationService" */;
+			buildPhases = (
+				F60EFBF48E46CBF3860B049F /* Sources */,
+				E79BB8072D7514279709FF30 /* Frameworks */,
+				559415773E0418307B198CD7 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = NotificationService;
+			productName = NotificationService;
+			productReference = 965E9D810E40BFC053222642 /* NotificationService.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		97C146ED1CF9000F007C117D /* Runner */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 97C147051CF9000F007C117D /* Build configuration list for PBXNativeTarget "Runner" */;
@@ -222,6 +315,7 @@
 				97C146EA1CF9000F007C117D /* Sources */,
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
+				473F5673F23207CE5E82DA75 /* Embed App Extensions */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				B56078BFB4E09CB35D42866F /* [CP] Embed Pods Frameworks */,
 				EE8F6B90818F4F1B07D86403 /* FlutterFire: "flutterfire upload-crashlytics-symbols" */,
@@ -229,6 +323,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				A4F5F38835DA5651780AE1BC /* PBXTargetDependency */,
 			);
 			name = Runner;
 			packageProductDependencies = (
@@ -277,6 +372,7 @@
 			targets = (
 				97C146ED1CF9000F007C117D /* Runner */,
 				331C8080294A63A400263BE5 /* RunnerTests */,
+				69F22032D39C209A5EB35646 /* NotificationService */,
 			);
 		};
 /* End PBXProject section */
@@ -286,16 +382,32 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F00000010000000000000000 /* anime_aah.m4a in Resources */,
-				F00000010000000000000001 /* car_lock.m4a in Resources */,
-				F00000010000000000000002 /* codonkia_voice.m4a in Resources */,
-				F00000010000000000000003 /* iphone_15_new_sound.m4a in Resources */,
-				F00000010000000000000004 /* mario_bros.m4a in Resources */,
-				F00000010000000000000005 /* mario_coin.m4a in Resources */,
-				F00000010000000000000006 /* minion_laugh.m4a in Resources */,
-				F00000010000000000000007 /* quack.m4a in Resources */,
-				F00000010000000000000008 /* snapchat_sound.m4a in Resources */,
+				F00000090000000000000000 /* anime_aah.m4a in Resources */,
+				F00000090000000000000001 /* car_lock.m4a in Resources */,
+				F00000090000000000000002 /* codonkia_voice.m4a in Resources */,
+				F00000090000000000000003 /* iphone_15_new_sound.m4a in Resources */,
+				F00000090000000000000004 /* mario_bros.m4a in Resources */,
+				F00000090000000000000005 /* mario_coin.m4a in Resources */,
+				F00000090000000000000006 /* minion_laugh.m4a in Resources */,
+				F00000090000000000000007 /* quack.m4a in Resources */,
+				F00000090000000000000008 /* snapchat_sound.m4a in Resources */,
 				0E737CD83028794B00D25EEB /* GoogleService-Info.plist in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		559415773E0418307B198CD7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C130D8F05375FFAFBCD3FBC2 /* anime_aah.m4a in Resources */,
+				CC66DAB95663EF83A419B634 /* car_lock.m4a in Resources */,
+				603DF6179E2BD54A1353607F /* codonkia_voice.m4a in Resources */,
+				37CE7308AD554149B6AAA9BE /* iphone_15_new_sound.m4a in Resources */,
+				B4DB5DFA4D2887A4C9CC0DCA /* mario_bros.m4a in Resources */,
+				24C7CFAB873E27EE8C263117 /* mario_coin.m4a in Resources */,
+				BF7144E8A792D0663C3ABD32 /* minion_laugh.m4a in Resources */,
+				65B5551D716C25E280564624 /* quack.m4a in Resources */,
+				A5B291C9073E3804B56610C4 /* snapchat_sound.m4a in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -359,7 +471,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" embed_and_thin";
+			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" embed_and_thin\n";
 		};
 		50D533354C9AC859A94F0DAE /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -454,6 +566,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F60EFBF48E46CBF3860B049F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				58E3BEF25DF7F171E85941DF /* NotificationService.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -461,6 +581,12 @@
 			isa = PBXTargetDependency;
 			target = 97C146ED1CF9000F007C117D /* Runner */;
 			targetProxy = 331C8085294A63A400263BE5 /* PBXContainerItemProxy */;
+		};
+		A4F5F38835DA5651780AE1BC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = NotificationService;
+			target = 69F22032D39C209A5EB35646 /* NotificationService */;
+			targetProxy = CA4083486914C73DB6B8284D /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -519,6 +645,23 @@
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Runner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Runner";
 			};
 			name = Release;
+		};
+		5CD05DC929231AF801232290 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = NotificationService/NotificationService.entitlements;
+				DEVELOPMENT_TEAM = JMHK6678HR;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = NotificationService/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nhanchaukp.fcode.pos.NotificationService;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
 		};
 		97C147031CF9000F007C117D /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -698,6 +841,24 @@
 			};
 			name = Release;
 		};
+		FBD6DB94BA6F9A5B57D5A78E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = NotificationService/NotificationService.entitlements;
+				DEVELOPMENT_TEAM = JMHK6678HR;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = NotificationService/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nhanchaukp.fcode.pos.NotificationService;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -724,6 +885,15 @@
 			buildConfigurations = (
 				97C147061CF9000F007C117D /* Debug */,
 				97C147071CF9000F007C117D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BF7D97EB4E0C6977357B651D /* Build configuration list for PBXNativeTarget "NotificationService" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FBD6DB94BA6F9A5B57D5A78E /* Release */,
+				5CD05DC929231AF801232290 /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

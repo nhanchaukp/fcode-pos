@@ -7,6 +7,7 @@ class OrderFilter {
   final DateTime toDate;
   final OrderStatus? status;
   final User? user;
+  final Product? product;
   final int page;
 
   const OrderFilter({
@@ -14,6 +15,7 @@ class OrderFilter {
     required this.toDate,
     this.status,
     this.user,
+    this.product,
     this.page = 1,
   });
 
@@ -22,6 +24,7 @@ class OrderFilter {
     DateTime? toDate,
     OrderStatus? Function()? status,
     User? Function()? user,
+    Product? Function()? product,
     int? page,
   }) {
     return OrderFilter(
@@ -29,12 +32,28 @@ class OrderFilter {
       toDate: toDate ?? this.toDate,
       status: status != null ? status() : this.status,
       user: user != null ? user() : this.user,
+      product: product != null ? product() : this.product,
       page: page ?? this.page,
     );
   }
 
+  OrderListFilter toDto({int perPage = 20, String search = ''}) {
+    return OrderListFilter(
+      fromDate: fromDate,
+      toDate: toDate,
+      page: page,
+      perPage: perPage,
+      status: status?.value ?? '',
+      userId: user?.id.toString() ?? '',
+      search: search,
+      productId: product?.id,
+    );
+  }
+
   bool get hasActiveFilters =>
-      (status != null && status != OrderStatus.all) || user != null;
+      (status != null && status != OrderStatus.all) ||
+      user != null ||
+      product != null;
 }
 
 final orderFilterProvider = StateProvider<OrderFilter>((ref) {

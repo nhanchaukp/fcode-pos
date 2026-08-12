@@ -39,22 +39,11 @@ class OrderListNotifier extends AsyncNotifier<OrderListState> {
   @override
   Future<OrderListState> build() async {
     final filter = ref.watch(orderFilterProvider);
+    final filterDto = filter.toDto(perPage: 20);
 
     final results = await Future.wait([
-      _service.list(
-        fromDate: filter.fromDate,
-        toDate: filter.toDate,
-        page: filter.page,
-        perPage: 20,
-        status: filter.status?.value ?? '',
-        userId: filter.user?.id.toString() ?? '',
-      ),
-      _service.summary(
-        fromDate: filter.fromDate,
-        toDate: filter.toDate,
-        status: filter.status?.value ?? '',
-        userId: filter.user?.id.toString() ?? '',
-      ),
+      _service.list(filterDto),
+      _service.summary(filterDto),
     ]);
 
     final listResponse = results[0] as ApiResponse<PaginatedData<Order>>;

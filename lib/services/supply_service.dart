@@ -11,7 +11,7 @@ class SupplyService {
   Future<ApiResponse<PaginatedData<Supply>>> list({
     String search = '',
     int page = 1,
-    int perPage = 20,
+    int perPage = 30,
   }) {
     return _api.get<PaginatedData<Supply>>(
       '/supply',

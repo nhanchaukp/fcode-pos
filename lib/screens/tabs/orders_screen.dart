@@ -6,6 +6,7 @@ import 'package:fcode_pos/screens/global_search_screen.dart';
 import 'package:fcode_pos/screens/order/order_create_screen.dart';
 import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/dropdown/customer_dropdown.dart';
+import 'package:fcode_pos/ui/components/dropdown/product_dropdown.dart';
 import 'package:fcode_pos/ui/components/order_list_component.dart'
     show OrderListComponent, OrderListViewMode;
 import 'package:fcode_pos/ui/components/dropdown/order_status_dropdown.dart';
@@ -162,12 +163,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         toDate: filter.toDate,
         selectedStatus: filter.status,
         selectedUser: filter.user,
-        onApply: (from, to, status, user) {
+        selectedProduct: filter.product,
+        onApply: (from, to, status, user, product) {
           ref.read(orderFilterProvider.notifier).state = OrderFilter(
             fromDate: from,
             toDate: to,
             status: status,
             user: user,
+            product: product,
             page: 1,
           );
           Navigator.pop(context);
@@ -193,6 +196,7 @@ class _OrderFilterSheet extends StatefulWidget {
     required this.toDate,
     required this.selectedStatus,
     required this.selectedUser,
+    required this.selectedProduct,
     required this.onApply,
     required this.onReset,
   });
@@ -201,11 +205,13 @@ class _OrderFilterSheet extends StatefulWidget {
   final DateTime? toDate;
   final OrderStatus? selectedStatus;
   final User? selectedUser;
+  final Product? selectedProduct;
   final void Function(
     DateTime from,
     DateTime to,
     OrderStatus? status,
     User? user,
+    Product? product,
   )
   onApply;
   final VoidCallback onReset;
@@ -219,6 +225,7 @@ class _OrderFilterSheetState extends State<_OrderFilterSheet> {
   late DateTime? _localTo;
   late OrderStatus? _localStatus;
   late User? _localUser;
+  late Product? _localProduct;
 
   @override
   void initState() {
@@ -227,6 +234,7 @@ class _OrderFilterSheetState extends State<_OrderFilterSheet> {
     _localTo = widget.toDate;
     _localStatus = widget.selectedStatus;
     _localUser = widget.selectedUser;
+    _localProduct = widget.selectedProduct;
   }
 
   String? _getActiveQuickDateRange() {
@@ -363,6 +371,15 @@ class _OrderFilterSheetState extends State<_OrderFilterSheet> {
             },
             isRequired: false,
           ),
+          const SizedBox(height: 18),
+          ProductSearchDropdown(
+            selectedProduct: _localProduct,
+            onChanged: (product) {
+              setState(() => _localProduct = product);
+            },
+            isRequired: false,
+            labelText: 'Chọn sản phẩm',
+          ),
           const SizedBox(height: 20),
           Row(
             children: [
@@ -378,7 +395,7 @@ class _OrderFilterSheetState extends State<_OrderFilterSheet> {
                   onPressed: () {
                     final from = _localFrom ?? DateTime.now();
                     final to = _localTo ?? DateTime.now();
-                    widget.onApply(from, to, _localStatus, _localUser);
+                    widget.onApply(from, to, _localStatus, _localUser, _localProduct);
                   },
                   child: const Text('Áp dụng'),
                 ),

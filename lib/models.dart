@@ -8,6 +8,7 @@ import 'utils/extensions.dart';
 
 export 'models/account_master_stats.dart';
 export 'models/dto/account_master_code_item.dart';
+export 'models/dto/order_list_filter.dart';
 
 part 'models/model.dart';
 part 'models/user.dart';

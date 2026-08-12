@@ -102,8 +102,8 @@ class _ProductSearchDropdownState extends State<ProductSearchDropdown> {
           prefixIcon: const Icon(Icons.inventory_2_outlined),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           suffixIcon: const SizedBox(
-            width: 20,
-            height: 20,
+            width: 16,
+            height: 16,
             child: Padding(
               padding: EdgeInsets.all(12),
               child: CircularProgressIndicator(strokeWidth: 2),
@@ -247,15 +247,15 @@ class _ProductSelectSheetState extends State<_ProductSelectSheet> {
                         itemCount: _filtered.length,
                         itemBuilder: (context, index) {
                           final product = _filtered[index];
-                          final primary =
-                              Theme.of(context).colorScheme.primary;
+                          final primary = Theme.of(context).colorScheme.primary;
                           return ListTile(
                             title: Text(product.name),
                             subtitle: Row(
                               children: [
                                 Text(
                                   CurrencyHelper.formatCurrency(
-                                      product.bestPrice ?? 0),
+                                    product.bestPrice ?? 0,
+                                  ),
                                   style: TextStyle(
                                     color: primary,
                                     fontWeight: FontWeight.bold,
@@ -268,17 +268,20 @@ class _ProductSelectSheetState extends State<_ProductSelectSheet> {
                                     '  ·  SKU: ${product.sku}',
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurfaceVariant,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
                                     ),
                                   ),
                                 ],
                               ],
                             ),
                             trailing: widget.selected?.id == product.id
-                                ? Icon(Icons.check_circle,
-                                    size: 18, color: primary)
+                                ? Icon(
+                                    Icons.check_circle,
+                                    size: 18,
+                                    color: primary,
+                                  )
                                 : null,
                             onTap: () {
                               Navigator.of(context).pop(product);

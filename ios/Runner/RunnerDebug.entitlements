@@ -4,9 +4,14 @@
 <dict>
 	<key>aps-environment</key>
 	<string>development</string>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.com.nhanchaukp.fcode.pos</string>
+	</array>
 	<key>keychain-access-groups</key>
 	<array>
 		<string>$(AppIdentifierPrefix)com.nhanchaukp.fcode.pos</string>
 	</array>
 </dict>
 </plist>
+

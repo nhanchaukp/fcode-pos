@@ -6,6 +6,7 @@ import 'package:fcode_pos/services/fcm_token_service.dart';
 import 'package:fcode_pos/services/notification_sound_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:app_badge_plus/app_badge_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
@@ -124,8 +125,45 @@ class NotificationService {
 
     _isInitialized = true;
 
+    // 7. Xóa số badge đỏ trên Icon khi ứng dụng khởi chạy
+    await removeBadge();
+
     // Log FCM Token & APNs Token để tiện Debug
     await logTokens();
+  }
+
+  /// Xóa số badge đỏ trên Icon ứng dụng khi mở App
+  static Future<void> removeBadge() async {
+    try {
+      final isSupported = await AppBadgePlus.isSupported();
+      if (isSupported) {
+        await AppBadgePlus.updateBadge(0);
+        if (kDebugMode) {
+          print('🏷️ App badge removed successfully via AppBadgePlus');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error removing app badge: $e');
+      }
+    }
+  }
+
+  /// Cập nhật số badge đỏ trên Icon ứng dụng
+  static Future<void> updateBadgeCount(int count) async {
+    try {
+      final isSupported = await AppBadgePlus.isSupported();
+      if (isSupported) {
+        await AppBadgePlus.updateBadge(count);
+        if (kDebugMode) {
+          print('🏷️ App badge updated to $count via AppBadgePlus');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error updating app badge count: $e');
+      }
+    }
   }
 
   /// Khởi tạo Local Notification Plugin
@@ -177,6 +215,9 @@ class NotificationService {
 
   /// Xử lý điều hướng khi bấm vào thông báo
   void _handleNotificationMessage(RemoteMessage message) {
+    // Xóa số badge trên icon ứng dụng khi người dùng bấm vào mở thông báo
+    removeBadge();
+
     final data = message.data;
     if (data.isEmpty) return;
 

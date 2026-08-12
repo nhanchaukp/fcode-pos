@@ -99,14 +99,11 @@ class _InvoiceProviderAccountDropdownState
         decoration: InputDecoration(
           labelText: '$label *',
           suffixIcon: const SizedBox(
-            width: 24,
-            height: 24,
-            child: Center(
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
+            width: 16,
+            height: 16,
+            child: Padding(
+              padding: EdgeInsets.all(12),
+              child: CircularProgressIndicator(strokeWidth: 2),
             ),
           ),
         ),
@@ -260,10 +257,12 @@ class _ProviderSelectSheetState extends State<_ProviderSelectSheet> {
                   final q = query.trim().toLowerCase();
                   if (!mounted) return;
                   setState(() {
-                    _filtered = widget.items.where((e) {
-                      final text = widget.labelBuilder(e).toLowerCase();
-                      return text.contains(q);
-                    }).toList(growable: false);
+                    _filtered = widget.items
+                        .where((e) {
+                          final text = widget.labelBuilder(e).toLowerCase();
+                          return text.contains(q);
+                        })
+                        .toList(growable: false);
                   });
                 },
               ),
@@ -286,16 +285,21 @@ class _ProviderSelectSheetState extends State<_ProviderSelectSheet> {
                               item.id,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                fontFamily: 'monospace',
-                              ),
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                    fontFamily: 'monospace',
+                                  ),
                             ),
                             trailing: selected
                                 ? Icon(
                                     Icons.check_circle,
                                     size: 18,
-                                    color: Theme.of(context).colorScheme.primary,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
                                   )
                                 : null,
                             onTap: () => Navigator.of(context).pop(item),

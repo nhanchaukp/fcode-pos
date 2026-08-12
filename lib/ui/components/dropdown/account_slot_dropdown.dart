@@ -102,12 +102,9 @@ class _AccountSlotDropdownState extends State<AccountSlotDropdown> {
           suffixIcon: const SizedBox(
             width: 16,
             height: 16,
-            child: Center(
-              child: SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
+            child: Padding(
+              padding: EdgeInsets.all(12),
+              child: CircularProgressIndicator(strokeWidth: 2),
             ),
           ),
         ),

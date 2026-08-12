@@ -124,14 +124,11 @@ class _InvoiceTemplateDropdownState extends State<InvoiceTemplateDropdown> {
         decoration: InputDecoration(
           labelText: '$label *',
           suffixIcon: const SizedBox(
-            width: 22,
-            height: 22,
-            child: Center(
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
+            width: 16,
+            height: 16,
+            child: Padding(
+              padding: EdgeInsets.all(12),
+              child: CircularProgressIndicator(strokeWidth: 2),
             ),
           ),
         ),
@@ -183,7 +180,9 @@ class _InvoiceTemplateDropdownState extends State<InvoiceTemplateDropdown> {
               )
             : const Icon(Icons.arrow_drop_down),
       ),
-      onTap: (widget.enabled && _templates.isNotEmpty) ? _openPickerSheet : null,
+      onTap: (widget.enabled && _templates.isNotEmpty)
+          ? _openPickerSheet
+          : null,
       validator: (_) {
         if (widget.validator != null) return widget.validator!(widget.value);
         if (widget.value == null) return 'Chọn mẫu hóa đơn';
@@ -199,10 +198,8 @@ class _InvoiceTemplateDropdownState extends State<InvoiceTemplateDropdown> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (_) => _TemplateSelectSheet(
-        templates: _templates,
-        selected: widget.value,
-      ),
+      builder: (_) =>
+          _TemplateSelectSheet(templates: _templates, selected: widget.value),
     );
     if (selected == null) return;
     _textController.text = selected.invoiceLabel;
@@ -211,10 +208,7 @@ class _InvoiceTemplateDropdownState extends State<InvoiceTemplateDropdown> {
 }
 
 class _TemplateSelectSheet extends StatefulWidget {
-  const _TemplateSelectSheet({
-    required this.templates,
-    this.selected,
-  });
+  const _TemplateSelectSheet({required this.templates, this.selected});
 
   final List<InvoiceTemplate> templates;
   final InvoiceTemplate? selected;
@@ -271,12 +265,14 @@ class _TemplateSelectSheetState extends State<_TemplateSelectSheet> {
                   final q = query.trim().toLowerCase();
                   if (!mounted) return;
                   setState(() {
-                    _filtered = widget.templates.where((e) {
-                      final text =
-                          '${e.invoiceLabel} ${e.templateCode} ${e.invoiceSeries}'
-                              .toLowerCase();
-                      return text.contains(q);
-                    }).toList(growable: false);
+                    _filtered = widget.templates
+                        .where((e) {
+                          final text =
+                              '${e.invoiceLabel} ${e.templateCode} ${e.invoiceSeries}'
+                                  .toLowerCase();
+                          return text.contains(q);
+                        })
+                        .toList(growable: false);
                   });
                 },
               ),
@@ -288,7 +284,8 @@ class _TemplateSelectSheetState extends State<_TemplateSelectSheet> {
                         itemCount: _filtered.length,
                         itemBuilder: (_, i) {
                           final item = _filtered[i];
-                          final selected = widget.selected != null &&
+                          final selected =
+                              widget.selected != null &&
                               _invoiceTemplateKey(item) ==
                                   _invoiceTemplateKey(widget.selected!);
                           return ListTile(
@@ -304,7 +301,9 @@ class _TemplateSelectSheetState extends State<_TemplateSelectSheet> {
                                 ? Icon(
                                     Icons.check_circle,
                                     size: 18,
-                                    color: Theme.of(context).colorScheme.primary,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
                                   )
                                 : null,
                             onTap: () => Navigator.of(context).pop(item),

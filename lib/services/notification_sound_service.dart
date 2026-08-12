@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:fcode_pos/models/notification_sound_item.dart';
 import 'package:fcode_pos/services/user_settings_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -11,6 +13,7 @@ class NotificationSoundService {
       NotificationSoundService._internal();
 
   static const String _prefKey = 'selected_notification_sound_id';
+  static const MethodChannel _appGroupChannel = MethodChannel('fcode/app_group');
   final AudioPlayer _audioPlayer = AudioPlayer();
 
   NotificationSoundItem _currentSound =
@@ -18,12 +21,31 @@ class NotificationSoundService {
 
   NotificationSoundItem get currentSound => _currentSound;
 
+  /// Đồng bộ tên file nhạc chuông sang App Group UserDefaults dành cho iOS Extension
+  Future<void> _syncToIosAppGroup(String fileName) async {
+    if (!Platform.isIOS) return;
+    try {
+      await _appGroupChannel.invokeMethod('setNotificationSound', {
+        'fileName': fileName,
+      });
+      if (kDebugMode) {
+        print('Synced sound "$fileName" to iOS App Group');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error syncing sound to iOS App Group: $e');
+      }
+    }
+  }
+
   /// Khởi tạo và đọc nhạc chuông đã lưu từ SharedPreferences + đồng bộ từ Server
   Future<void> init() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final savedId = prefs.getString(_prefKey) ?? 'default';
       _currentSound = NotificationSoundItem.findById(savedId);
+
+      await _syncToIosAppGroup(_currentSound.fileName);
 
       // Đồng bộ ngầm với Server
       syncWithServer();
@@ -43,6 +65,8 @@ class NotificationSoundService {
         _currentSound = soundItem;
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(_prefKey, soundItem.id);
+
+        await _syncToIosAppGroup(soundItem.fileName);
       }
     } catch (e) {
       if (kDebugMode) {
@@ -77,6 +101,8 @@ class NotificationSoundService {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_prefKey, item.id);
+
+      await _syncToIosAppGroup(item.fileName);
 
       // Đẩy setting lên Server API (PUT /api/user/my-settings)
       await UserSettingsService().updateMyNotificationSound(item.androidSoundName);
@@ -118,3 +144,4 @@ class NotificationSoundService {
     );
   }
 }
+

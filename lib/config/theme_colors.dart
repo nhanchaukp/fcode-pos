@@ -229,8 +229,8 @@ const _industrialLight = ColorScheme(
   surfaceContainerHigh: Color(0xFFe7e5e4), // stone-200
   surfaceContainerHighest: Color(0xFFd6d3d1), // stone-300
   onSurfaceVariant: Color(0xFF292524), // stone-800 (on-surface)
-  outline: Color(0x00000000), // transparent
-  outlineVariant: Color(0x00000000), // transparent
+  outline: Color(0xFFe7e5e4), // stone-300
+  outlineVariant: Color(0xFFe7e5e4), // stone-300
   shadow: Color(0xFF000000),
   scrim: Color(0xFF000000),
   inverseSurface: Color(0xFF1c1917), // stone-900
@@ -245,7 +245,7 @@ const _industrialDark = ColorScheme(
   onPrimary: Color(0xFF000000), // black
   primaryContainer: Color(0xFF92400e), // amber-800
   onPrimaryContainer: Color(0xFFfef3c7), // amber-100
-  secondary: Color(0xFF44403c), // stone-700
+  secondary: Color(0xFFa8a29e), // stone-400
   onSecondary: Color(0xFFffffff), // white
   secondaryContainer: Color(0xFF292524), // stone-800
   onSecondaryContainer: Color(0xFFd6d3d1), // stone-300
@@ -268,7 +268,7 @@ const _industrialDark = ColorScheme(
   surfaceContainerHighest: Color(0xFF44403c), // stone-700
   onSurfaceVariant: Color(0xFFd6d3d1), // stone-300 (on-surface-dark)
   outline: Color(0xFF44403c), // stone-700
-  outlineVariant: Color(0xFF292524), // stone-800
+  outlineVariant: Color(0xFF57534e), // stone-600
   shadow: Color(0xFF000000),
   scrim: Color(0xFF000000),
   inverseSurface: Color(0xFFe7e5e4), // stone-200

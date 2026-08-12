@@ -54,6 +54,7 @@ dependencies:
   flutter_local_notifications: ^18.0.1
   firebase_app_installations: ^0.4.2+7
   audioplayers: ^6.1.0
+  app_badge_plus: ^1.2.9
 
 dependency_overrides:
   font_awesome_flutter: ^11.0.0

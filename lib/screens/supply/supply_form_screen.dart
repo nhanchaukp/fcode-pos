@@ -56,7 +56,7 @@ class _SupplyFormScreenState extends State<SupplyFormScreen> {
     try {
       final data = {
         'name': _nameController.text.trim(),
-        'description': _contentController.text.trim().isEmpty
+        'content': _contentController.text.trim().isEmpty
             ? null
             : _contentController.text.trim(),
       };

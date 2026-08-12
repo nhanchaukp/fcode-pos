@@ -19,30 +19,12 @@ class OrderService {
     );
   }
 
-  Future<ApiResponse<PaginatedData<Order>>> list({
-    DateTime? fromDate,
-    DateTime? toDate,
-    int page = 1,
-    int perPage = 20,
-    String status = '',
-    String userId = '',
-    String search = '',
-  }) {
+  Future<ApiResponse<PaginatedData<Order>>> list([
+    OrderListFilter filter = const OrderListFilter(),
+  ]) {
     return _api.get<PaginatedData<Order>>(
       '/order',
-      queryParameters: {
-        'date_from': fromDate != null
-            ? DateFormat('yyyy-MM-dd').format(fromDate)
-            : null,
-        'date_to': toDate != null
-            ? DateFormat('yyyy-MM-dd').format(toDate)
-            : null,
-        'page': page,
-        'per_page': perPage,
-        'status': status,
-        'user_id': userId,
-        'search': search,
-      },
+      queryParameters: filter.toQueryParameters(),
       parser: (json) => PaginatedData<Order>.fromJson(
         ensureMap(json),
         (item) => Order.fromJson(ensureMap(item)),
@@ -50,26 +32,12 @@ class OrderService {
     );
   }
 
-  Future<ApiResponse<OrderSummary>> summary({
-    DateTime? fromDate,
-    DateTime? toDate,
-    String status = '',
-    String userId = '',
-    String search = '',
-  }) {
+  Future<ApiResponse<OrderSummary>> summary([
+    OrderListFilter filter = const OrderListFilter(),
+  ]) {
     return _api.get<OrderSummary>(
       '/order/summary',
-      queryParameters: {
-        'date_from': fromDate != null
-            ? DateFormat('yyyy-MM-dd').format(fromDate)
-            : null,
-        'date_to': toDate != null
-            ? DateFormat('yyyy-MM-dd').format(toDate)
-            : null,
-        'status': status,
-        'user_id': userId,
-        'search': search,
-      },
+      queryParameters: filter.toQueryParameters(),
       parser: (json) => OrderSummary.fromJson(ensureMap(json)),
     );
   }

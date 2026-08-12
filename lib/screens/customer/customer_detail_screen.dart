@@ -685,9 +685,11 @@ class _OrdersTabViewState extends State<_OrdersTabView>
 
     try {
       final response = await widget.orderService.list(
-        page: page,
-        perPage: _perPage,
-        userId: widget.userId,
+        OrderListFilter(
+          page: page,
+          perPage: _perPage,
+          userId: widget.userId,
+        ),
       );
 
       if (!mounted) return;
