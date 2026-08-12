@@ -143,8 +143,8 @@ class _AccountSlotDropdownState extends State<AccountSlotDropdown> {
                   ),
                 if (widget.enabled)
                   IconButton(
-                    icon: const Icon(Icons.add),
-                    tooltip: 'Thêm slot mới',
+                    icon: const Icon(Icons.add_circle_outline),
+                    tooltip: 'Thêm mới',
                     onPressed: () async {
                       final newSlot = await showModalBottomSheet<AccountSlot>(
                         context: context,

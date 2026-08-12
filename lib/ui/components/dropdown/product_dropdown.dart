@@ -1,5 +1,5 @@
 import 'package:fcode_pos/models.dart';
-import 'package:fcode_pos/services/product_service.dart';
+import 'package:fcode_pos/repositories/cache_repository.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:fcode_pos/ui/components/debounced_search_input.dart';
@@ -27,7 +27,6 @@ class ProductSearchDropdown extends StatefulWidget {
 }
 
 class _ProductSearchDropdownState extends State<ProductSearchDropdown> {
-  final _productService = ProductService();
   final _textController = TextEditingController();
   List<Product> _products = [];
   bool _isLoading = false;
@@ -61,12 +60,13 @@ class _ProductSearchDropdownState extends State<ProductSearchDropdown> {
     super.dispose();
   }
 
-  Future<void> _loadProducts() async {
+  Future<void> _loadProducts({bool forceRefresh = false}) async {
     if (!mounted) return;
     setState(() => _isLoading = true);
     try {
-      final response = await _productService.list(perPage: 200);
-      final items = response.data?.items ?? [];
+      final items = await CacheRepository.instance.getProducts(
+        forceRefresh: forceRefresh,
+      );
       if (!mounted) return;
       setState(() {
         _products = items;
@@ -139,6 +139,10 @@ class _ProductSearchDropdownState extends State<ProductSearchDropdown> {
       ),
       onTap: widget.enabled
           ? () async {
+              if (_products.isEmpty) {
+                await _loadProducts(forceRefresh: true);
+              }
+              if (!mounted) return;
               final selected = await showModalBottomSheet<Product>(
                 context: context,
                 isScrollControlled: true,
@@ -149,6 +153,7 @@ class _ProductSearchDropdownState extends State<ProductSearchDropdown> {
                   return _ProductSelectSheet(
                     products: _products,
                     selected: _selectedProduct,
+                    onRefresh: () => _loadProducts(forceRefresh: true),
                   );
                 },
               );
@@ -177,7 +182,12 @@ class _ProductSearchDropdownState extends State<ProductSearchDropdown> {
 class _ProductSelectSheet extends StatefulWidget {
   final List<Product> products;
   final Product? selected;
-  const _ProductSelectSheet({required this.products, this.selected});
+  final Future<void> Function()? onRefresh;
+  const _ProductSelectSheet({
+    required this.products,
+    this.selected,
+    this.onRefresh,
+  });
 
   @override
   State<_ProductSelectSheet> createState() => _ProductSelectSheetState();
@@ -186,12 +196,23 @@ class _ProductSelectSheet extends StatefulWidget {
 class _ProductSelectSheetState extends State<_ProductSelectSheet> {
   late List<Product> _filtered;
   late TextEditingController _searchController;
+  bool _isRefreshing = false;
 
   @override
   void initState() {
     super.initState();
     _searchController = TextEditingController();
     _filtered = widget.products;
+  }
+
+  @override
+  void didUpdateWidget(_ProductSelectSheet oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.products != oldWidget.products) {
+      setState(() {
+        _filtered = widget.products;
+      });
+    }
   }
 
   @override
@@ -242,7 +263,38 @@ class _ProductSelectSheetState extends State<_ProductSelectSheet> {
               const SizedBox(height: 12),
               Flexible(
                 child: _filtered.isEmpty
-                    ? const Center(child: Text('Không có sản phẩm phù hợp'))
+                    ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text('Không có sản phẩm phù hợp'),
+                            if (widget.onRefresh != null) ...[
+                              const SizedBox(height: 8),
+                              TextButton.icon(
+                                onPressed: _isRefreshing
+                                    ? null
+                                    : () async {
+                                        setState(() => _isRefreshing = true);
+                                        await widget.onRefresh!();
+                                        if (mounted) {
+                                          setState(() => _isRefreshing = false);
+                                        }
+                                      },
+                                icon: _isRefreshing
+                                    ? const SizedBox(
+                                        width: 14,
+                                        height: 14,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Icon(Icons.refresh, size: 18),
+                                label: const Text('Tải lại danh sách'),
+                              ),
+                            ],
+                          ],
+                        ),
+                      )
                     : ListView.builder(
                         itemCount: _filtered.length,
                         itemBuilder: (context, index) {

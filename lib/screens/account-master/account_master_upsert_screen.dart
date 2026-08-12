@@ -1,6 +1,7 @@
 import 'package:fcode_pos/enums.dart' as enums;
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/models/dto/account_master_data.dart';
+import 'package:fcode_pos/repositories/cache_repository.dart';
 import 'package:fcode_pos/screens/account-master/account_master_detail_screen.dart';
 import 'package:fcode_pos/services/account_master_service.dart';
 import 'package:fcode_pos/ui/components/app_scaffold.dart';
@@ -159,6 +160,7 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
 
       if (_isUpdate) {
         await _accountMasterService.update(widget.accountMaster!.id, data);
+        CacheRepository.instance.invalidateAccountMasters();
         if (!mounted) return;
         Toastr.success('Cập nhật tài khoản thành công');
         Navigator.pop(context, true);
@@ -166,6 +168,7 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
       }
 
       final response = await _accountMasterService.create(data);
+      CacheRepository.instance.invalidateAccountMasters();
       if (!mounted) return;
 
       Toastr.success('Tạo tài khoản thành công');

@@ -1,4 +1,5 @@
 import 'package:fcode_pos/models.dart';
+import 'package:fcode_pos/repositories/cache_repository.dart';
 import 'package:fcode_pos/screens/supply/supply_form_screen.dart';
 import 'package:fcode_pos/services/supply_service.dart';
 import 'package:flutter/material.dart';
@@ -27,7 +28,6 @@ class SupplyDropdown extends StatefulWidget {
 }
 
 class _SupplyDropdownState extends State<SupplyDropdown> {
-  final _supplyService = SupplyService();
   List<Supply> _supplies = [];
   bool _isLoading = false;
   Supply? _selectedSupply;
@@ -49,12 +49,13 @@ class _SupplyDropdownState extends State<SupplyDropdown> {
     }
   }
 
-  Future<void> _loadSupplies() async {
+  Future<void> _loadSupplies({bool forceRefresh = false}) async {
     if (!mounted) return;
     setState(() => _isLoading = true);
     try {
-      final response = await _supplyService.list(perPage: 100);
-      final items = response.data?.items ?? [];
+      final items = await CacheRepository.instance.getSupplies(
+        forceRefresh: forceRefresh,
+      );
       if (!mounted) return;
       setState(() {
         _supplies = items;

@@ -1,5 +1,5 @@
 import 'package:fcode_pos/models.dart';
-import 'package:fcode_pos/services/account_master_service.dart';
+import 'package:fcode_pos/repositories/cache_repository.dart';
 import 'package:fcode_pos/ui/components/debounced_search_input.dart';
 import 'package:fcode_pos/ui/components/badge/service_badge.dart';
 import 'package:flutter/material.dart';
@@ -27,7 +27,6 @@ class AccountMasterDropdown extends StatefulWidget {
 }
 
 class _AccountMasterDropdownState extends State<AccountMasterDropdown> {
-  final _accountMasterService = AccountMasterService();
   List<AccountMaster> _accountMasters = [];
   bool _isLoading = false;
   AccountMaster? _selectedAccountMaster;
@@ -49,12 +48,13 @@ class _AccountMasterDropdownState extends State<AccountMasterDropdown> {
     }
   }
 
-  Future<void> _loadAccountMasters() async {
+  Future<void> _loadAccountMasters({bool forceRefresh = false}) async {
     if (!mounted) return;
     setState(() => _isLoading = true);
     try {
-      final response = await _accountMasterService.list(isActive: true);
-      final items = response.data ?? [];
+      final items = await CacheRepository.instance.getAccountMasters(
+        forceRefresh: forceRefresh,
+      );
       if (!mounted) return;
       setState(() {
         _accountMasters = items;

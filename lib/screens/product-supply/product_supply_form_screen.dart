@@ -1,5 +1,6 @@
 import 'package:fcode_pos/api/api_exception.dart';
 import 'package:fcode_pos/models.dart';
+import 'package:fcode_pos/repositories/cache_repository.dart';
 import 'package:fcode_pos/services/product_supply_service.dart';
 import 'package:fcode_pos/ui/components/dropdown/product_dropdown.dart';
 import 'package:fcode_pos/ui/components/dropdown/supply_dropdown.dart';
@@ -101,6 +102,9 @@ class _ProductSupplyFormScreenState extends State<ProductSupplyFormScreen> {
           isPreferred: _isPreferred,
         );
       }
+
+      CacheRepository.instance.invalidateProducts();
+      CacheRepository.instance.invalidateSupplies();
 
       if (!mounted) return;
 

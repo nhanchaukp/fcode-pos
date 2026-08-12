@@ -1,4 +1,5 @@
 import 'package:fcode_pos/models.dart';
+import 'package:fcode_pos/repositories/cache_repository.dart';
 import 'package:fcode_pos/services/supply_service.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:fcode_pos/ui/components/app_scaffold.dart';
@@ -64,11 +65,13 @@ class _SupplyFormScreenState extends State<SupplyFormScreen> {
 
       if (_isEditMode) {
         await _supplyService.update(widget.supply!.id, data);
+        CacheRepository.instance.invalidateSupplies();
         if (!mounted) return;
         Toastr.success('Cập nhật nhà cung cấp thành công');
         Navigator.of(context).pop(true);
       } else {
         final response = await _supplyService.create(data);
+        CacheRepository.instance.invalidateSupplies();
         if (!mounted) return;
         Toastr.success('Tạo nhà cung cấp thành công');
 
