@@ -53,19 +53,19 @@ class OrderService {
     );
   }
 
-  Future<ApiResponse<Order?>> create(Order order) {
-    return _api.post<Order?>(
+  Future<ApiResponse<Order>> create(OrderCreateData data) {
+    return _api.post<Order>(
       '/order',
-      data: order.toMap(),
-      parser: (json) => json == null ? null : Order.fromJson(ensureMap(json)),
+      data: data.toJson(),
+      parser: (json) => Order.fromJson(ensureMap(json)),
     );
   }
 
-  Future<ApiResponse<Order?>> update(String id, Order order) {
-    return _api.put<Order?>(
+  Future<ApiResponse<Order>> update(String id, OrderUpdateData data) {
+    return _api.put<Order>(
       '/order/$id',
-      data: order.toMap(),
-      parser: (json) => json == null ? null : Order.fromJson(ensureMap(json)),
+      data: data.toJson(),
+      parser: (json) => Order.fromJson(ensureMap(json)),
     );
   }
 
@@ -76,14 +76,14 @@ class OrderService {
     );
   }
 
-  Future<ApiResponse<Map<String, dynamic>?>> upsertItems(
+  Future<ApiResponse<Order>> upsertItems(
     int id,
-    List<OrderItem> items,
+    OrderUpsertItemsData data,
   ) {
-    return _api.post<Map<String, dynamic>?>(
+    return _api.post<Order>(
       '/order/$id/items',
-      data: {'items': items.map((item) => item.toMap()).toList()},
-      parser: (json) => json == null ? null : ensureMap(json),
+      data: data.toJson(),
+      parser: (json) => Order.fromJson(ensureMap(json)),
     );
   }
 
@@ -139,13 +139,13 @@ class OrderService {
     );
   }
 
-  Future<ApiResponse<Map<String, dynamic>?>> deleteItem(
+  Future<ApiResponse<Order>> deleteItem(
     int orderId,
     int itemId,
   ) {
-    return _api.delete<Map<String, dynamic>?>(
+    return _api.delete<Order>(
       '/order/$orderId/item/$itemId',
-      parser: (json) => json == null ? null : ensureMap(json),
+      parser: (json) => Order.fromJson(ensureMap(json)),
     );
   }
 }

@@ -123,20 +123,23 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
   Future<void> _showUpdateDialog() async {
     if (_order == null) return;
 
-    final result = await showModalBottomSheet<bool>(
+    final updatedOrder = await showModalBottomSheet<Order>(
       context: context,
       isScrollControlled: true,
       showDragHandle: false,
       useSafeArea: true,
       builder: (context) => OrderUpdateBottomSheet(
         order: _order!,
-        onSuccess: () {
-          _loadOrderDetail(syncList: true);
+        onSuccess: (updated) {
+          setState(() => _order = updated);
+          _syncOrderToList(updated);
         },
       ),
     );
 
-    if (result == true && mounted) {
+    if (updatedOrder != null && mounted) {
+      setState(() => _order = updatedOrder);
+      _syncOrderToList(updatedOrder);
       debugPrint('Order updated successfully');
     }
   }
@@ -259,48 +262,19 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
 
     final currentOrder = _order!;
 
-    final updatedOrder = Order(
-      id: currentOrder.id,
-      userId: currentOrder.userId,
-      total: currentOrder.total,
-      status: status.value,
-      type: currentOrder.type,
-      note: currentOrder.note,
-      utmSource: currentOrder.utmSource,
-      items: const [],
-      paymentHistories: const [],
-      refunds: const [],
-    );
-
     try {
-      await _orderService.update(currentOrder.id.toString(), updatedOrder);
+      final response = await _orderService.update(
+        currentOrder.id.toString(),
+        OrderUpdateData(status: status.value),
+      );
 
       if (!mounted) return;
 
-      final updatedLocal = Order(
-        id: currentOrder.id,
-        userId: currentOrder.userId,
-        total: currentOrder.total,
-        discount: currentOrder.discount,
-        status: status.value,
-        type: currentOrder.type,
-        refundAmount: currentOrder.refundAmount,
-        note: currentOrder.note,
-        transactionId: currentOrder.transactionId,
-        createdAt: currentOrder.createdAt,
-        updatedAt: DateTime.now(),
-        paymentId: currentOrder.paymentId,
-        utmSource: currentOrder.utmSource,
-        user: currentOrder.user,
-        items: currentOrder.items,
-        itemCount: currentOrder.itemCount,
-        paymentHistories: currentOrder.paymentHistories,
-        refunds: currentOrder.refunds,
-        urlQrCodePayment: currentOrder.urlQrCodePayment,
-      );
-
-      setState(() => _order = updatedLocal);
-      _syncOrderToList(updatedLocal);
+      final updated = response.data;
+      if (updated != null) {
+        setState(() => _order = updated);
+        _syncOrderToList(updated);
+      }
       Toastr.success('Đã cập nhật trạng thái đơn hàng');
     } catch (e, st) {
       debugPrintStack(
@@ -1052,7 +1026,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
   Future<void> _showItemUpdateBottomSheet(OrderItem item) async {
     if (_order == null) return;
 
-    final result = await showModalBottomSheet<bool>(
+    final updatedOrder = await showModalBottomSheet<Order>(
       context: context,
       isScrollControlled: true,
       showDragHandle: false,
@@ -1060,19 +1034,22 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
       builder: (context) => OrderItemUpdateBottomSheet(
         orderId: _order!.id,
         orderItem: item,
-        onSuccess: () {
-          _loadOrderDetail(syncList: true);
+        onSuccess: (updated) {
+          setState(() => _order = updated);
+          _syncOrderToList(updated);
         },
       ),
     );
 
-    if (result == true && mounted) {
+    if (updatedOrder != null && mounted) {
+      setState(() => _order = updatedOrder);
+      _syncOrderToList(updatedOrder);
       debugPrint('Order item updated successfully');
     }
   }
 
   Future<void> _showAddProductBottomSheet(int orderId) async {
-    final result = await showModalBottomSheet<bool>(
+    final updatedOrder = await showModalBottomSheet<Order>(
       context: context,
       isScrollControlled: true,
       showDragHandle: false,
@@ -1080,13 +1057,16 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
       builder: (context) => OrderItemUpdateBottomSheet(
         orderId: orderId,
         orderItem: null,
-        onSuccess: () {
-          _loadOrderDetail(syncList: true);
+        onSuccess: (updated) {
+          setState(() => _order = updated);
+          _syncOrderToList(updated);
         },
       ),
     );
 
-    if (result == true && mounted) {
+    if (updatedOrder != null && mounted) {
+      setState(() => _order = updatedOrder);
+      _syncOrderToList(updatedOrder);
       debugPrint('Product added successfully');
     }
   }

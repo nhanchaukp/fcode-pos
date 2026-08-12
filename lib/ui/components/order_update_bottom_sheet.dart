@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 
 class OrderUpdateBottomSheet extends StatefulWidget {
   final Order order;
-  final VoidCallback? onSuccess;
+  final void Function(Order updatedOrder)? onSuccess;
 
   const OrderUpdateBottomSheet({
     required this.order,
@@ -37,15 +37,14 @@ class _OrderUpdateBottomSheetState extends State<OrderUpdateBottomSheet> {
   @override
   void initState() {
     super.initState();
-    _initializeForm();
-  }
-
-  void _initializeForm() {
-    _totalController.text = widget.order.total.toString();
-    _noteController.text = widget.order.note ?? '';
     _selectedUser = widget.order.user;
     _selectedStatus = enums.OrderStatus.fromValue(widget.order.status);
     _selectedUtmSource = widget.order.utmSource;
+
+    _totalController.text = widget.order.total.toString();
+    if (widget.order.note != null) {
+      _noteController.text = widget.order.note!;
+    }
   }
 
   @override
@@ -63,29 +62,26 @@ class _OrderUpdateBottomSheetState extends State<OrderUpdateBottomSheet> {
     setState(() => _isLoading = true);
 
     try {
-      final updatedOrder = Order(
-        id: widget.order.id,
+      final updateData = OrderUpdateData(
         userId: _selectedUser?.id ?? widget.order.userId,
         total: _totalController.moneyValue,
         status: _selectedStatus?.value ?? widget.order.status,
         type: widget.order.type,
-        // refundAmount: widget.order.refundAmount,
         note: _noteController.text.isEmpty ? null : _noteController.text,
         utmSource: _selectedUtmSource,
-        // user: _selectedUser,
-        items: [],
-        paymentHistories: [],
-        refunds: [],
       );
 
-      await _orderService.update(widget.order.id.toString(), updatedOrder);
+      final response = await _orderService.update(widget.order.id.toString(), updateData);
 
       if (!mounted) return;
 
+      final updatedOrder = response.data;
       Toastr.success('Cập nhật đơn hàng thành công');
 
-      widget.onSuccess?.call();
-      Navigator.of(context).pop(true);
+      if (updatedOrder != null) {
+        widget.onSuccess?.call(updatedOrder);
+      }
+      Navigator.of(context).pop(updatedOrder);
     } catch (e, st) {
       debugPrintStack(stackTrace: st);
       if (!mounted) return;

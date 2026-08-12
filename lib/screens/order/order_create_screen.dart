@@ -104,20 +104,16 @@ class _OrderCreateScreenState extends ConsumerState<OrderCreateScreen> {
 
     try {
       final items = _orderItems.map((item) => item.toOrderItem(0)).toList();
-      final newOrder = Order(
-        id: 0,
+      final createData = OrderCreateData(
         userId: _selectedUser?.id ?? 0,
         total: _calculateTotal(),
         status: enums.OrderStatus.new_.value,
         type: 'new',
         note: _noteController.text.isEmpty ? null : _noteController.text,
-        utmSource: null,
         items: items,
-        paymentHistories: const [],
-        refunds: const [],
       );
 
-      final response = await _orderService.create(newOrder);
+      final response = await _orderService.create(createData);
       if (!mounted) return;
 
       final createdOrder = response.data;

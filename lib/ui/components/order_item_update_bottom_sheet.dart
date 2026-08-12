@@ -7,13 +7,13 @@ import 'package:fcode_pos/ui/components/order_item_editor_modal.dart';
 class OrderItemUpdateBottomSheet extends StatelessWidget {
   final int orderId;
   final OrderItem? orderItem;
-  final VoidCallback onSuccess;
+  final void Function(Order updatedOrder)? onSuccess;
 
   const OrderItemUpdateBottomSheet({
     super.key,
     required this.orderId,
     this.orderItem,
-    required this.onSuccess,
+    this.onSuccess,
   });
 
   bool get isAddMode => orderItem == null;
@@ -43,24 +43,38 @@ class OrderItemUpdateBottomSheet extends StatelessWidget {
   ) async {
     try {
       final orderService = OrderService();
+      Order? updatedOrder;
 
       if (isAddMode) {
         // Add new item
         final newItem = data.toOrderItem(0); // orderId will be set by backend
-        await orderService.upsertItems(orderId, [newItem]);
+        final response = await orderService.upsertItems(
+          orderId,
+          OrderUpsertItemsData(items: [newItem]),
+        );
+        updatedOrder = response.data;
         if (context.mounted) {
           Toastr.success('Thêm sản phẩm thành công');
         }
       } else {
         // Update existing item
         final updatedItem = data.toOrderItem(orderId);
-        await orderService.upsertItems(orderId, [updatedItem]);
+        final response = await orderService.upsertItems(
+          orderId,
+          OrderUpsertItemsData(items: [updatedItem]),
+        );
+        updatedOrder = response.data;
         if (context.mounted) {
           Toastr.success('Cập nhật sản phẩm thành công');
         }
       }
 
-      onSuccess();
+      if (updatedOrder != null) {
+        onSuccess?.call(updatedOrder);
+        if (context.mounted) {
+          Navigator.of(context).pop(updatedOrder);
+        }
+      }
       return true;
     } catch (e) {
       if (context.mounted) {
@@ -99,11 +113,15 @@ class OrderItemUpdateBottomSheet extends StatelessWidget {
 
     try {
       final orderService = OrderService();
-      await orderService.deleteItem(orderId, orderItem!.id!);
+      final response = await orderService.deleteItem(orderId, orderItem!.id!);
+      final updatedOrder = response.data;
 
       if (context.mounted) {
         Toastr.success('Xóa sản phẩm thành công');
-        onSuccess();
+        if (updatedOrder != null) {
+          onSuccess?.call(updatedOrder);
+          Navigator.of(context).pop(updatedOrder);
+        }
       }
       return true;
     } catch (e) {
