@@ -24,7 +24,7 @@ class OrderItemEditorModal extends StatefulWidget {
   final String primaryActionLabel;
 
   /// Called when primary action button is pressed and form is valid
-  final Future<bool> Function(OrderItemFormData data) onPrimaryAction;
+  final Future<dynamic> Function(OrderItemFormData data) onPrimaryAction;
 
   /// Optional secondary action button configuration
   final OrderItemEditorAction? secondaryAction;
@@ -143,12 +143,12 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
       widget.itemData.priceSupply =
           widget.itemData.priceSupplyController.moneyValue;
 
-      final success = await widget.onPrimaryAction(widget.itemData);
+      final result = await widget.onPrimaryAction(widget.itemData);
 
       if (!mounted) return;
 
-      if (success) {
-        Navigator.of(context).pop(true);
+      if (result != null && result != false) {
+        Navigator.of(context).pop(result);
       }
     } catch (e) {
       debugPrint('Error in primary action: $e');
@@ -168,12 +168,12 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
     setState(() => _isProcessing = true);
 
     try {
-      final success = await widget.secondaryAction!.onPressed(widget.itemData);
+      final result = await widget.secondaryAction!.onPressed(widget.itemData);
 
       if (!mounted) return;
 
-      if (success) {
-        Navigator.of(context).pop(true);
+      if (result != null && result != false) {
+        Navigator.of(context).pop(result);
       }
     } catch (e) {
       debugPrint('Error in secondary action: $e');
@@ -533,8 +533,8 @@ class OrderItemEditorAction {
   final String label;
 
   /// Callback when button is pressed
-  /// Should return true if successful, false otherwise
-  final Future<bool> Function(OrderItemFormData data) onPressed;
+  /// Should return result (e.g. Order or true) if successful, false/null otherwise
+  final Future<dynamic> Function(OrderItemFormData data) onPressed;
 
   /// Optional background color for the button
   final Color? backgroundColor;

@@ -265,7 +265,16 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
     try {
       final response = await _orderService.update(
         currentOrder.id.toString(),
-        OrderUpdateData(status: status.value),
+        OrderUpdateData(
+          userId: currentOrder.userId,
+          total: currentOrder.total,
+          status: status.value,
+          type: currentOrder.type,
+          note: currentOrder.note,
+          utmSource: currentOrder.utmSource,
+          discount: currentOrder.discount,
+          refundAmount: currentOrder.refundAmount,
+        ),
       );
 
       if (!mounted) return;
@@ -274,8 +283,10 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
       if (updated != null) {
         setState(() => _order = updated);
         _syncOrderToList(updated);
+        Toastr.success('Đã cập nhật trạng thái đơn hàng');
+      } else {
+        Toastr.error('Cập nhật trạng thái thất bại');
       }
-      Toastr.success('Đã cập nhật trạng thái đơn hàng');
     } catch (e, st) {
       debugPrintStack(
         stackTrace: st,

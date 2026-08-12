@@ -37,7 +37,7 @@ class OrderItemUpdateBottomSheet extends StatelessWidget {
     );
   }
 
-  Future<bool> _handleUpdate(
+  Future<Order?> _handleUpdate(
     BuildContext context,
     OrderItemFormData data,
   ) async {
@@ -71,21 +71,18 @@ class OrderItemUpdateBottomSheet extends StatelessWidget {
 
       if (updatedOrder != null) {
         onSuccess?.call(updatedOrder);
-        if (context.mounted) {
-          Navigator.of(context).pop(updatedOrder);
-        }
       }
-      return true;
+      return updatedOrder;
     } catch (e) {
       if (context.mounted) {
         Toastr.error('Lỗi: $e');
       }
-      return false;
+      return null;
     }
   }
 
-  Future<bool> _handleDelete(BuildContext context) async {
-    if (orderItem?.id == null) return false;
+  Future<Order?> _handleDelete(BuildContext context) async {
+    if (orderItem?.id == null) return null;
 
     // Show confirmation dialog
     final confirmed = await showDialog<bool>(
@@ -109,7 +106,7 @@ class OrderItemUpdateBottomSheet extends StatelessWidget {
       ),
     );
 
-    if (confirmed != true) return false;
+    if (confirmed != true) return null;
 
     try {
       final orderService = OrderService();
@@ -120,15 +117,14 @@ class OrderItemUpdateBottomSheet extends StatelessWidget {
         Toastr.success('Xóa sản phẩm thành công');
         if (updatedOrder != null) {
           onSuccess?.call(updatedOrder);
-          Navigator.of(context).pop(updatedOrder);
         }
       }
-      return true;
+      return updatedOrder;
     } catch (e) {
       if (context.mounted) {
         Toastr.error('Lỗi: $e');
       }
-      return false;
+      return null;
     }
   }
 }

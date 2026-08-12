@@ -38,13 +38,25 @@ class Toastr {
     options: _pkg.ToastrOptions(duration: duration),
   );
 
+  static String _cleanErrorMessage(Object rawMessage) {
+    String msg = rawMessage.toString();
+    if (msg.contains('ApiException(')) {
+      final regExp = RegExp(r'message:\s*([^)]+)');
+      final match = regExp.firstMatch(msg);
+      if (match != null && match.group(1) != null) {
+        msg = match.group(1)!.trim();
+      }
+    }
+    return msg;
+  }
+
   static void error(
-    String message, {
+    Object message, {
     BuildContext? context,
     Duration duration = const Duration(seconds: 4),
     SnackBarAction? action,
   }) => _pkg.Toastr.error(
-    message,
+    _cleanErrorMessage(message),
     options: _pkg.ToastrOptions(duration: duration),
   );
 
