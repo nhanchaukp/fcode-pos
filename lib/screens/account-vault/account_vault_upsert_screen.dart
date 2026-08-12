@@ -1,6 +1,7 @@
 import 'package:fcode_pos/api/api_response.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/account_vault_service.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/app_switch_tile.dart';
 import 'package:fcode_pos/ui/components/loading_icon.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
@@ -38,6 +39,7 @@ class _AccountVaultUpsertScreenState extends State<AccountVaultUpsertScreen> {
   late bool _isActive;
 
   bool _isSubmitting = false;
+  bool _obscurePassword = true;
 
   bool get _isEdit => widget.vault != null;
 
@@ -170,13 +172,22 @@ class _AccountVaultUpsertScreenState extends State<AccountVaultUpsertScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_isEdit ? 'Chỉnh sửa vault' : 'Tạo vault mới'),
-      ),
-      body: Form(
+    return AppScaffold(
+      title: _isEdit ? 'Chỉnh sửa vault' : 'Tạo vault mới',
+      actions: [
+        TextButton.icon(
+          onPressed: _isSubmitting ? null : _handleSubmit,
+          icon: LoadingIcon(
+            icon: _isEdit ? Icons.check : Icons.add,
+            loading: _isSubmitting,
+          ),
+          label: Text(_isEdit ? 'Lưu' : 'Tạo'),
+        ),
+      ],
+      body: (context, scrollController) => Form(
         key: _formKey,
         child: ListView(
+          controller: scrollController,
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
           children: [
             // ── Dongvanfb quick-fill ──────────────────────────────────────
@@ -227,7 +238,16 @@ class _AccountVaultUpsertScreenState extends State<AccountVaultUpsertScreen> {
               label: 'Password',
               hint: 'Để trống nếu không đổi',
               icon: Icons.lock_outline,
-              obscure: true,
+              obscure: _obscurePassword,
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _obscurePassword
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                ),
+                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                tooltip: _obscurePassword ? 'Hiển thị mật khẩu' : 'Ẩn mật khẩu',
+              ),
             ),
             const SizedBox(height: 12),
             _buildField(
@@ -318,6 +338,7 @@ class _AccountVaultUpsertScreenState extends State<AccountVaultUpsertScreen> {
     String? hint,
     IconData? icon,
     bool obscure = false,
+    Widget? suffixIcon,
     int maxLines = 1,
     TextInputType? keyboardType,
     String? helperText,
@@ -334,6 +355,7 @@ class _AccountVaultUpsertScreenState extends State<AccountVaultUpsertScreen> {
         helperText: helperText,
         helperMaxLines: 2,
         prefixIcon: icon != null ? Icon(icon) : null,
+        suffixIcon: suffixIcon,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 12,

@@ -5,6 +5,7 @@ import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/services/customer_service.dart';
 import 'package:fcode_pos/services/order_service.dart';
 import 'package:fcode_pos/ui/components/app_scaffold.dart';
+import 'package:fcode_pos/ui/components/app_section_card.dart';
 import 'package:fcode_pos/ui/components/app_tab.dart';
 import 'package:fcode_pos/ui/components/badge/buyer_type_badge.dart';
 import 'package:fcode_pos/ui/components/badge/order_status_badge.dart';
@@ -104,7 +105,6 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen>
 
     return AppScaffold(
       title: 'Chi tiết khách hàng',
-      subtitle: _user?.name,
       actions: [
         if (_user != null)
           IconButton(
@@ -121,11 +121,11 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen>
             onPressed: _loadCustomerDetail,
           ),
       ],
-      body: (context, _) => _buildBody(cs),
+      body: (context, scrollController) => _buildBody(cs, scrollController),
     );
   }
 
-  Widget _buildBody(ColorScheme cs) {
+  Widget _buildBody(ColorScheme cs, ScrollController scrollController) {
     if (_isLoading && _user == null && _error == null) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -170,16 +170,17 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen>
         Expanded(
           child: TabBarView(
             controller: _tabController,
-            children: [_buildInfoTab(), _buildOrdersTab()],
+            children: [_buildInfoTab(scrollController), _buildOrdersTab()],
           ),
         ),
       ],
     );
   }
 
-  Widget _buildInfoTab() {
+  Widget _buildInfoTab(ScrollController scrollController) {
     final user = _user!;
     final content = SingleChildScrollView(
+      controller: scrollController,
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
       child: Column(
@@ -187,23 +188,15 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen>
         children: [
           _buildProfileHeader(user),
           const SizedBox(height: 16),
-          _buildSectionLabel('Thông tin liên hệ'),
-          const SizedBox(height: 6),
           _buildContactCard(user),
           if (_hasBusinessInfo(user)) ...[
             const SizedBox(height: 16),
-            _buildSectionLabel('Thông tin doanh nghiệp'),
-            const SizedBox(height: 6),
             _buildBusinessCard(user),
           ],
           const SizedBox(height: 16),
-          _buildSectionLabel('Tài khoản'),
-          const SizedBox(height: 6),
           _buildAccountCard(user),
           if (_hasSocialInfo(user)) ...[
             const SizedBox(height: 16),
-            _buildSectionLabel('Kết nối mạng xã hội'),
-            const SizedBox(height: 6),
             _buildSocialCard(user),
           ],
         ],
@@ -216,39 +209,26 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen>
     return content;
   }
 
-  Widget _buildSectionLabel(String label) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4),
-      child: Text(
-        label.toUpperCase(),
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.8,
-            ),
-      ),
-    );
-  }
-
-  Widget _buildInfoCard(List<_InfoRowData> rows) {
+  Widget _buildSectionCard(
+    String title,
+    IconData icon,
+    List<_InfoRowData> rows,
+  ) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Card(
-      elevation: 0,
-      color: colorScheme.surfaceContainerLowest,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        children: [
-          for (int i = 0; i < rows.length; i++) ...[
-            _buildInfoRow(rows[i]),
-            if (i < rows.length - 1)
-              Divider(
-                height: 1,
-                indent: 56,
-                color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-              ),
-          ],
+    return AppSectionCard(
+      title: title,
+      icon: icon,
+      children: [
+        for (int i = 0; i < rows.length; i++) ...[
+          _buildInfoRow(rows[i]),
+          if (i < rows.length - 1)
+            Divider(
+              height: 1,
+              indent: 46,
+              color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+            ),
         ],
-      ),
+      ],
     );
   }
 
@@ -392,7 +372,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen>
           ],
         ),
     ];
-    return _buildInfoCard(rows);
+    return _buildSectionCard('Thông tin liên hệ', Icons.contact_phone_outlined, rows);
   }
 
   bool _hasBusinessInfo(User user) =>
@@ -440,7 +420,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen>
           actions: [_InfoAction(Icons.copy, 'Copy', () => _copyToClipboard(user.nationalId!, 'CCCD'))],
         ),
     ];
-    return _buildInfoCard(rows);
+    return _buildSectionCard('Thông tin doanh nghiệp', Icons.business_outlined, rows);
   }
 
   Widget _buildAccountCard(User user) {
@@ -470,7 +450,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen>
           value: DateHelper.formatDateTime(DateTime.parse(user.updatedAt!)),
         ),
     ];
-    return _buildInfoCard(rows);
+    return _buildSectionCard('Tài khoản', Icons.manage_accounts_outlined, rows);
   }
 
   bool _hasSocialInfo(User user) =>
@@ -510,25 +490,25 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen>
           valueColor: Colors.green,
         ),
     ];
-    return _buildInfoCard(rows);
+    return _buildSectionCard('Kết nối mạng xã hội', Icons.share_outlined, rows);
   }
 
   Widget _buildInfoRow(_InfoRowData data) {
     final colorScheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
           Container(
-            width: 36,
-            height: 36,
+            width: 34,
+            height: 34,
             decoration: BoxDecoration(
-              color: colorScheme.primaryContainer.withValues(alpha: 0.6),
+              color: colorScheme.primaryContainer.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
               data.icon,
-              size: 18,
+              size: 16,
               color: colorScheme.primary,
             ),
           ),

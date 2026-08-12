@@ -4,6 +4,7 @@ import 'package:fcode_pos/screens/financial/financial_transaction_detail_screen.
 import 'package:fcode_pos/services/finacial_service.dart';
 import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/badge/enum_badge.dart';
+import 'package:fcode_pos/ui/components/badge/status_badges.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/extensions.dart';
@@ -586,21 +587,7 @@ class _CategoryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 10,
-          color: color,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
+    return CategoryBadge(label: label, color: color);
   }
 }
 

@@ -1,6 +1,7 @@
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/supply_service.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:flutter/material.dart';
 
 /// Screen for creating or updating a Supply
@@ -91,16 +92,12 @@ class _SupplyFormScreenState extends State<SupplyFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          _isEditMode ? 'Chỉnh sửa nhà cung cấp' : 'Thêm nhà cung cấp',
-        ),
-        elevation: 0,
-      ),
-      body: Form(
+    return AppScaffold(
+      title: _isEditMode ? 'Chỉnh sửa nhà cung cấp' : 'Thêm nhà cung cấp',
+      body: (context, scrollController) => Form(
         key: _formKey,
         child: ListView(
+          controller: scrollController,
           padding: const EdgeInsets.all(16),
           children: [
             _buildNameField(),

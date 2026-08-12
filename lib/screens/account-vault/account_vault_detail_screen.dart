@@ -4,6 +4,7 @@ import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/account-vault/account_vault_upsert_screen.dart';
 import 'package:fcode_pos/services/account_vault_service.dart';
 import 'package:fcode_pos/ui/components/app_scaffold.dart';
+import 'package:fcode_pos/ui/components/badge/status_badges.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -677,21 +678,13 @@ class _StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isActive ? Colors.green : Colors.grey;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        isActive ? 'Đang dùng' : 'Vô hiệu',
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
-      ),
+    return ActiveStatusBadge(
+      isActive: isActive,
+      activeLabel: 'Đang dùng',
+      inactiveLabel: 'Vô hiệu',
+      activeColor: Colors.green,
+      inactiveColor: Colors.grey,
+      isGhost: true,
     );
   }
 }

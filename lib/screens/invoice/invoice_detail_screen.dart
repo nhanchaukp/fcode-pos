@@ -2,6 +2,8 @@ import 'package:fcode_pos/enums.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/invoice/invoice_pdf_screen.dart';
 import 'package:fcode_pos/services/invoice_service.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
+import 'package:fcode_pos/ui/components/app_section_card.dart';
 import 'package:fcode_pos/ui/components/badge/enum_badge.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
@@ -55,41 +57,27 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              _invoice != null && _invoice!.invoiceNumber.isNotEmpty
-                  ? 'Hóa đơn #${_invoice!.invoiceNumber}'
-                  : 'Chi tiết hóa đơn',
-            ),
-            Text(
-              widget.referenceCode,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          if (_invoice != null)
-            IconButton(
-              icon: const Icon(Icons.copy_outlined),
-              tooltip: 'Sao chép mã tham chiếu',
-              onPressed: () {
-                Clipboard.setData(ClipboardData(text: _invoice!.referenceCode));
-                Toastr.success('Đã sao chép mã tham chiếu', context: context);
-              },
-            ),
+    return AppScaffold(
+      title: _invoice != null && _invoice!.invoiceNumber.isNotEmpty
+          ? 'Hóa đơn #${_invoice!.invoiceNumber}'
+          : 'Chi tiết hóa đơn',
+      subtitle: widget.referenceCode,
+      actions: [
+        if (_invoice != null)
           IconButton(
-            icon: const Icon(Icons.refresh_outlined),
-            onPressed: _isLoading ? null : _load,
+            icon: const Icon(Icons.copy_outlined),
+            tooltip: 'Sao chép mã tham chiếu',
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: _invoice!.referenceCode));
+              Toastr.success('Đã sao chép mã tham chiếu', context: context);
+            },
           ),
-        ],
-      ),
-      body: SafeArea(child: _buildBody(context)),
+        IconButton(
+          icon: const Icon(Icons.refresh_outlined),
+          onPressed: _isLoading ? null : _load,
+        ),
+      ],
+      body: (context, scrollController) => SafeArea(child: _buildBody(context)),
     );
   }
 
@@ -468,50 +456,7 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
 
 // ── Sub-widgets ───────────────────────────────────────────────────────────────
 
-class _DetailCard extends StatelessWidget {
-  const _DetailCard({
-    required this.title,
-    required this.icon,
-    required this.children,
-    this.padding,
-  });
-
-  final String title;
-  final IconData icon;
-  final List<Widget> children;
-  final EdgeInsetsGeometry? padding;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: padding ?? const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, size: 16, color: cs.primary),
-                const SizedBox(width: 6),
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: cs.onSurface,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            ...children,
-          ],
-        ),
-      ),
-    );
-  }
-}
+typedef _DetailCard = AppSectionCard;
 
 class _InfoRow extends StatelessWidget {
   const _InfoRow({

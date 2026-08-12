@@ -3,6 +3,7 @@ import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/product_supply_service.dart';
 import 'package:fcode_pos/ui/components/dropdown/product_dropdown.dart';
 import 'package:fcode_pos/ui/components/dropdown/supply_dropdown.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/app_switch_tile.dart';
 import 'package:fcode_pos/ui/components/loading_icon.dart';
 import 'package:fcode_pos/ui/components/money_form_field.dart';
@@ -135,28 +136,27 @@ class _ProductSupplyFormScreenState extends State<ProductSupplyFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_isEditMode ? 'Sửa giá nhập' : 'Thêm giá nhập'),
-        actions: [
-          if (_isSaving)
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            )
-          else
-            IconButton(
-              icon: const Icon(Icons.check),
-              onPressed: _handleSubmit,
-              tooltip: 'Lưu',
+    return AppScaffold(
+      title: _isEditMode ? 'Sửa giá nhập' : 'Thêm giá nhập',
+      actions: [
+        if (_isSaving)
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(strokeWidth: 2),
             ),
-        ],
-      ),
-      body: SingleChildScrollView(
+          )
+        else
+          IconButton(
+            icon: const Icon(Icons.check),
+            onPressed: _handleSubmit,
+            tooltip: 'Lưu',
+          ),
+      ],
+      body: (context, scrollController) => SingleChildScrollView(
+        controller: scrollController,
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,

@@ -3,6 +3,8 @@ import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/models/dto/account_master_data.dart';
 import 'package:fcode_pos/screens/account-master/account_master_detail_screen.dart';
 import 'package:fcode_pos/services/account_master_service.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
+import 'package:fcode_pos/ui/components/app_section_card.dart';
 import 'package:fcode_pos/ui/components/app_switch_tile.dart';
 import 'package:fcode_pos/ui/components/dropdown/account_master_external_source_dropdown.dart';
 import 'package:fcode_pos/ui/components/dropdown/account_master_service_type_dropdown.dart';
@@ -46,6 +48,7 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
   Supply? _selectedSupply;
   bool _isActive = true;
   bool _showPassword = false;
+  bool _obscurePassword = true;
   bool _isLoading = false;
 
   @override
@@ -192,248 +195,233 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_isUpdate ? 'Chỉnh sửa tài khoản' : 'Tạo tài khoản mới'),
-        actions: [
-          if (_isLoading)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
+    return AppScaffold(
+      title: _isUpdate ? 'Chỉnh sửa tài khoản' : 'Tạo tài khoản mới',
+      actions: [
+        if (_isLoading)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
               ),
-            )
-          else
-            IconButton(
-              icon: const Icon(Icons.check),
-              onPressed: _submit,
-              tooltip: 'Lưu',
             ),
-        ],
-      ),
-      body: Form(
+          )
+        else
+          IconButton(
+            icon: const Icon(Icons.check),
+            onPressed: _submit,
+            tooltip: 'Lưu',
+          ),
+      ],
+      body: (context, scrollController) => Form(
         key: _formKey,
         child: ListView(
+          controller: scrollController,
           padding: const EdgeInsets.all(16),
           children: [
             // Basic Information Section
-            Text(
-              'Thông tin cơ bản',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            AppSectionCard(
+              title: 'Thông tin cơ bản',
+              icon: Icons.info_outline,
+              children: [
+                TextFormField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Tên tài khoản *',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.label),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Vui lòng nhập tên tài khoản';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _usernameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Username *',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.account_circle),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Vui lòng nhập username';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
+                    labelText: 'Password *',
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.lock),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                      tooltip: _obscurePassword
+                          ? 'Hiển thị mật khẩu'
+                          : 'Ẩn mật khẩu',
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Vui lòng nhập password';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                AccountMasterServiceTypeDropdown(
+                  initialValue: _serviceType,
+                  showPrefixIcon: true,
+                  onChanged: (value) {
+                    setState(() {
+                      _serviceType = value;
+                    });
+                  },
+                ),
+                const SizedBox(height: 16),
+                SupplyDropdown(
+                  selectedSupply: _selectedSupply,
+                  onChanged: (supply) {
+                    setState(() {
+                      _selectedSupply = supply;
+                    });
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _maxSlotsController,
+                  decoration: const InputDecoration(
+                    labelText: 'Số slot tối đa *',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.dns),
+                  ),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Vui lòng nhập số slot tối đa';
+                    }
+                    final slots = int.tryParse(value);
+                    if (slots == null || slots <= 0) {
+                      return 'Số slot phải lớn hơn 0';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                AppSwitchTile(
+                  title: 'Trạng thái hoạt động',
+                  subtitle: _isActive ? 'Active' : 'Inactive',
+                  value: _isActive,
+                  onChanged: (v) => setState(() => _isActive = v),
+                ),
+                const SizedBox(height: 8),
+                AppSwitchTile(
+                  title: 'Hiển thị mật khẩu',
+                  subtitle:
+                      'Mật khẩu sẽ hiển thị khi người dùng truy cập qua Access Link',
+                  value: _showPassword,
+                  onChanged: (v) => setState(() => _showPassword = v),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
-
-            // Name
-            TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Tên tài khoản *',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.label),
-              ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Vui lòng nhập tên tài khoản';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Username
-            TextFormField(
-              controller: _usernameController,
-              decoration: const InputDecoration(
-                labelText: 'Username *',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.account_circle),
-              ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Vui lòng nhập username';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Password
-            TextFormField(
-              controller: _passwordController,
-              decoration: const InputDecoration(
-                labelText: 'Password *',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.lock),
-              ),
-              obscureText: true,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Vui lòng nhập password';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Service Type
-            AccountMasterServiceTypeDropdown(
-              initialValue: _serviceType,
-              showPrefixIcon: true,
-              onChanged: (value) {
-                setState(() {
-                  _serviceType = value;
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-
-            SupplyDropdown(
-              selectedSupply: _selectedSupply,
-              onChanged: (supply) {
-                setState(() {
-                  _selectedSupply = supply;
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Max Slots
-            TextFormField(
-              controller: _maxSlotsController,
-              decoration: const InputDecoration(
-                labelText: 'Số slot tối đa *',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.dns),
-              ),
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Vui lòng nhập số slot tối đa';
-                }
-                final slots = int.tryParse(value);
-                if (slots == null || slots <= 0) {
-                  return 'Số slot phải lớn hơn 0';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Active Status
-            AppSwitchTile(
-              title: 'Trạng thái hoạt động',
-              subtitle: _isActive ? 'Active' : 'Inactive',
-              value: _isActive,
-              onChanged: (v) => setState(() => _isActive = v),
-            ),
-            const SizedBox(height: 8),
-            // Show Password
-            AppSwitchTile(
-              title: 'Hiển thị mật khẩu',
-              subtitle:
-                  'Mật khẩu sẽ hiển thị khi người dùng truy cập qua Access Link',
-              value: _showPassword,
-              onChanged: (v) => setState(() => _showPassword = v),
-            ),
-            const SizedBox(height: 24),
 
             // Payment Information Section
-            Text(
-              'Thông tin thanh toán',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-
-            // Payment Date
-            InkWell(
-              onTap: _selectPaymentDate,
-              child: InputDecorator(
-                decoration: const InputDecoration(
-                  labelText: 'Ngày thanh toán',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.calendar_today),
-                ),
-                child: Text(
-                  _paymentDate != null
-                      ? DateFormat('dd/MM/yyyy').format(_paymentDate!)
-                      : 'Chưa chọn',
-                  style: TextStyle(
-                    color: _paymentDate != null ? null : Colors.grey,
+            AppSectionCard(
+              title: 'Thông tin thanh toán',
+              icon: Icons.payments_outlined,
+              children: [
+                InkWell(
+                  onTap: _selectPaymentDate,
+                  child: InputDecorator(
+                    decoration: const InputDecoration(
+                      labelText: 'Ngày thanh toán',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.calendar_today),
+                    ),
+                    child: Text(
+                      _paymentDate != null
+                          ? DateFormat('dd/MM/yyyy').format(_paymentDate!)
+                          : 'Chưa chọn',
+                      style: TextStyle(
+                        color: _paymentDate != null ? null : Colors.grey,
+                      ),
+                    ),
                   ),
                 ),
-              ),
+                const SizedBox(height: 16),
+                MoneyFormField(
+                  controller: _monthlyCostController,
+                  labelText: 'Chi phí hàng tháng',
+                  hintText: '0',
+                  prefixIcon: const Icon(Icons.attach_money),
+                  suffixText: 'VNĐ',
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _costNotesController,
+                  decoration: const InputDecoration(labelText: 'Ghi chú chi phí'),
+                  maxLines: 2,
+                ),
+              ],
             ),
             const SizedBox(height: 16),
-
-            // Monthly Cost
-            MoneyFormField(
-              controller: _monthlyCostController,
-              labelText: 'Chi phí hàng tháng',
-              hintText: '0',
-              prefixIcon: const Icon(Icons.attach_money),
-              suffixText: 'VNĐ',
-            ),
-            const SizedBox(height: 16),
-
-            // Cost Notes
-            TextFormField(
-              controller: _costNotesController,
-              decoration: const InputDecoration(labelText: 'Ghi chú chi phí'),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 24),
 
             // Additional Information Section
-            Text(
-              'Thông tin bổ sung',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-
-            // Notes
-            TextFormField(
-              controller: _notesController,
-              decoration: const InputDecoration(labelText: 'Ghi chú'),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 16),
-
-            // External Src Dropdown
-            AccountMasterExternalSourceDropdown(
-              initialValue: _externalSrc,
-              labelText: 'Nguồn ngoài',
-              onChanged: (value) {
-                setState(() {
-                  _externalSrc = value;
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // External Config Editor
-            Text(
-              'Cấu hình ngoài (external_config)',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 6),
-            KeyValueEditor(
-              key: _keyValueEditorKey,
-              initialValue: widget.accountMaster?.externalConfig,
+            AppSectionCard(
+              title: 'Thông tin bổ sung',
+              icon: Icons.tune_outlined,
+              children: [
+                TextFormField(
+                  controller: _notesController,
+                  decoration: const InputDecoration(labelText: 'Ghi chú'),
+                  maxLines: 2,
+                ),
+                const SizedBox(height: 16),
+                AccountMasterExternalSourceDropdown(
+                  initialValue: _externalSrc,
+                  labelText: 'Nguồn ngoài',
+                  onChanged: (value) {
+                    setState(() {
+                      _externalSrc = value;
+                    });
+                  },
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Cấu hình ngoài (external_config)',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                KeyValueEditor(
+                  key: _keyValueEditorKey,
+                  initialValue: widget.accountMaster?.externalConfig,
+                ),
+              ],
             ),
             const SizedBox(height: 24),
 

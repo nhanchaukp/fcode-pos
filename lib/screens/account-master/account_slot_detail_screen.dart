@@ -7,9 +7,11 @@ import 'package:fcode_pos/screens/customer/customer_detail_screen.dart';
 import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/services/account_master_service.dart';
 import 'package:fcode_pos/services/account_slot_service.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/app_tab.dart';
 import 'package:fcode_pos/ui/components/audit/audit_log_list.dart';
 import 'package:fcode_pos/ui/components/badge/audit_event_badge.dart';
+import 'package:fcode_pos/ui/components/badge/status_badges.dart';
 import 'package:fcode_pos/ui/components/in_app_browser.dart';
 import 'package:fcode_pos/ui/components/slot_edit_sheet.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
@@ -192,144 +194,119 @@ class _AccountSlotDetailScreenState extends State<AccountSlotDetailScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: _loading
-            ? const Text('Đang tải...')
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (_slot.accountMaster != null)
-                    Text(
-                      _slot.accountMaster!.name,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  Text(
-                    _slot.name,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+    return AppScaffold(
+      title: _loading ? 'Đang tải...' : _slot.name,
+      subtitle: _loading ? null : _slot.accountMaster?.name,
+      actions: [
+        if (_loading)
+          const Padding(
+            padding: EdgeInsets.only(right: 8),
+            child: Center(
+              child: SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
               ),
-        actions: [
-          if (_loading)
-            const Padding(
-              padding: EdgeInsets.only(right: 8),
-              child: Center(
-                child: SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          )
+        else
+          PopupMenuButton<_SlotAction>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (action) {
+              switch (action) {
+                case _SlotAction.copy:
+                  _copySlotInfo();
+                case _SlotAction.edit:
+                  _showEditSlot();
+                case _SlotAction.viewMaster:
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AccountMasterDetailScreen(
+                        accountMaster: _slot.accountMaster!,
+                      ),
+                    ),
+                  );
+                case _SlotAction.unlinkOrder:
+                  _unlinkOrder();
+                case _SlotAction.viewOrder:
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => OrderDetailScreen(
+                        orderId: _slot.shopOrderItem!.orderId.toString(),
+                      ),
+                    ),
+                  );
+                case _SlotAction.delete:
+                  _deleteSlot();
+              }
+            },
+            itemBuilder: (_) => [
+              const PopupMenuItem(
+                value: _SlotAction.copy,
+                child: ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.copy, size: 18),
+                  title: Text('Sao chép thông tin'),
                 ),
               ),
-            )
-          else
-            PopupMenuButton<_SlotAction>(
-              icon: const Icon(Icons.more_vert),
-              onSelected: (action) {
-                switch (action) {
-                  case _SlotAction.copy:
-                    _copySlotInfo();
-                  case _SlotAction.edit:
-                    _showEditSlot();
-                  case _SlotAction.viewMaster:
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => AccountMasterDetailScreen(
-                          accountMaster: _slot.accountMaster!,
-                        ),
-                      ),
-                    );
-                  case _SlotAction.unlinkOrder:
-                    _unlinkOrder();
-                  case _SlotAction.viewOrder:
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => OrderDetailScreen(
-                          orderId: _slot.shopOrderItem!.orderId.toString(),
-                        ),
-                      ),
-                    );
-                  case _SlotAction.delete:
-                    _deleteSlot();
-                }
-              },
-              itemBuilder: (_) => [
+              const PopupMenuItem(
+                value: _SlotAction.edit,
+                child: ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.edit, size: 18),
+                  title: Text('Chỉnh sửa'),
+                ),
+              ),
+              if (_slot.accountMaster != null)
                 const PopupMenuItem(
-                  value: _SlotAction.copy,
+                  value: _SlotAction.viewMaster,
                   child: ListTile(
                     dense: true,
                     contentPadding: EdgeInsets.zero,
-                    leading: Icon(Icons.copy, size: 18),
-                    title: Text('Sao chép thông tin'),
+                    leading: Icon(Icons.person_outline, size: 18),
+                    title: Text('Xem account master'),
+                  ),
+                ),
+              if (_hasOrder) ...[
+                const PopupMenuItem(
+                  value: _SlotAction.viewOrder,
+                  child: ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(Icons.receipt_long, size: 18),
+                    title: Text('Xem đơn hàng'),
                   ),
                 ),
                 const PopupMenuItem(
-                  value: _SlotAction.edit,
+                  value: _SlotAction.unlinkOrder,
                   child: ListTile(
                     dense: true,
                     contentPadding: EdgeInsets.zero,
-                    leading: Icon(Icons.edit, size: 18),
-                    title: Text('Chỉnh sửa'),
-                  ),
-                ),
-                if (_slot.accountMaster != null)
-                  const PopupMenuItem(
-                    value: _SlotAction.viewMaster,
-                    child: ListTile(
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                      leading: Icon(Icons.person_outline, size: 18),
-                      title: Text('Xem account master'),
-                    ),
-                  ),
-                if (_hasOrder) ...[
-                  const PopupMenuItem(
-                    value: _SlotAction.viewOrder,
-                    child: ListTile(
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                      leading: Icon(Icons.receipt_long, size: 18),
-                      title: Text('Xem đơn hàng'),
-                    ),
-                  ),
-                  const PopupMenuItem(
-                    value: _SlotAction.unlinkOrder,
-                    child: ListTile(
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                      leading: Icon(Icons.link_off, size: 18),
-                      title: Text('Gỡ liên kết đơn hàng'),
-                    ),
-                  ),
-                ],
-                const PopupMenuItem(
-                  value: _SlotAction.delete,
-                  child: ListTile(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    leading: Icon(Icons.delete, size: 18, color: Colors.red),
-                    title: Text(
-                      'Xóa slot',
-                      style: TextStyle(color: Colors.red),
-                    ),
+                    leading: Icon(Icons.link_off, size: 18),
+                    title: Text('Gỡ liên kết đơn hàng'),
                   ),
                 ),
               ],
-            ),
-        ],
-      ),
-      body: _loading
+              const PopupMenuItem(
+                value: _SlotAction.delete,
+                child: ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.delete, size: 18, color: Colors.red),
+                  title: Text(
+                    'Xóa slot',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+              ),
+            ],
+          ),
+      ],
+      body: (context, scrollController) => _loading
           ? _buildSkeleton()
           : NestedScrollView(
               headerSliverBuilder: (context, _) => [
@@ -407,6 +384,8 @@ class _AccountSlotDetailScreenState extends State<AccountSlotDetailScreen>
           Row(
             children: [
               _StatusChip(isActive: _slot.isActive),
+              const SizedBox(width: 8),
+              DaysRemainingBadge(days: _slot.daysUntilExpiry),
               if (_slot.pin.isNotEmpty) ...[
                 const Spacer(),
                 GestureDetector(
@@ -898,37 +877,13 @@ class _StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: isActive
-            ? Colors.green.withValues(alpha: 0.12)
-            : cs.errorContainer,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isActive ? Colors.green : cs.error,
-            ),
-          ),
-          const SizedBox(width: 4),
-          Text(
-            isActive ? 'Hoạt động' : 'Tạm dừng',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: isActive ? Colors.green : cs.error,
-            ),
-          ),
-        ],
-      ),
+    return ActiveStatusBadge(
+      isActive: isActive,
+      activeLabel: 'Hoạt động',
+      inactiveLabel: 'Tạm dừng',
+      activeColor: Colors.green,
+      inactiveColor: Colors.red,
+      isGhost: true,
     );
   }
 }

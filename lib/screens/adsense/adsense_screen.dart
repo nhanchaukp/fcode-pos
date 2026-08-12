@@ -4,6 +4,7 @@ import 'package:fcode_pos/utils/snackbar_helper.dart';
 
 import 'package:fcode_pos/models/adsense_models.dart';
 import 'package:fcode_pos/services/adsense_service.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/utils/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -291,15 +292,13 @@ class _AdsenseScreenState extends State<AdsenseScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Google AdSense'),
-        actions: [
-          if (_googleAccount != null)
-            _AccountAvatar(account: _googleAccount!, onSignOut: _handleSignOut),
-        ],
-      ),
-      body: SafeArea(child: _buildBody()),
+    return AppScaffold(
+      title: 'Google AdSense',
+      actions: [
+        if (_googleAccount != null)
+          _AccountAvatar(account: _googleAccount!, onSignOut: _handleSignOut),
+      ],
+      body: (context, scrollController) => SafeArea(child: _buildBody()),
     );
   }
 

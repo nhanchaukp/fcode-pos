@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:http/http.dart' as http;
@@ -62,23 +63,21 @@ class _InvoicePdfScreenState extends State<InvoicePdfScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title ?? 'Xem PDF'),
-        actions: [
-          if (_totalPages > 0)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.only(right: 16),
-                child: Text(
-                  '${_currentPage + 1}/$_totalPages',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
+    return AppScaffold(
+      title: widget.title ?? 'Xem PDF',
+      actions: [
+        if (_totalPages > 0)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: Text(
+                '${_currentPage + 1}/$_totalPages',
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
             ),
-        ],
-      ),
-      body: _buildBody(),
+          ),
+      ],
+      body: (context, scrollController) => _buildBody(),
     );
   }
 

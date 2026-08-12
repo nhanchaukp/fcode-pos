@@ -2,6 +2,7 @@ import 'package:fcode_pos/enums.dart' as enums;
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/models/dto/account_expense_create_data.dart';
 import 'package:fcode_pos/services/account_master_service.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/dropdown/financial_transaction_category_dropdown.dart';
 import 'package:fcode_pos/ui/components/dropdown/financial_transaction_type_dropdown.dart';
 import 'package:fcode_pos/ui/components/money_form_field.dart';
@@ -133,11 +134,12 @@ class _AccountMasterExpenseCreateScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Tạo chi phí')),
-      body: Form(
+    return AppScaffold(
+      title: 'Tạo chi phí',
+      body: (context, scrollController) => Form(
         key: _formKey,
         child: ListView(
+          controller: scrollController,
           padding: const EdgeInsets.all(16),
           children: [
             Card(

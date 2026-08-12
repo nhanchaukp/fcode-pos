@@ -6,6 +6,7 @@ import 'package:fcode_pos/screens/order/order_invoice_preview_screen.dart';
 import 'package:fcode_pos/services/order_service.dart';
 import 'package:fcode_pos/ui/components/dropdown/invoice_provider_account_dropdown.dart';
 import 'package:fcode_pos/ui/components/dropdown/invoice_template_dropdown.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/app_switch_tile.dart';
 import 'package:fcode_pos/ui/components/loading_icon.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
@@ -152,18 +153,16 @@ class _OrderCreateInvoiceScreenState extends State<OrderCreateInvoiceScreen> {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Tạo HĐ đơn ${widget.orderId}'),
-        actions: [
-          IconButton(
-            tooltip: 'Xem preview',
-            onPressed: _openPreview,
-            icon: const Icon(Icons.visibility_outlined),
-          ),
-        ],
-      ),
-      body: Column(
+    return AppScaffold(
+      title: 'Tạo HĐ đơn ${widget.orderId}',
+      actions: [
+        IconButton(
+          tooltip: 'Xem preview',
+          onPressed: _openPreview,
+          icon: const Icon(Icons.visibility_outlined),
+        ),
+      ],
+      body: (context, scrollController) => Column(
         children: [
           AnimatedContainer(
             duration: const Duration(milliseconds: 250),
@@ -178,6 +177,7 @@ class _OrderCreateInvoiceScreenState extends State<OrderCreateInvoiceScreen> {
               child: Form(
                 key: _formKey,
                 child: ListView(
+                  controller: scrollController,
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
                   children: [
                     InvoiceProviderAccountDropdown(

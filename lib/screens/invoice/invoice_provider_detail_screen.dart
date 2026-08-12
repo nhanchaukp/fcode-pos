@@ -1,6 +1,7 @@
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:fcode_pos/services/invoice_service.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/utils/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -59,19 +60,15 @@ class _InvoiceProviderDetailScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          _account != null ? _displayName(_account!.provider) : 'NCC',
+    return AppScaffold(
+      title: _account != null ? _displayName(_account!.provider) : 'NCC',
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.refresh_outlined),
+          onPressed: _isLoading ? null : _load,
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh_outlined),
-            onPressed: _isLoading ? null : _load,
-          ),
-        ],
-      ),
-      body: SafeArea(child: _buildBody(context)),
+      ],
+      body: (context, scrollController) => SafeArea(child: _buildBody(context)),
     );
   }
 

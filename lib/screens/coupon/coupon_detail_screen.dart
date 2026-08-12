@@ -4,6 +4,10 @@ import 'package:fcode_pos/enums.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/coupon/coupon_upsert_screen.dart';
 import 'package:fcode_pos/services/coupon_service.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
+import 'package:fcode_pos/ui/components/app_section_card.dart';
+import 'package:fcode_pos/ui/components/badge/app_badge.dart';
+import 'package:fcode_pos/ui/components/badge/enum_badge.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
@@ -143,53 +147,58 @@ class _CouponDetailScreenState extends State<CouponDetailScreen>
           Navigator.of(context).pop(true);
         }
       },
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(_coupon?.code ?? 'Chi tiết'),
-          actions: [
-            if (_coupon != null) ...[
-              IconButton(
-                icon: Icon(
-                  _coupon!.isEnabled
-                      ? Icons.toggle_on
-                      : Icons.toggle_off_outlined,
-                  color: _coupon!.isEnabled ? Colors.green : null,
-                ),
-                tooltip: _coupon!.isEnabled ? 'Tắt' : 'Bật',
-                onPressed: _toggleCoupon,
+      child: AppScaffold(
+        title: _coupon?.code ?? 'Chi tiết mã giảm giá',
+        actions: [
+          if (_coupon != null) ...[
+            IconButton(
+              icon: Icon(
+                _coupon!.isEnabled
+                    ? Icons.toggle_on
+                    : Icons.toggle_off_outlined,
+                color: _coupon!.isEnabled ? Colors.green : null,
               ),
-              IconButton(
-                icon: const Icon(Icons.edit),
-                tooltip: 'Chỉnh sửa',
-                onPressed: _navigateToEdit,
-              ),
-              PopupMenuButton<String>(
-                onSelected: (v) {
-                  if (v == 'delete') _deleteCoupon();
-                },
-                itemBuilder: (_) => [
-                  const PopupMenuItem(
-                    value: 'delete',
-                    child: ListTile(
-                      leading: Icon(Icons.delete, color: Colors.red),
-                      title: Text('Xóa', style: TextStyle(color: Colors.red)),
-                      contentPadding: EdgeInsets.zero,
-                      dense: true,
-                    ),
+              tooltip: _coupon!.isEnabled ? 'Tắt' : 'Bật',
+              onPressed: _toggleCoupon,
+            ),
+            IconButton(
+              icon: const Icon(Icons.edit_outlined),
+              tooltip: 'Chỉnh sửa',
+              onPressed: _navigateToEdit,
+            ),
+            PopupMenuButton<String>(
+              onSelected: (v) {
+                if (v == 'delete') _deleteCoupon();
+              },
+              itemBuilder: (_) => [
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: ListTile(
+                    leading: Icon(Icons.delete_outline, color: Colors.red),
+                    title: Text('Xóa', style: TextStyle(color: Colors.red)),
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
                   ),
+                ),
+              ],
+            ),
+          ],
+        ],
+        body: (context, _) => Column(
+          children: [
+            Material(
+              color: Theme.of(context).colorScheme.surface,
+              child: TabBar(
+                controller: _tabController,
+                tabs: const [
+                  Tab(text: 'Thông tin'),
+                  Tab(text: 'Lịch sử sử dụng'),
                 ],
               ),
-            ],
+            ),
+            Expanded(child: _buildBody()),
           ],
-          bottom: TabBar(
-            controller: _tabController,
-            tabs: const [
-              Tab(text: 'Thông tin'),
-              Tab(text: 'Lịch sử sử dụng'),
-            ],
-          ),
         ),
-        body: _buildBody(),
       ),
     );
   }
@@ -250,119 +259,104 @@ class _InfoTab extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
-          Card(
-            elevation: 0,
-            color: colorScheme.surfaceContainerLowest,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  InkWell(
-                    onTap: () {
-                      Clipboard.setData(ClipboardData(text: coupon.code));
-                      Toastr.success('Đã copy mã ${coupon.code}');
-                    },
-                    child: Text(
-                      coupon.code,
-                      style: const TextStyle(
-                        fontSize: 24,
+          AppSectionCard(
+            title: 'Tổng quan mã giảm giá',
+            icon: Icons.confirmation_number_outlined,
+            children: [
+              Center(
+                child: Column(
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        Clipboard.setData(ClipboardData(text: coupon.code));
+                        Toastr.success('Đã copy mã ${coupon.code}');
+                      },
+                      child: Text(
+                        coupon.code,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (couponType != null) ...[
+                          EnumBadge(value: couponType),
+                          const SizedBox(width: 8),
+                        ],
+                        AppBadge(
+                          label: coupon.isEnabled ? 'Hoạt động' : 'Tắt',
+                          color: coupon.isEnabled ? Colors.green : Colors.grey,
+                          showIcon: false,
+                        ),
+                        if (isExpired) ...[
+                          const SizedBox(width: 8),
+                          const AppBadge(
+                            label: 'Hết hạn',
+                            color: Colors.red,
+                            showIcon: false,
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      _formatValue(),
+                      style: TextStyle(
+                        fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        letterSpacing: 1,
+                        color: colorScheme.primary,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (couponType != null) ...[
-                        _chip(couponType.label, couponType.color),
-                        const SizedBox(width: 8),
-                      ],
-                      _chip(
-                        coupon.isEnabled ? 'Hoạt động' : 'Tắt',
-                        coupon.isEnabled ? Colors.green : Colors.grey,
-                      ),
-                      if (isExpired) ...[
-                        const SizedBox(width: 8),
-                        _chip('Hết hạn', Colors.red),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    _formatValue(),
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
+            ],
           ),
           const SizedBox(height: 12),
-          Card(
-            elevation: 0,
-            color: colorScheme.surfaceContainerLowest,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  _infoRow('Loại', couponType?.label ?? coupon.type),
-                  _infoRow('Giá trị', _formatValue()),
-                  if (coupon.maxDiscount != null)
-                    _infoRow(
-                      'Giảm tối đa',
-                      CurrencyHelper.formatCurrency(coupon.maxDiscount!),
-                    ),
-                  _infoRow(
-                    'Hạn sử dụng',
-                    coupon.expiresAt != null
-                        ? DateHelper.formatDateTime(coupon.expiresAt)
-                        : 'Không giới hạn',
-                  ),
-                  _infoRow(
-                    'Số lượng',
-                    coupon.quantity?.toString() ?? 'Không giới hạn',
-                  ),
-                  _infoRow(
-                    'Giới hạn/user',
-                    coupon.limit?.toString() ?? 'Không giới hạn',
-                  ),
-                  _infoRow('Đã sử dụng', '${coupon.usageCount} lần'),
-                  if (coupon.createdAt != null)
-                    _infoRow(
-                      'Ngày tạo',
-                      DateHelper.formatDateTime(coupon.createdAt),
-                    ),
-                ],
+          AppSectionCard(
+            title: 'Thông tin chi tiết',
+            icon: Icons.info_outline,
+            children: [
+              _infoRow('Loại', couponType?.label ?? coupon.type),
+              _infoRow('Giá trị', _formatValue()),
+              if (coupon.maxDiscount != null)
+                _infoRow(
+                  'Giảm tối đa',
+                  CurrencyHelper.formatCurrency(coupon.maxDiscount!),
+                ),
+              _infoRow(
+                'Hạn sử dụng',
+                coupon.expiresAt != null
+                    ? DateHelper.formatDateTime(coupon.expiresAt)
+                    : 'Không giới hạn',
               ),
-            ),
+              _infoRow(
+                'Số lượng',
+                coupon.quantity?.toString() ?? 'Không giới hạn',
+              ),
+              _infoRow(
+                'Giới hạn/user',
+                coupon.limit?.toString() ?? 'Không giới hạn',
+              ),
+              _infoRow('Đã sử dụng', '${coupon.usageCount} lần'),
+              if (coupon.createdAt != null)
+                _infoRow(
+                  'Ngày tạo',
+                  DateHelper.formatDateTime(coupon.createdAt),
+                ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _chip(String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
-      ),
-    );
-  }
+
 
   Widget _infoRow(String label, String value) {
     return Padding(

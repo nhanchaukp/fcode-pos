@@ -1,8 +1,8 @@
 import 'package:fcode_pos/config/app_color.dart';
 import 'package:fcode_pos/enums.dart';
 import 'package:fcode_pos/ui/components/badge/app_badge.dart';
-import 'package:fcode_pos/ui/components/badge/badge_theme.dart';
 import 'package:fcode_pos/ui/components/badge/badge_bulk_icon.dart';
+import 'package:fcode_pos/ui/components/badge/badge_theme.dart';
 import 'package:flutter/material.dart';
 
 class EnumBadge extends StatelessWidget {
@@ -16,6 +16,8 @@ class EnumBadge extends StatelessWidget {
     this.padding,
     this.borderRadius,
     this.size = BadgeSize.compact,
+    this.variant = BadgeVariant.filled,
+    this.isGhost = false,
     this.showIcon = true,
   });
 
@@ -27,6 +29,8 @@ class EnumBadge extends StatelessWidget {
   final EdgeInsets? padding;
   final double? borderRadius;
   final BadgeSize size;
+  final BadgeVariant variant;
+  final bool isGhost;
   final bool showIcon;
 
   @override
@@ -42,6 +46,8 @@ class EnumBadge extends StatelessWidget {
       padding: padding,
       borderRadius: borderRadius,
       size: size,
+      variant: variant,
+      isGhost: isGhost,
       showIcon: showIcon,
     );
   }

@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 
 /// Kích thước badge dùng chung.
-enum BadgeSize {
-  compact,
-  normal,
-  pill,
+enum BadgeSize { compact, normal, pill }
+
+/// Variant hiển thị badge.
+enum BadgeVariant {
+  /// Hiển thị với nền nhạt + viền mỏng (Mặc định).
+  filled,
+
+  /// Chỉ có viền và chữ.
+  outlined,
+
+  /// Chế độ 'ghost': chỉ hiện text và icon, không có viền và background.
+  ghost,
 }
 
 /// Helper lấy border radius và opacity badge theo theme hiện tại.
@@ -34,12 +42,15 @@ abstract final class AppBadgeTheme {
 
   static EdgeInsets padding(BadgeSize size) {
     return switch (size) {
-      BadgeSize.compact =>
-        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      BadgeSize.normal =>
-        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      BadgeSize.pill =>
-        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      BadgeSize.compact => const EdgeInsets.symmetric(
+        horizontal: 6,
+        vertical: 2,
+      ),
+      BadgeSize.normal => const EdgeInsets.symmetric(
+        horizontal: 10,
+        vertical: 6,
+      ),
+      BadgeSize.pill => const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
     };
   }
 

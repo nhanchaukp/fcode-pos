@@ -2,6 +2,7 @@ import 'package:fcode_pos/enums.dart' as enums;
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/models/dto/account_expense_create_data.dart';
 import 'package:fcode_pos/services/account_master_service.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/dropdown/financial_transaction_category_dropdown.dart';
 import 'package:fcode_pos/ui/components/dropdown/financial_transaction_type_dropdown.dart';
 import 'package:fcode_pos/ui/components/money_form_field.dart';
@@ -229,23 +230,21 @@ class _AccountMasterBatchExpenseCreateScreenState
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Tạo chi phí hàng loạt (${_items.length})'),
-        actions: [
-          IconButton(
-            tooltip: 'Chọn tất cả',
-            icon: const Icon(Icons.select_all),
-            onPressed: _isSubmitting ? null : () => _selectAll(true),
-          ),
-          IconButton(
-            tooltip: 'Bỏ chọn tất cả',
-            icon: const Icon(Icons.deselect),
-            onPressed: _isSubmitting ? null : () => _selectAll(false),
-          ),
-        ],
-      ),
-      body: Form(
+    return AppScaffold(
+      title: 'Tạo chi phí hàng loạt (${_items.length})',
+      actions: [
+        IconButton(
+          tooltip: 'Chọn tất cả',
+          icon: const Icon(Icons.select_all),
+          onPressed: _isSubmitting ? null : () => _selectAll(true),
+        ),
+        IconButton(
+          tooltip: 'Bỏ chọn tất cả',
+          icon: const Icon(Icons.deselect),
+          onPressed: _isSubmitting ? null : () => _selectAll(false),
+        ),
+      ],
+      body: (context, scrollController) => Form(
         key: _formKey,
         child: Column(
           children: [
@@ -284,6 +283,7 @@ class _AccountMasterBatchExpenseCreateScreenState
               ),
             Expanded(
               child: ListView(
+                controller: scrollController,
                 padding: const EdgeInsets.all(16),
                 children: [
                   // Shared Settings Section

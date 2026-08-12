@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:fcode_pos/models/icallme_voucher.dart';
 import 'package:fcode_pos/screens/icallme/icallme_voucher_detail_screen.dart';
 import 'package:fcode_pos/services/icallme_voucher_service.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/badge/enum_badge.dart';
 import 'package:flutter/material.dart';
 
@@ -214,52 +215,44 @@ class _IcallmeVoucherScreenState extends State<IcallmeVoucherScreen>
   Widget _buildScaffold(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Icallme Vouchers'),
-        actions: [
-          Stack(
-            alignment: Alignment.topRight,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.filter_list),
-                tooltip: 'Bộ lọc',
-                onPressed: _showFilterSheet,
-              ),
-              if (_hasActiveFilters)
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: cs.error,
-                      shape: BoxShape.circle,
-                    ),
+    return AppScaffold(
+      title: 'Icallme Vouchers',
+      actions: [
+        Stack(
+          alignment: Alignment.topRight,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.filter_list),
+              tooltip: 'Bộ lọc',
+              onPressed: _showFilterSheet,
+            ),
+            if (_hasActiveFilters)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: cs.error,
+                    shape: BoxShape.circle,
                   ),
                 ),
-            ],
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _refresh,
-            tooltip: 'Làm mới',
-          ),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          isScrollable: true,
-          tabAlignment: TabAlignment.start,
-          tabs: _tabs.map((t) => Tab(text: t.label)).toList(),
+              ),
+          ],
         ),
-      ),
+        IconButton(
+          icon: const Icon(Icons.refresh),
+          onPressed: _refresh,
+          tooltip: 'Làm mới',
+        ),
+      ],
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openCreateSheet,
         icon: const Icon(Icons.add),
         label: const Text('Tạo Voucher'),
       ),
-      body: RefreshIndicator(
+      body: (context, scrollController) => RefreshIndicator(
         onRefresh: _refresh,
         child: CustomScrollView(
           controller: _scrollController,

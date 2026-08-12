@@ -1,3 +1,4 @@
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/audit/audit_log_list.dart';
 import 'package:flutter/material.dart';
 
@@ -13,24 +14,12 @@ class AuditLogScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Audit Log', style: TextStyle(fontSize: 16)),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 12,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.normal,
-              ),
-            ),
-          ],
-        ),
+    return AppScaffold(
+      title: 'Audit Log',
+      subtitle: title,
+      body: (context, scrollController) => AuditLogList(
+        fetcher: fetcher,
       ),
-      body: AuditLogList(fetcher: fetcher),
     );
   }
 }

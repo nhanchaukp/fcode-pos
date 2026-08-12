@@ -1,5 +1,6 @@
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/mail_log_service.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/badge/mail_status_badge.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:flutter/material.dart';
@@ -65,9 +66,9 @@ class _MailLogDetailScreenState extends State<MailLogDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Chi tiết email')),
-      body: SafeArea(child: _buildBody(context)),
+    return AppScaffold(
+      title: 'Chi tiết email',
+      body: (context, scrollController) => SafeArea(child: _buildBody(context)),
     );
   }
 

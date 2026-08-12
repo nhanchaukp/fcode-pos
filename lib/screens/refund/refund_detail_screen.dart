@@ -1,5 +1,6 @@
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/screens/customer/customer_detail_screen.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/badge/refund_reason_badge.dart';
 import 'package:fcode_pos/ui/components/badge/refund_status_badge.dart';
 import 'package:fcode_pos/ui/components/badge/refund_type_badge.dart';
@@ -18,12 +19,10 @@ class RefundDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Chi tiết hoàn tiền #${refund.id}'),
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
+    return AppScaffold(
+      title: 'Chi tiết hoàn tiền #${refund.id}',
+      body: (context, scrollController) => SingleChildScrollView(
+        controller: scrollController,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

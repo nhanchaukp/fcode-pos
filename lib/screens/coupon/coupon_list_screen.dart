@@ -7,9 +7,9 @@ import 'package:fcode_pos/screens/coupon/coupon_upsert_screen.dart';
 import 'package:fcode_pos/services/coupon_service.dart';
 import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/badge/enum_badge.dart';
+import 'package:fcode_pos/ui/components/badge/status_badges.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
-import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 
 class CouponListScreen extends StatefulWidget {
@@ -94,19 +94,7 @@ class _CouponListScreenState extends State<CouponListScreen> {
     if (result == true) _loadCoupons(page: 1);
   }
 
-  Future<void> _toggleCoupon(Coupon coupon) async {
-    try {
-      await _couponService.toggle(coupon.id);
-      if (!mounted) return;
-      Toastr.success(
-        coupon.isEnabled ? 'Đã tắt mã giảm giá' : 'Đã bật mã giảm giá',
-      );
-      _loadCoupons(page: _currentPage);
-    } catch (e) {
-      if (!mounted) return;
-      Toastr.error('Không thể thay đổi trạng thái');
-    }
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -196,7 +184,6 @@ class _CouponListScreenState extends State<CouponListScreen> {
           return _CouponTile(
             coupon: coupon,
             onTap: () => _navigateToDetail(coupon),
-            onToggle: () => _toggleCoupon(coupon),
           );
         },
       ),
@@ -245,12 +232,10 @@ class _CouponTile extends StatelessWidget {
   const _CouponTile({
     required this.coupon,
     required this.onTap,
-    required this.onToggle,
   });
 
   final Coupon coupon;
   final VoidCallback onTap;
-  final VoidCallback onToggle;
 
   @override
   Widget build(BuildContext context) {
@@ -271,132 +256,103 @@ class _CouponTile extends StatelessWidget {
             ),
           ),
         ),
-        child: Row(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          coupon.code,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.5,
-                            color: colorScheme.primary,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      _StatusChip(
-                        isEnabled: coupon.isEnabled,
-                        isExpired: isExpired,
-                      ),
-                    ],
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    coupon.code,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                      color: colorScheme.primary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      if (couponType != null) ...[
-                        EnumBadge(
-                          value: couponType,
-                        ),
-                        const SizedBox(width: 8),
-                      ],
-                      Text(
-                        _formatValue(),
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: colorScheme.primary,
-                        ),
-                      ),
-                      const Spacer(),
-                      Icon(
-                        Icons.people_outline,
-                        size: 12,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: 3),
-                      Text(
-                        '${coupon.usageCount}${coupon.quantity != null ? '/${coupon.quantity}' : ''}',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.schedule,
-                        size: 12,
-                        color: isExpired
-                            ? colorScheme.error
-                            : colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: 3),
-                      Text(
-                        coupon.expiresAt != null
-                            ? 'HSD: ${DateHelper.formatDate(coupon.expiresAt)}'
-                            : 'Không giới hạn',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: isExpired
-                              ? colorScheme.error
-                              : colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      if (coupon.limit != null) ...[
-                        const SizedBox(width: 12),
-                        Icon(
-                          Icons.repeat,
-                          size: 12,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 3),
-                        Text(
-                          'Tối đa ${coupon.limit}/user',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 8),
+                _StatusChip(
+                  isEnabled: coupon.isEnabled,
+                  isExpired: isExpired,
+                ),
+              ],
             ),
-            const SizedBox(width: 4),
-            InkWell(
-              onTap: onToggle,
-              borderRadius: BorderRadius.circular(12),
-              child: Padding(
-                padding: const EdgeInsets.all(4),
-                child: Icon(
-                  coupon.isEnabled
-                      ? Icons.toggle_on
-                      : Icons.toggle_off_outlined,
-                  size: 28,
-                  color: coupon.isEnabled
-                      ? Colors.green
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                if (couponType != null) ...[
+                  EnumBadge(
+                    value: couponType,
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                Text(
+                  _formatValue(),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.primary,
+                  ),
+                ),
+                const Spacer(),
+                Icon(
+                  Icons.people_outline,
+                  size: 12,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 3),
+                Text(
+                  '${coupon.usageCount}${coupon.quantity != null ? '/${coupon.quantity}' : ''}',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Icon(
+                  Icons.schedule,
+                  size: 12,
+                  color: isExpired
+                      ? colorScheme.error
                       : colorScheme.onSurfaceVariant,
                 ),
-              ),
-            ),
-            Icon(
-              Icons.chevron_right,
-              color: colorScheme.onSurfaceVariant,
-              size: 18,
+                const SizedBox(width: 3),
+                Text(
+                  coupon.expiresAt != null
+                      ? 'HSD: ${DateHelper.formatDate(coupon.expiresAt)}'
+                      : 'Không giới hạn',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isExpired
+                        ? colorScheme.error
+                        : colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                if (coupon.limit != null) ...[
+                  const SizedBox(width: 12),
+                  Icon(
+                    Icons.repeat,
+                    size: 12,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 3),
+                  Text(
+                    'Tối đa ${coupon.limit}/user',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ],
             ),
           ],
         ),
@@ -422,35 +378,11 @@ class _StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color color;
-    final String label;
-
-    if (!isEnabled) {
-      color = Colors.grey;
-      label = 'Tắt';
-    } else if (isExpired) {
-      color = Colors.red;
-      label = 'Hết hạn';
-    } else {
-      color = Colors.green;
-      label = 'Hoạt động';
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: color.withValues(alpha: 0.22)),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
-      ),
+    return ActiveStatusBadge(
+      isActive: isEnabled && !isExpired,
+      activeLabel: 'Hoạt động',
+      inactiveLabel: !isEnabled ? 'Tắt' : 'Hết hạn',
+      inactiveColor: isExpired ? Colors.red : Colors.grey,
     );
   }
 }

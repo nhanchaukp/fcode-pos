@@ -1,5 +1,6 @@
 import 'package:fcode_pos/models/icallme_voucher.dart';
 import 'package:fcode_pos/services/icallme_voucher_service.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/badge/enum_badge.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
@@ -97,32 +98,30 @@ class _IcallmeVoucherDetailScreenState
   Widget build(BuildContext context) {
     final canRevoke = _voucher?.status == IcallmeVoucherStatus.available;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Chi tiết Voucher'),
-        actions: [
-          if (canRevoke)
-            IconButton(
-              icon: Icon(
-                Icons.block,
-                color: Theme.of(context).colorScheme.error,
-              ),
-              tooltip: 'Thu hồi voucher',
-              onPressed: _revoke,
+    return AppScaffold(
+      title: 'Chi tiết Voucher',
+      actions: [
+        if (canRevoke)
+          IconButton(
+            icon: Icon(
+              Icons.block,
+              color: Theme.of(context).colorScheme.error,
             ),
-          IconButton(
-            icon: const Icon(Icons.copy),
-            tooltip: 'Sao chép mã',
-            onPressed: _copyCode,
+            tooltip: 'Thu hồi voucher',
+            onPressed: _revoke,
           ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Làm mới',
-            onPressed: _load,
-          ),
-        ],
-      ),
-      body: _buildBody(),
+        IconButton(
+          icon: const Icon(Icons.copy),
+          tooltip: 'Sao chép mã',
+          onPressed: _copyCode,
+        ),
+        IconButton(
+          icon: const Icon(Icons.refresh),
+          tooltip: 'Làm mới',
+          onPressed: _load,
+        ),
+      ],
+      body: (context, scrollController) => _buildBody(),
     );
   }
 

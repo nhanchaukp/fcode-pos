@@ -16,6 +16,7 @@ import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/app_tab.dart';
 import 'package:fcode_pos/ui/components/loading_icon.dart';
 import 'package:fcode_pos/ui/components/badge/service_badge.dart';
+import 'package:fcode_pos/ui/components/badge/status_badges.dart';
 import 'package:fcode_pos/ui/components/slot_edit_sheet.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
@@ -527,15 +528,9 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
             ),
             subtitle: Row(
               children: [
-                _StatusDot(isActive: accountMaster.isActive),
-                const SizedBox(width: 4),
-                Text(
-                  accountMaster.isActive ? 'Active' : 'Inactive',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: accountMaster.isActive ? Colors.green : Colors.red,
-                    fontWeight: FontWeight.w500,
-                  ),
+                ActiveStatusBadge(
+                  isActive: accountMaster.isActive,
+                  isGhost: true,
                 ),
                 if (accountMaster.paymentDate != null) ...[
                   Text(
@@ -1194,24 +1189,7 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
                   ),
                 ),
                 const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: expiryColor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    days <= 0 ? 'Hết hạn' : '$days ngày',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: expiryColor,
-                    ),
-                  ),
-                ),
+                DaysRemainingBadge(days: days),
               ],
             ),
           ),
@@ -1487,19 +1465,4 @@ class _AddSlotSheetState extends State<_AddSlotSheet> {
   }
 }
 
-class _StatusDot extends StatelessWidget {
-  const _StatusDot({required this.isActive});
-  final bool isActive;
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 8,
-      height: 8,
-      decoration: BoxDecoration(
-        color: isActive ? Colors.green : Colors.red,
-        shape: BoxShape.circle,
-      ),
-    );
-  }
-}

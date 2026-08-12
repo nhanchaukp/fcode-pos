@@ -5,13 +5,14 @@ import 'package:fcode_pos/models/dto/update_financial_transaction_data.dart';
 import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/services/finacial_service.dart';
 import 'package:fcode_pos/ui/components/app_scaffold.dart';
+import 'package:fcode_pos/ui/components/app_section_card.dart';
+import 'package:fcode_pos/ui/components/badge/enum_badge.dart';
 import 'package:fcode_pos/ui/components/dropdown/financial_transaction_category_dropdown.dart';
 import 'package:fcode_pos/ui/components/dropdown/financial_transaction_status_dropdown.dart';
 import 'package:fcode_pos/ui/components/dropdown/financial_transaction_type_dropdown.dart';
 import 'package:fcode_pos/ui/components/money_form_field.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
-import 'package:fcode_pos/utils/extensions.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 
@@ -342,59 +343,43 @@ class _FinancialTransactionDetailScreenState
     );
     final isIncome = transaction.category == 'revenue';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _section(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      transaction.transactionId,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                  if (status != null) _statusChip(status),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  if (type != null)
-                    _enumChip(type.label, type.color, type.icon),
-                  if (category != null)
-                    _enumChip(category.label, category.color, category.icon),
-                ],
-              ),
-              if (transaction.description != null &&
-                  transaction.description!.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Text(
-                  transaction.description!,
-                  style: TextStyle(color: _colorScheme.onSurfaceVariant),
-                ),
+              if (status != null) EnumBadge(value: status),
+              const Spacer(),
+              if (type != null) ...[
+                EnumBadge(value: type),
+                const SizedBox(width: 6),
               ],
+              if (category != null) EnumBadge(value: category),
             ],
           ),
-        ),
-        const SizedBox(height: 8),
-        _section(
-          title: 'Số tiền',
-          child: Column(
+          if (transaction.description != null &&
+              transaction.description!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                transaction.description!,
+                style: TextStyle(color: _colorScheme.onSurfaceVariant),
+              ),
+            ),
+          ],
+          const SizedBox(height: 12),
+          AppSectionCard(
+            title: 'Số tiền & Thanh toán',
+            icon: Icons.attach_money_outlined,
             children: [
               _amountRow('Số tiền gốc', transaction.amount, isIncome),
               const SizedBox(height: 8),
               _amountRow('Phí', transaction.fee, false, isNegative: true),
               const SizedBox(height: 8),
-              Divider(color: _colorScheme.outlineVariant.applyOpacity(0.5)),
+              Divider(color: _colorScheme.outlineVariant.withValues(alpha: 0.5)),
               const SizedBox(height: 8),
               _amountRow(
                 'Thực nhận',
@@ -402,19 +387,12 @@ class _FinancialTransactionDetailScreenState
                 isIncome,
                 bold: true,
               ),
-              const SizedBox(height: 8),
-              _infoRow(
-                Icons.payments_outlined,
-                'Tiền tệ',
-                transaction.currency,
-              ),
             ],
           ),
-        ),
-        const SizedBox(height: 8),
-        _section(
-          title: 'Liên kết',
-          child: Column(
+          const SizedBox(height: 12),
+          AppSectionCard(
+            title: 'Liên kết đối tượng',
+            icon: Icons.link_rounded,
             children: [
               _infoRow(
                 Icons.link_rounded,
@@ -434,47 +412,67 @@ class _FinancialTransactionDetailScreenState
               ],
             ],
           ),
-        ),
-        const SizedBox(height: 8),
-        _section(
-          title: 'Thời gian',
-          child: Column(
+          const SizedBox(height: 12),
+          AppSectionCard(
+            title: 'Thời gian',
+            icon: Icons.schedule_outlined,
             children: [
-              _infoRow(
-                Icons.schedule_outlined,
-                'Xử lý lúc',
-                DateHelper.formatDateTime(transaction.processedAt),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: _compactInfoTile(
+                      Icons.schedule_outlined,
+                      'Xử lý lúc',
+                      DateHelper.formatDateTime(transaction.processedAt),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _compactInfoTile(
+                      Icons.check_circle_outline,
+                      'Hoàn thành lúc',
+                      DateHelper.formatDateTime(transaction.completedAt),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 8),
-              _infoRow(
-                Icons.check_circle_outline,
-                'Hoàn thành lúc',
-                DateHelper.formatDateTime(transaction.completedAt),
-              ),
-              const SizedBox(height: 8),
-              _infoRow(
-                Icons.calendar_today_outlined,
-                'Tạo lúc',
-                DateHelper.formatDateTime(transaction.createdAt),
-              ),
-              const SizedBox(height: 8),
-              _infoRow(
-                Icons.update,
-                'Cập nhật lúc',
-                DateHelper.formatDateTime(transaction.updatedAt),
+              const SizedBox(height: 10),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: _compactInfoTile(
+                      Icons.calendar_today_outlined,
+                      'Tạo lúc',
+                      DateHelper.formatDateTime(transaction.createdAt),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _compactInfoTile(
+                      Icons.update,
+                      'Cập nhật lúc',
+                      DateHelper.formatDateTime(transaction.updatedAt),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ),
-        if (transaction.notes != null && transaction.notes!.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          _section(title: 'Ghi chú', child: Text(transaction.notes!)),
-        ],
-        if (transaction.userId != null || transaction.processedBy != null) ...[
-          const SizedBox(height: 8),
-          _section(
-            title: 'Người liên quan',
-            child: Column(
+          if (transaction.notes != null && transaction.notes!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            AppSectionCard(
+              title: 'Ghi chú',
+              icon: Icons.notes_outlined,
+              children: [Text(transaction.notes!)],
+            ),
+          ],
+          if (transaction.userId != null || transaction.processedBy != null) ...[
+            const SizedBox(height: 12),
+            AppSectionCard(
+              title: 'Người liên quan',
+              icon: Icons.people_outline,
               children: [
                 if (transaction.userId != null)
                   _infoRow(
@@ -492,9 +490,9 @@ class _FinancialTransactionDetailScreenState
                 ],
               ],
             ),
-          ),
+          ],
         ],
-      ],
+      ),
     );
   }
 
@@ -502,141 +500,130 @@ class _FinancialTransactionDetailScreenState
     return Form(
       key: _formKey,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              'Chỉnh sửa giao dịch',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              transaction.transactionId,
-              style: TextStyle(color: _colorScheme.onSurfaceVariant),
-            ),
-            const SizedBox(height: 20),
-            FinancialTransactionTypeDropdown(
-              initialValue: _selectedType,
-              onChanged: (value) => setState(() => _selectedType = value),
-            ),
-            const SizedBox(height: 16),
-            FinancialTransactionCategoryDropdown(
-              initialValue: _selectedCategory,
-              onChanged: (value) => setState(() => _selectedCategory = value),
-            ),
-            const SizedBox(height: 16),
-            FinancialTransactionStatusDropdown(
-              initialValue: _selectedStatus,
-              onChanged: (value) => setState(() => _selectedStatus = value),
-            ),
-            const SizedBox(height: 16),
-            MoneyFormField(
-              controller: _amountController,
-              labelText: 'Số tiền gốc',
-              prefixIcon: const Icon(Icons.payments_outlined),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Vui lòng nhập số tiền';
-                }
-                final parsed = int.tryParse(value.replaceAll('.', '').trim());
-                if (parsed == null || parsed < 0) {
-                  return 'Số tiền không hợp lệ';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-            MoneyFormField(
-              controller: _feeController,
-              labelText: 'Phí',
-              prefixIcon: const Icon(Icons.receipt_long_outlined),
-              validator: (value) {
-                if (value == null || value.isEmpty) return null;
-                final parsed = int.tryParse(value.replaceAll('.', '').trim());
-                if (parsed == null || parsed < 0) {
-                  return 'Phí không hợp lệ';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Net amount sẽ được server tự tính từ amount và fee.',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: _colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Mô tả',
-                prefixIcon: Icon(Icons.description_outlined),
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _notesController,
-              decoration: const InputDecoration(
-                labelText: 'Ghi chú',
-                prefixIcon: Icon(Icons.notes_outlined),
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 3,
-            ),
-            const SizedBox(height: 16),
-            _dateTimeField(
-              label: 'Thời gian xử lý',
-              value: _processedAt,
-              onPick: () => _pickDateTime(isProcessed: true),
-              onClear: () => _clearDateTime(isProcessed: true),
+            AppSectionCard(
+              title: 'Phân loại giao dịch',
+              icon: Icons.category_outlined,
+              children: [
+                FinancialTransactionTypeDropdown(
+                  initialValue: _selectedType,
+                  onChanged: (value) => setState(() => _selectedType = value),
+                ),
+                const SizedBox(height: 16),
+                FinancialTransactionCategoryDropdown(
+                  initialValue: _selectedCategory,
+                  onChanged: (value) => setState(() => _selectedCategory = value),
+                ),
+                const SizedBox(height: 16),
+                FinancialTransactionStatusDropdown(
+                  initialValue: _selectedStatus,
+                  onChanged: (value) => setState(() => _selectedStatus = value),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
-            _dateTimeField(
-              label: 'Thời gian hoàn thành',
-              value: _completedAt,
-              onPick: () => _pickDateTime(isProcessed: false),
-              onClear: () => _clearDateTime(isProcessed: false),
+            AppSectionCard(
+              title: 'Số tiền & Nội dung',
+              icon: Icons.attach_money_outlined,
+              children: [
+                MoneyFormField(
+                  controller: _amountController,
+                  labelText: 'Số tiền gốc',
+                  prefixIcon: const Icon(Icons.payments_outlined),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Vui lòng nhập số tiền';
+                    }
+                    final parsed = int.tryParse(value.replaceAll('.', '').trim());
+                    if (parsed == null || parsed < 0) {
+                      return 'Số tiền không hợp lệ';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                MoneyFormField(
+                  controller: _feeController,
+                  labelText: 'Phí',
+                  prefixIcon: const Icon(Icons.receipt_long_outlined),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) return null;
+                    final parsed = int.tryParse(value.replaceAll('.', '').trim());
+                    if (parsed == null || parsed < 0) {
+                      return 'Phí không hợp lệ';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Net amount sẽ được server tự tính từ amount và fee.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: _colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _descriptionController,
+                  decoration: const InputDecoration(
+                    labelText: 'Mô tả',
+                    prefixIcon: Icon(Icons.description_outlined),
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 2,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _notesController,
+                  decoration: const InputDecoration(
+                    labelText: 'Ghi chú',
+                    prefixIcon: Icon(Icons.notes_outlined),
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 3,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            AppSectionCard(
+              title: 'Thời gian',
+              icon: Icons.schedule_outlined,
+              children: [
+                _dateTimeField(
+                  label: 'Thời gian xử lý',
+                  value: _processedAt,
+                  onPick: () => _pickDateTime(isProcessed: true),
+                  onClear: () => _clearDateTime(isProcessed: true),
+                ),
+                const SizedBox(height: 12),
+                _dateTimeField(
+                  label: 'Thời gian hoàn thành',
+                  value: _completedAt,
+                  onPick: () => _pickDateTime(isProcessed: false),
+                  onClear: () => _clearDateTime(isProcessed: false),
+                ),
+              ],
             ),
             const SizedBox(height: 24),
-            FilledButton(
+            FilledButton.icon(
               onPressed: _isSaving ? null : _saveChanges,
-              child: _isSaving
+              icon: Icon(_isSaving ? null : Icons.check),
+              label: _isSaving
                   ? const SizedBox(
                       width: 22,
                       height: 22,
                       child: CircularProgressIndicator(strokeWidth: 2.5),
                     )
                   : const Text('Lưu thay đổi'),
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _section({String? title, required Widget child}) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      color: _colorScheme.surface,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (title != null) ...[
-            Text(
-              title,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-            ),
-            const SizedBox(height: 12),
-          ],
-          child,
-        ],
       ),
     );
   }
@@ -660,6 +647,35 @@ class _FinancialTransactionDetailScreenState
               ),
               const SizedBox(height: 2),
               Text(value, style: const TextStyle(fontSize: 14)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _compactInfoTile(IconData icon, String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 14, color: _colorScheme.onSurfaceVariant),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: _colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 1),
+              Text(
+                value,
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+              ),
             ],
           ),
         ),
@@ -698,55 +714,7 @@ class _FinancialTransactionDetailScreenState
     );
   }
 
-  Widget _statusChip(enums.FinancialTransactionStatus status) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: status.color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(status.icon, size: 14, color: status.color),
-          const SizedBox(width: 4),
-          Text(
-            status.label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: status.color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _enumChip(String label, Color color, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _dateTimeField({
     required String label,

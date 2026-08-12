@@ -1,3 +1,4 @@
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:flutter/material.dart';
 
 class CategoriesScreen extends StatelessWidget {
@@ -33,9 +34,9 @@ class CategoriesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Scaffold(
-      appBar: AppBar(title: const Text('Danh mục sản phẩm')),
-      body: Padding(
+    return AppScaffold(
+      title: 'Danh mục sản phẩm',
+      body: (context, scrollController) => Padding(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -49,6 +50,7 @@ class CategoriesScreen extends StatelessWidget {
             const SizedBox(height: 10),
             Expanded(
               child: ListView.separated(
+                controller: scrollController,
                 itemCount: _categories.length,
                 separatorBuilder: (context, _) => const SizedBox(height: 8),
                 itemBuilder: (context, index) {

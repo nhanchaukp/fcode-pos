@@ -2,6 +2,8 @@ import 'package:fcode_pos/api/api_exception.dart';
 import 'package:fcode_pos/enums.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/coupon_service.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
+import 'package:fcode_pos/ui/components/app_section_card.dart';
 import 'package:fcode_pos/ui/components/app_switch_tile.dart';
 import 'package:fcode_pos/ui/components/loading_icon.dart';
 import 'package:fcode_pos/ui/components/money_form_field.dart';
@@ -82,7 +84,7 @@ class _CouponUpsertScreenState extends State<CouponUpsertScreen> {
     _expiresAt = c.expiresAt;
     _quantityController.text = c.quantity?.toString() ?? '';
     _limitController.text = c.limit?.toString() ?? '';
-    _maxDiscountController.text = c.maxDiscount?.toString() ?? '';
+    _maxDiscountController.text = c.maxDiscount != null ? c.maxDiscount!.toString() : '';
     setState(() {});
   }
 
@@ -125,8 +127,11 @@ class _CouponUpsertScreenState extends State<CouponUpsertScreen> {
     final limit = int.tryParse(_limitController.text.trim());
     if (limit != null) data['limit'] = limit;
 
-    if (_type == CouponType.percentage) {
-      data['data'] = {'maxDiscount': _maxDiscountController.moneyValue};
+    if (_type == CouponType.percentage && _maxDiscountController.text.trim().isNotEmpty) {
+      final maxDisc = _maxDiscountController.moneyValue;
+      if (maxDisc > 0) {
+        data['data'] = {'maxDiscount': maxDisc};
+      }
     }
 
     try {
@@ -156,15 +161,24 @@ class _CouponUpsertScreenState extends State<CouponUpsertScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.isEditing ? 'Sửa mã giảm giá' : 'Tạo mã giảm giá'),
-      ),
-      body: _isPrefillLoading
+    return AppScaffold(
+      title: widget.isEditing ? 'Sửa mã giảm giá' : 'Tạo mã giảm giá',
+      actions: [
+        TextButton.icon(
+          onPressed: _isLoading ? null : _submit,
+          icon: LoadingIcon(
+            loading: _isLoading,
+            icon: widget.isEditing ? Icons.check : Icons.add,
+          ),
+          label: Text(widget.isEditing ? 'Lưu' : 'Tạo'),
+        ),
+      ],
+      body: (context, scrollController) => _isPrefillLoading
           ? const Center(child: CircularProgressIndicator())
           : Form(
               key: _formKey,
               child: ListView(
+                controller: scrollController,
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
                 children: [
                   if (_errorBanner != null) ...[
@@ -182,14 +196,15 @@ class _CouponUpsertScreenState extends State<CouponUpsertScreen> {
                     const SizedBox(height: 12),
                   ],
 
-                  _buildSection(
-                    icon: Icons.info_outline,
+                  AppSectionCard(
                     title: 'Thông tin cơ bản',
+                    icon: Icons.confirmation_number_outlined,
                     children: [
                       TextFormField(
                         controller: _codeController,
                         decoration: const InputDecoration(
                           labelText: 'Mã giảm giá',
+                          border: OutlineInputBorder(),
                         ),
                         textCapitalization: TextCapitalization.characters,
                         validator: (v) =>
@@ -198,7 +213,10 @@ class _CouponUpsertScreenState extends State<CouponUpsertScreen> {
                       const SizedBox(height: 12),
                       DropdownButtonFormField<CouponType>(
                         initialValue: _type,
-                        decoration: const InputDecoration(labelText: 'Loại'),
+                        decoration: const InputDecoration(
+                          labelText: 'Loại giảm giá',
+                          border: OutlineInputBorder(),
+                        ),
                         items: CouponType.values
                             .map(
                               (t) => DropdownMenuItem(
@@ -218,11 +236,13 @@ class _CouponUpsertScreenState extends State<CouponUpsertScreen> {
                           decoration: const InputDecoration(
                             labelText: 'Giá trị (%)',
                             suffixText: '%',
+                            border: OutlineInputBorder(),
                           ),
                           keyboardType: TextInputType.number,
                           validator: (v) {
-                            if (v == null || v.trim().isEmpty)
+                            if (v == null || v.trim().isEmpty) {
                               return 'Bắt buộc';
+                            }
                             final n = num.tryParse(v.trim());
                             if (n == null || n <= 0 || n > 100) {
                               return 'Từ 1 đến 100';
@@ -250,10 +270,10 @@ class _CouponUpsertScreenState extends State<CouponUpsertScreen> {
                         const SizedBox(height: 12),
                         MoneyFormField(
                           controller: _maxDiscountController,
-                          labelText: 'Giảm tối đa (VND)',
+                          labelText: 'Giảm tối đa (VND - Tùy chọn)',
                           validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Bắt buộc';
+                            if (value == null || value.trim().isEmpty) {
+                              return null;
                             }
                             final raw = value.replaceAll('.', '').trim();
                             final parsed = int.tryParse(raw);
@@ -268,15 +288,16 @@ class _CouponUpsertScreenState extends State<CouponUpsertScreen> {
                   ),
 
                   const SizedBox(height: 16),
-                  _buildSection(
-                    icon: Icons.tune,
-                    title: 'Giới hạn',
+                  AppSectionCard(
+                    title: 'Giới hạn & Thời hạn',
+                    icon: Icons.tune_outlined,
                     children: [
                       InkWell(
                         onTap: _pickExpiresAt,
                         child: InputDecorator(
                           decoration: const InputDecoration(
-                            labelText: 'Ngày hết hạn',
+                            labelText: 'Ngày hết hạn *',
+                            border: OutlineInputBorder(),
                             suffixIcon: Icon(Icons.calendar_today),
                           ),
                           child: Text(
@@ -295,7 +316,8 @@ class _CouponUpsertScreenState extends State<CouponUpsertScreen> {
                       TextFormField(
                         controller: _quantityController,
                         decoration: const InputDecoration(
-                          labelText: 'Số lượng (tùy chọn)',
+                          labelText: 'Số lượng (Tùy chọn)',
+                          border: OutlineInputBorder(),
                         ),
                         keyboardType: TextInputType.number,
                       ),
@@ -303,13 +325,17 @@ class _CouponUpsertScreenState extends State<CouponUpsertScreen> {
                       TextFormField(
                         controller: _limitController,
                         decoration: const InputDecoration(
-                          labelText: 'Giới hạn mỗi user (tùy chọn)',
+                          labelText: 'Giới hạn mỗi user (Tùy chọn)',
+                          border: OutlineInputBorder(),
                         ),
                         keyboardType: TextInputType.number,
                       ),
                       const SizedBox(height: 12),
                       AppSwitchTile(
                         title: 'Kích hoạt',
+                        subtitle: _isEnabled
+                            ? 'Mã giảm giá có thể áp dụng'
+                            : 'Tạm ngưng mã giảm giá',
                         value: _isEnabled,
                         onChanged: (v) => setState(() => _isEnabled = v),
                       ),
@@ -320,46 +346,14 @@ class _CouponUpsertScreenState extends State<CouponUpsertScreen> {
                   FilledButton.icon(
                     onPressed: _isLoading ? null : _submit,
                     icon: LoadingIcon(loading: _isLoading, icon: Icons.check),
-                    label: Text(widget.isEditing ? 'Cập nhật' : 'Tạo mới'),
+                    label: Text(widget.isEditing ? 'Lưu thay đổi' : 'Tạo mới'),
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
                   ),
                 ],
               ),
             ),
-    );
-  }
-
-  Widget _buildSection({
-    required IconData icon,
-    required String title,
-    required List<Widget> children,
-  }) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: 18, color: colorScheme.primary),
-              const SizedBox(width: 8),
-              Text(
-                title,
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.primary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ...children,
-        ],
-      ),
     );
   }
 }

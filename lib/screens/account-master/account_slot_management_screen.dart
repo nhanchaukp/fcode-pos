@@ -22,6 +22,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
 import 'package:fcode_pos/ui/components/badge/service_badge.dart';
+import 'package:fcode_pos/ui/components/badge/status_badges.dart';
 
 class AccountSlotManagementScreen extends ConsumerStatefulWidget {
   const AccountSlotManagementScreen({super.key});
@@ -452,15 +453,9 @@ class _AccountSlotManagementScreenState
             ),
             subtitle: Row(
               children: [
-                _StatusDot(isActive: accountMaster.isActive),
-                const SizedBox(width: 4),
-                Text(
-                  accountMaster.isActive ? 'Active' : 'Inactive',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: accountMaster.isActive ? Colors.green : Colors.red,
-                    fontWeight: FontWeight.w500,
-                  ),
+                ActiveStatusBadge(
+                  isActive: accountMaster.isActive,
+                  isGhost: true,
                 ),
                 if (accountMaster.paymentDate != null) ...[
                   Text(
@@ -1026,24 +1021,7 @@ class _AccountSlotManagementScreenState
                 ),
                 const SizedBox(width: 8),
                 // Expiry badge
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: expiryColor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    days <= 0 ? 'Hết hạn' : '$days ngày',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: expiryColor,
-                    ),
-                  ),
-                ),
+                DaysRemainingBadge(days: days),
               ],
             ),
           ),
@@ -1085,19 +1063,4 @@ class _ActiveFilterChip extends StatelessWidget {
   }
 }
 
-class _StatusDot extends StatelessWidget {
-  const _StatusDot({required this.isActive});
-  final bool isActive;
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 8,
-      height: 8,
-      decoration: BoxDecoration(
-        color: isActive ? Colors.green : Colors.red,
-        shape: BoxShape.circle,
-      ),
-    );
-  }
-}

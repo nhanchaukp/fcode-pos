@@ -522,7 +522,10 @@ class _VaultTile extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      ActiveStatusBadge(isActive: item.isActive),
+                      ActiveStatusBadge(
+                        isActive: item.isActive,
+                        isGhost: true,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 4),

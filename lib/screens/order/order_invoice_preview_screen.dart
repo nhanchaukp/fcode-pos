@@ -7,6 +7,7 @@ import 'package:fcode_pos/services/order_service.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/link_button.dart';
 import 'package:flutter/material.dart';
 
@@ -144,8 +145,8 @@ class _OrderInvoicePreviewScreenState extends State<OrderInvoicePreviewScreen> {
     final cs = Theme.of(context).colorScheme;
     final p = _preview;
 
-    return Scaffold(
-      backgroundColor: cs.surfaceContainerLowest,
+    return AppScaffold(
+      title: 'Preview HĐ #${widget.orderId}',
       floatingActionButton: p != null && !_loading
           ? FloatingActionButton.extended(
               onPressed: _openCreateInvoice,
@@ -153,28 +154,25 @@ class _OrderInvoicePreviewScreenState extends State<OrderInvoicePreviewScreen> {
               label: const Text('Tạo hóa đơn'),
             )
           : null,
-      body: CustomScrollView(
+      actions: [
+        IconButton(
+          onPressed: _loading ? null : _load,
+          icon: _loading
+              ? SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: cs.onSurface,
+                  ),
+                )
+              : const Icon(Icons.refresh_rounded),
+          tooltip: 'Tải lại',
+        ),
+      ],
+      body: (context, scrollController) => CustomScrollView(
+        controller: scrollController,
         slivers: [
-          SliverAppBar(
-            pinned: true,
-            title: Text('Preview HĐ #${widget.orderId}'),
-            actions: [
-              IconButton(
-                onPressed: _loading ? null : _load,
-                icon: _loading
-                    ? SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: cs.onSurface,
-                        ),
-                      )
-                    : const Icon(Icons.refresh_rounded),
-                tooltip: 'Tải lại',
-              ),
-            ],
-          ),
           if (_loading && p == null)
             const SliverFillRemaining(
               child: Center(child: CircularProgressIndicator()),

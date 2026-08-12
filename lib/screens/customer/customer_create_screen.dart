@@ -8,6 +8,7 @@ import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:fcode_pos/models/dto/customer_create_data.dart';
 import 'package:fcode_pos/services/customer_service.dart';
+import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/section_header.dart';
 
 class CustomerUpsertScreen extends StatefulWidget {
@@ -228,18 +229,14 @@ class _CustomerUpsertScreenState extends State<CustomerUpsertScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    if (_isPrefillLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          _isEditing ? 'Chỉnh sửa khách hàng' : 'Thêm khách hàng mới',
-        ),
-      ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
+    return AppScaffold(
+      title: _isEditing ? 'Chỉnh sửa khách hàng' : 'Thêm khách hàng mới',
+      body: (context, scrollController) => _isPrefillLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Form(
+              key: _formKey,
+              child: ListView(
+                controller: scrollController,
           padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
           children: [
             _buildSection(
