@@ -342,13 +342,8 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
 
   @override
   Widget build(BuildContext context) {
-    final orderStatus = _order != null
-        ? enums.OrderStatus.fromValue(_order!.status)
-        : null;
-
     return AppScaffold(
       title: 'ĐH #${widget.orderId}',
-      subtitle: orderStatus?.label,
       actions: [
         IconButton(
           visualDensity: VisualDensity.compact,

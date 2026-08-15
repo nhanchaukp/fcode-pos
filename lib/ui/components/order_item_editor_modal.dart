@@ -189,58 +189,62 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: Column(
-        children: [
-          // Scrollable content
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.only(
-                left: 16,
-                right: 16,
-                top: 12,
-                bottom: 16,
-              ),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildHeader(),
-                    const SizedBox(height: 16),
-                    _buildProductField(),
-                    const SizedBox(height: 16),
-                    _buildSupplyField(),
-                    const SizedBox(height: 16),
-                    _buildQuantityInput(),
-                    const SizedBox(height: 16),
-                    _buildPriceFields(),
-                    const SizedBox(height: 16),
-                    _buildExpiredAtField(),
-                    const SizedBox(height: 16),
-                    _buildNoteField(),
-                    const SizedBox(height: 16),
-                    _buildAccountSection(),
-                  ],
+      body: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Scrollable content
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  top: 8,
+                  bottom: 12,
+                ),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildHeader(),
+                      const SizedBox(height: 12),
+                      _buildProductField(),
+                      const SizedBox(height: 12),
+                      _buildSupplyField(),
+                      const SizedBox(height: 12),
+                      _buildQuantityInput(),
+                      const SizedBox(height: 12),
+                      _buildPriceFields(),
+                      const SizedBox(height: 12),
+                      _buildExpiredAtField(),
+                      const SizedBox(height: 12),
+                      _buildNoteField(),
+                      const SizedBox(height: 12),
+                      _buildAccountSection(),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          // Fixed action buttons at bottom
-          Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              border: Border(
-                top: BorderSide(
-                  color: Theme.of(context).colorScheme.outlineVariant,
-                  width: 1,
+            // Fixed action buttons at bottom
+            Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                border: Border(
+                  top: BorderSide(
+                    color: Theme.of(context).colorScheme.outlineVariant,
+                    width: 0.5,
+                  ),
                 ),
               ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: _buildActionButtons(),
             ),
-            padding: EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
-            child: _buildActionButtons(),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -250,12 +254,13 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
       children: [
         Text(
           widget.title,
-          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
         ),
         const Spacer(),
         IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.close),
+          icon: const Icon(Icons.close, size: 20),
+          visualDensity: VisualDensity.compact,
         ),
       ],
     );
