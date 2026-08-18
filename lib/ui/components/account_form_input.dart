@@ -77,9 +77,7 @@ class _AccountFormInputState extends State<AccountFormInput> {
     if (username.isEmpty && password.isEmpty) {
       widget.onAccountChanged(null);
     } else {
-      widget.onAccountChanged({
-        username: password,
-      });
+      widget.onAccountChanged({username: password});
     }
   }
 
@@ -97,19 +95,14 @@ class _AccountFormInputState extends State<AccountFormInput> {
           children: [
             const Text(
               'Thông tin tài khoản',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
             ),
             const Spacer(),
             TextButton.icon(
               onPressed: _clearFields,
               icon: const Icon(Icons.clear, size: 18),
               label: const Text('Xóa'),
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.red,
-              ),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
             ),
           ],
         ),

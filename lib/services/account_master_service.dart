@@ -71,7 +71,8 @@ class AccountMasterService {
           return json.map((e) => e.toString()).toList(growable: false);
         }
         if (json is Map) {
-          final items = json['items'] ?? json['data'] ?? json['external_sources'];
+          final items =
+              json['items'] ?? json['data'] ?? json['external_sources'];
           if (items is List) {
             return items.map((e) => e.toString()).toList(growable: false);
           }

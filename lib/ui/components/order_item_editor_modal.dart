@@ -415,18 +415,12 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
     );
     if (pickedDate == null) return;
 
-    final pickedTime = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(initialDate),
-    );
-    if (pickedTime == null) return;
-
     final combined = DateTime(
       pickedDate.year,
       pickedDate.month,
       pickedDate.day,
-      pickedTime.hour,
-      pickedTime.minute,
+      initialDate.hour,
+      initialDate.minute,
     );
 
     setState(() {
@@ -454,17 +448,9 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AccountFormInput(
-          key: ValueKey('account-${widget.itemData.account?.hashCode ?? 0}'),
-          initialAccount: widget.itemData.account,
-          onAccountChanged: (accountData) {
-            widget.itemData.account = accountData;
-          },
-        ),
-        const SizedBox(height: 16),
         const Text(
-          'Account slot',
-          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+          'Tài khoản cấp sẵn',
+          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
         ),
         const SizedBox(height: 8),
         AccountSlotDropdown(
@@ -473,22 +459,34 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
           onChanged: (slot) {
             setState(() {
               widget.itemData.accountSlot = slot;
-              // Nếu slot có nhà cung cấp (qua account master) thì tự chọn vào supply
+              // Chỉ tự điền khi người dùng chưa chọn nhà cung cấp / chưa nhập giá vốn
               final slotSupply = slot?.accountMaster?.supply;
-              if (slotSupply != null) {
+              if (widget.itemData.supply == null && slotSupply != null) {
                 widget.itemData.supply = slotSupply;
               }
-              // Tính giá vốn lấy giá account master / max slot
               final maxSlots = slot?.accountMaster?.maxSlots;
               final monthlyCost = slot?.accountMaster?.monthlyCost;
-              if (maxSlots != null && monthlyCost != null) {
-                widget.itemData.priceSupply = (monthlyCost ~/ maxSlots).toInt();
+              final hasPriceSupply =
+                  widget.itemData.priceSupplyController.moneyValue > 0;
+              if (!hasPriceSupply &&
+                  maxSlots != null &&
+                  maxSlots > 0 &&
+                  monthlyCost != null) {
+                widget.itemData.priceSupply = monthlyCost ~/ maxSlots;
                 widget.itemData.priceSupplyController.text = widget
                     .itemData
                     .priceSupply
                     .toString();
               }
             });
+          },
+        ),
+        const SizedBox(height: 16),
+        AccountFormInput(
+          key: ValueKey('account-${widget.itemData.account?.hashCode ?? 0}'),
+          initialAccount: widget.itemData.account,
+          onAccountChanged: (accountData) {
+            widget.itemData.account = accountData;
           },
         ),
       ],
