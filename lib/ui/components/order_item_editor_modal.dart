@@ -4,6 +4,7 @@ import 'package:fcode_pos/ui/components/account_form_input.dart';
 import 'package:fcode_pos/ui/components/dropdown/account_slot_dropdown.dart';
 import 'package:fcode_pos/ui/components/loading_icon.dart';
 import 'package:fcode_pos/ui/components/money_form_field.dart';
+import 'package:fcode_pos/ui/components/note_form_field.dart';
 import 'package:fcode_pos/ui/components/dropdown/product_dropdown.dart';
 import 'package:fcode_pos/ui/components/quantity_input.dart';
 import 'package:fcode_pos/ui/components/dropdown/supply_dropdown.dart';
@@ -430,17 +431,12 @@ class _OrderItemEditorModalState extends State<OrderItemEditorModal> {
   }
 
   Widget _buildNoteField() {
-    return TextFormField(
-      decoration: const InputDecoration(
-        labelText: 'Ghi chú',
-        hintText: 'Nhập ghi chú cho sản phẩm này',
-        border: OutlineInputBorder(),
-        alignLabelWithHint: true,
-      ),
+    return NoteFormField(
       controller: _noteController,
-      maxLines: 2,
-      keyboardType: TextInputType.multiline,
-      textInputAction: TextInputAction.newline,
+      labelText: 'Ghi chú',
+      hintText: 'Nhập ghi chú cho sản phẩm này',
+      minLines: 2,
+      maxLines: 6,
     );
   }
 

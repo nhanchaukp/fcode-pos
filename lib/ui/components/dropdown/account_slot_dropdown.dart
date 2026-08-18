@@ -1,4 +1,5 @@
 import 'package:fcode_pos/models.dart';
+import 'package:fcode_pos/screens/account-master/account_master_detail_screen.dart';
 import 'package:fcode_pos/screens/account-master/account_slot_detail_screen.dart';
 import 'package:fcode_pos/services/account_slot_service.dart';
 import 'package:fcode_pos/services/account_master_service.dart';
@@ -143,7 +144,7 @@ class _AccountSlotDropdownState extends State<AccountSlotDropdown> {
                   ),
                 if (widget.enabled)
                   IconButton(
-                    icon: const Icon(Icons.add_circle_outline),
+                    icon: const Icon(Icons.add),
                     tooltip: 'Thêm mới',
                     onPressed: () async {
                       final newSlot = await showModalBottomSheet<AccountSlot>(
@@ -202,7 +203,7 @@ class _AccountSlotDropdownState extends State<AccountSlotDropdown> {
             if (widget.validator != null) {
               return widget.validator!(_selectedSlot);
             } else if (widget.isRequired && _selectedSlot == null) {
-              return 'Vui lòng chọn account slot';
+              return 'Vui lòng chọn một tài khoản';
             }
             return null;
           },
@@ -214,30 +215,78 @@ class _AccountSlotDropdownState extends State<AccountSlotDropdown> {
 
   Widget _buildDetailLink(BuildContext context) {
     final slot = _selectedSlot!;
+    final accountMaster = slot.accountMaster ??
+        (slot.accountMasterId > 0
+            ? AccountMaster(
+                id: slot.accountMasterId,
+                name: '',
+                username: '',
+                password: '',
+                serviceType: '',
+                maxSlots: 0,
+                isActive: true,
+                showPassword: false,
+              )
+            : null);
     final cs = Theme.of(context).colorScheme;
-    return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => AccountSlotDetailScreen(slot: slot)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.only(top: 4, left: 2),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.open_in_new, size: 12, color: cs.primary),
-            const SizedBox(width: 4),
-            Text(
-              'Xem chi tiết',
-              style: TextStyle(
-                fontSize: 12,
-                color: cs.primary,
-                decoration: TextDecoration.underline,
-                decorationColor: cs.primary,
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 4, left: 2),
+      child: Wrap(
+        spacing: 12,
+        runSpacing: 4,
+        children: [
+          GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => AccountSlotDetailScreen(slot: slot),
               ),
             ),
-          ],
-        ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.open_in_new, size: 12, color: cs.primary),
+                const SizedBox(width: 4),
+                Text(
+                  'Chi tiết slot',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: cs.primary,
+                    decoration: TextDecoration.underline,
+                    decorationColor: cs.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (accountMaster != null)
+            GestureDetector(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      AccountMasterDetailScreen(accountMaster: accountMaster),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.open_in_new, size: 12, color: cs.primary),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Chi tiết account master',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: cs.primary,
+                      decoration: TextDecoration.underline,
+                      decorationColor: cs.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }
