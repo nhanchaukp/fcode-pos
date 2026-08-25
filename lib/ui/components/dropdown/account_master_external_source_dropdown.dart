@@ -1,4 +1,5 @@
 import 'package:fcode_pos/services/account_master_service.dart';
+import 'package:fcode_pos/ui/components/app_dropdown.dart';
 import 'package:flutter/material.dart';
 
 class AccountMasterExternalSourceDropdown extends StatefulWidget {
@@ -68,6 +69,8 @@ class _AccountMasterExternalSourceDropdownState
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     // Combine fetched sources with selectedValue if it's not present in fetched items
     final displayItems = <String>{
       if (_selectedValue != null && _selectedValue!.trim().isNotEmpty)
@@ -75,48 +78,65 @@ class _AccountMasterExternalSourceDropdownState
       ..._sources,
     }.toList();
 
-    return DropdownButtonFormField<String>(
-      initialValue: (displayItems.contains(_selectedValue)) ? _selectedValue : null,
-      decoration: InputDecoration(
-        labelText: widget.isRequired ? '${widget.labelText} *' : widget.labelText,
-        hintText: 'Chọn nguồn ngoài',
-        border: const OutlineInputBorder(),
-        prefixIcon: widget.showPrefixIcon ? const Icon(Icons.extension) : null,
-        suffixIcon: _isLoading
-            ? const Padding(
-                padding: EdgeInsets.all(12),
-                child: SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              )
-            : (_selectedValue != null && _selectedValue!.isNotEmpty)
-                ? IconButton(
-                    icon: const Icon(Icons.clear, size: 18),
-                    tooltip: 'Xóa chọn',
-                    onPressed: () {
-                      setState(() => _selectedValue = null);
-                      widget.onChanged?.call(null);
-                    },
-                  )
-                : null,
-      ),
-      items: [
-        const DropdownMenuItem<String>(
-          value: null,
-          child: Text(
-            'Chưa chọn (Không có)',
-            style: TextStyle(color: Colors.grey),
+    final allItems = <String?>[
+      null,
+      ...displayItems,
+    ];
+
+    if (_isLoading) {
+      return const Padding(
+        padding: EdgeInsets.all(12),
+        child: Center(
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
           ),
         ),
-        ...displayItems.map((source) {
-          return DropdownMenuItem<String>(
-            value: source,
-            child: Text(source),
-          );
-        }),
-      ],
+      );
+    }
+
+    return AppDropdown<String?>.search(
+      items: allItems,
+      initialItem: (displayItems.contains(_selectedValue)) ? _selectedValue : null,
+      labelText: widget.isRequired ? '${widget.labelText} *' : widget.labelText,
+      hintText: 'Chọn nguồn ngoài',
+      searchHintText: 'Tìm nguồn ngoài...',
+      prefixIcon: widget.showPrefixIcon ? const Icon(Icons.extension, size: 20) : null,
+      headerBuilder: (context, selectedItem, enabled) {
+        return Text(
+          selectedItem ?? 'Chưa chọn (Không có)',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: selectedItem == null ? Colors.grey : colorScheme.onSurface,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        );
+      },
+      listItemBuilder: (context, item, isSelected, onItemSelect) {
+        return Row(
+          children: [
+            Expanded(
+              child: Text(
+                item ?? 'Chưa chọn (Không có)',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  color: item == null
+                      ? Colors.grey
+                      : (isSelected ? colorScheme.primary : colorScheme.onSurface),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (isSelected)
+              Icon(Icons.check_rounded, size: 18, color: colorScheme.primary),
+          ],
+        );
+      },
       onChanged: (value) {
         setState(() => _selectedValue = value);
         widget.onChanged?.call(value);

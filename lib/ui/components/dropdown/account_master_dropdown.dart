@@ -72,8 +72,9 @@ class _AccountMasterDropdownState extends State<AccountMasterDropdown> {
         _accountMasters = [];
       });
     } finally {
-      if (!mounted) return;
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -91,7 +92,6 @@ class _AccountMasterDropdownState extends State<AccountMasterDropdown> {
         decoration: InputDecoration(
           labelText: '$label${widget.isRequired ? ' *' : ''}',
           prefixIcon: const Icon(Icons.account_circle_outlined),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           suffixIcon: const SizedBox(
             width: 16,
             height: 16,
@@ -116,7 +116,6 @@ class _AccountMasterDropdownState extends State<AccountMasterDropdown> {
       decoration: InputDecoration(
         labelText: '$label${widget.isRequired ? ' *' : ''}',
         prefixIcon: const Icon(Icons.account_circle_outlined),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         suffixIcon: _selectedAccountMaster != null && widget.enabled
             ? IconButton(
                 icon: const Icon(Icons.clear),

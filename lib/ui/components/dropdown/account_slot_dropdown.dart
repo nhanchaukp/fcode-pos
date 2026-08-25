@@ -99,7 +99,6 @@ class _AccountSlotDropdownState extends State<AccountSlotDropdown> {
         decoration: InputDecoration(
           labelText: '$label${widget.isRequired ? ' *' : ''}',
           prefixIcon: const Icon(Icons.account_box_outlined),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           suffixIcon: const SizedBox(
             width: 16,
             height: 16,
@@ -128,7 +127,6 @@ class _AccountSlotDropdownState extends State<AccountSlotDropdown> {
           decoration: InputDecoration(
             labelText: '$label${widget.isRequired ? ' *' : ''}',
             prefixIcon: const Icon(Icons.account_box_outlined),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             suffixIcon: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -557,13 +555,10 @@ class _AddSlotSheetState extends State<_AddSlotSheet> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _nameController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Tên slot *',
                   hintText: 'Nhập tên slot',
-                  prefixIcon: const Icon(Icons.label_outline),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  prefixIcon: Icon(Icons.label_outline),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
@@ -576,13 +571,10 @@ class _AddSlotSheetState extends State<_AddSlotSheet> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _pinController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'PIN',
                   hintText: 'Nhập PIN (không bắt buộc)',
-                  prefixIcon: const Icon(Icons.pin_outlined),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  prefixIcon: Icon(Icons.pin_outlined),
                 ),
                 textInputAction: TextInputAction.done,
               ),

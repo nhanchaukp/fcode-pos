@@ -1,4 +1,5 @@
 import 'package:fcode_pos/enums.dart' as enums;
+import 'package:fcode_pos/ui/components/app_dropdown.dart';
 import 'package:flutter/material.dart';
 
 class OrderStatusDropdown extends StatelessWidget {
@@ -25,41 +26,75 @@ class OrderStatusDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButtonFormField<enums.OrderStatus>(
-      initialValue: initialValue,
-      decoration: InputDecoration(
-        labelText: labelText ?? 'Trạng thái',
-        hintText: hintText,
-        prefixIcon: showPrefixIcon ? const Icon(Icons.info_outline) : null,
-        border: const OutlineInputBorder(),
-      ),
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return AppDropdown<enums.OrderStatus>(
+      initialItem: initialValue,
+      hintText: hintText ?? labelText ?? 'Trạng thái',
+      prefixIcon: showPrefixIcon ? const Icon(Icons.info_outline, size: 20) : null,
       items: enums.OrderStatus.values
           .where(
             (status) => includeAllOption || status != enums.OrderStatus.all,
           )
-          .map(
-            (status) => DropdownMenuItem(
-              value: status,
-              child: Row(
-                children: [
-                  Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: status.color,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(status.label),
-                ],
+          .toList(),
+      headerBuilder: (context, selectedItem, enabled) {
+        return Row(
+          children: [
+            Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                color: selectedItem.color,
+                shape: BoxShape.circle,
               ),
             ),
-          )
-          .toList(),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                selectedItem.label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: colorScheme.onSurface,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        );
+      },
+      listItemBuilder: (context, item, isSelected, onItemSelect) {
+        return Row(
+          children: [
+            Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                color: item.color,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                item.label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  color: isSelected ? colorScheme.primary : colorScheme.onSurface,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (isSelected)
+              Icon(Icons.check_rounded, size: 18, color: colorScheme.primary),
+          ],
+        );
+      },
       onChanged: onChanged,
-      validator:
-          validator ??
+      validator: validator ??
           (required
               ? (value) {
                   if (value == null) {

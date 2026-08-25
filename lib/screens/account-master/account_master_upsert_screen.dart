@@ -242,7 +242,6 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
                   controller: _nameController,
                   decoration: const InputDecoration(
                     labelText: 'Tên tài khoản *',
-                    border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.label),
                   ),
                   validator: (value) {
@@ -257,7 +256,6 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
                   controller: _usernameController,
                   decoration: const InputDecoration(
                     labelText: 'Username *',
-                    border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.account_circle),
                   ),
                   validator: (value) {
@@ -273,7 +271,6 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     labelText: 'Password *',
-                    border: const OutlineInputBorder(),
                     prefixIcon: const Icon(Icons.lock),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -322,7 +319,6 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
                   controller: _maxSlotsController,
                   decoration: const InputDecoration(
                     labelText: 'Số slot tối đa *',
-                    border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.dns),
                   ),
                   keyboardType: TextInputType.number,
@@ -367,7 +363,6 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
                   child: InputDecorator(
                     decoration: const InputDecoration(
                       labelText: 'Ngày thanh toán',
-                      border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.calendar_today),
                     ),
                     child: Text(
@@ -438,7 +433,6 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
                   decoration: const InputDecoration(
                     labelText: 'Two-Factor Secret (BASE32)',
                     hintText: 'JBSWY3DPEHPK3PXP',
-                    border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.security),
                   ),
                   inputFormatters: [

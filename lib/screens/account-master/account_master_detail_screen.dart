@@ -17,6 +17,7 @@ import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/app_tab.dart';
 import 'package:fcode_pos/ui/components/loading_icon.dart';
 import 'package:fcode_pos/ui/components/badge/status_badges.dart';
+import 'package:fcode_pos/ui/components/service_icon.dart';
 import 'package:fcode_pos/ui/components/slot_edit_sheet.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/date_helper.dart';
@@ -542,13 +543,23 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
 
     return _DetailCard(
       title: 'Thông tin đăng nhập',
-      icon: Icons.lock_person_outlined,
+      iconWidget: ServiceIcon(
+        serviceType: accountMaster.serviceType,
+        size: 16,
+      ),
       children: [
         _InfoRow(label: 'Tài khoản', value: accountMaster.name),
         _InfoRow(label: 'Username', value: accountMaster.username, canCopy: true),
         _SecretRow(label: 'Password', value: accountMaster.password),
         _StatusRow(isActive: accountMaster.isActive),
-        _InfoRow(label: 'Loại dịch vụ', value: serviceTypeLabel),
+        _InfoRow(
+          label: 'Loại dịch vụ',
+          value: serviceTypeLabel,
+          leading: ServiceIcon(
+            serviceType: accountMaster.serviceType,
+            size: 14,
+          ),
+        ),
         if (accountMaster.supply != null)
           _InfoRow(label: 'Nhà cung cấp', value: accountMaster.supply!.name),
         _InfoRow(
@@ -1463,12 +1474,14 @@ class _AddSlotSheetState extends State<_AddSlotSheet> {
 class _DetailCard extends StatelessWidget {
   const _DetailCard({
     required this.title,
-    required this.icon,
+    this.icon,
+    this.iconWidget,
     required this.children,
   });
 
   final String title;
-  final IconData icon;
+  final IconData? icon;
+  final Widget? iconWidget;
   final List<Widget> children;
 
   @override
@@ -1483,7 +1496,10 @@ class _DetailCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(icon, size: 16, color: cs.primary),
+                if (iconWidget != null)
+                  iconWidget!
+                else if (icon != null)
+                  Icon(icon, size: 16, color: cs.primary),
                 const SizedBox(width: 6),
                 Text(
                   title,
@@ -1508,11 +1524,13 @@ class _InfoRow extends StatelessWidget {
     required this.label,
     required this.value,
     this.canCopy = false,
+    this.leading,
   });
 
   final String label;
   final String value;
   final bool canCopy;
+  final Widget? leading;
 
   @override
   Widget build(BuildContext context) {
@@ -1534,6 +1552,10 @@ class _InfoRow extends StatelessWidget {
           Expanded(
             child: Row(
               children: [
+                if (leading != null) ...[
+                  leading!,
+                  const SizedBox(width: 6),
+                ],
                 Expanded(
                   child: Text(
                     value,

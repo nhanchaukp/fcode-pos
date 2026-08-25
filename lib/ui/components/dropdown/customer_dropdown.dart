@@ -69,7 +69,6 @@ class _CustomerSearchDropdownState extends State<CustomerSearchDropdown> {
       decoration: InputDecoration(
         labelText: labelText,
         prefixIcon: const Icon(Icons.person_search_sharp),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         errorText: _errorText,
         suffixIcon: Row(
           mainAxisSize: MainAxisSize.min,
@@ -191,10 +190,11 @@ class _CustomerSelectSheetState extends State<_CustomerSelectSheet> {
         _results = [];
       });
     } finally {
-      if (!mounted) return;
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 

@@ -55,6 +55,8 @@ dependencies:
   firebase_app_installations: ^0.4.2+7
   audioplayers: ^6.1.0
   app_badge_plus: ^1.2.9
+  flutter_svg: ^2.3.0
+  dropdown_flutter: ^1.2.1
 
 dependency_overrides:
   font_awesome_flutter: ^11.0.0
@@ -68,6 +70,7 @@ flutter:
   assets:
     - assets/
     - assets/sounds/
+    - assets/svgs/
   
   fonts:
     - family: GoogleSans

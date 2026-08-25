@@ -85,8 +85,9 @@ class _ProductSearchDropdownState extends State<ProductSearchDropdown> {
         _products = [];
       });
     } finally {
-      if (!mounted) return;
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -100,7 +101,6 @@ class _ProductSearchDropdownState extends State<ProductSearchDropdown> {
         decoration: InputDecoration(
           labelText: labelText,
           prefixIcon: const Icon(Icons.inventory_2_outlined),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           suffixIcon: const SizedBox(
             width: 16,
             height: 16,
@@ -121,7 +121,6 @@ class _ProductSearchDropdownState extends State<ProductSearchDropdown> {
       decoration: InputDecoration(
         labelText: labelText,
         prefixIcon: const Icon(Icons.inventory_2_outlined),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         errorText: _errorText,
         suffixIcon: _selectedProduct != null && widget.enabled
             ? IconButton(
@@ -144,7 +143,7 @@ class _ProductSearchDropdownState extends State<ProductSearchDropdown> {
               }
               if (!mounted) return;
               final selected = await showModalBottomSheet<Product>(
-                context: context,
+                context: this.context,
                 isScrollControlled: true,
                 shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.vertical(top: Radius.circular(16)),

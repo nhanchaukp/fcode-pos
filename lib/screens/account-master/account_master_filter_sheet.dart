@@ -3,6 +3,7 @@ import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/providers/account_slot/account_slot_filter_provider.dart';
 import 'package:fcode_pos/ui/components/app_switch_tile.dart';
 import 'package:fcode_pos/ui/components/dropdown/supply_dropdown.dart';
+import 'package:fcode_pos/ui/components/service_icon.dart';
 import 'package:flutter/material.dart';
 
 class AccountMasterFilterSheet extends StatefulWidget {
@@ -153,10 +154,9 @@ class _AccountMasterFilterSheetState extends State<AccountMasterFilterSheet> {
                       ),
                       ...enums.AccountMasterServiceType.values.map(
                         (type) => ChoiceChip(
-                          avatar: Icon(
-                            type.icon,
-                            size: 13,
-                            color: type.color,
+                          avatar: ServiceIcon(
+                            serviceType: type,
+                            size: 14,
                           ),
                           label: Text(type.label),
                           selected: _selectedServiceType == type,

@@ -26,7 +26,7 @@ class FcodePosApp extends ConsumerWidget {
         ? colorScheme.surfaceContainer
         : colorScheme.surfaceContainerLowest;
     final br = BorderRadius.circular(borderRadius);
-    final cardBorder = colorScheme.outlineVariant.alpha == 0
+    final cardBorder = colorScheme.outlineVariant.a == 0
         ? BorderSide.none
         : BorderSide(
             color: colorScheme.outlineVariant.applyOpacity(0.5),
@@ -39,8 +39,13 @@ class FcodePosApp extends ConsumerWidget {
       colorScheme: colorScheme,
     );
 
+    final menuBackgroundColor = isDark
+        ? colorScheme.surfaceContainer
+        : colorScheme.surfaceContainerLowest;
+
     return base.copyWith(
       colorScheme: colorScheme,
+      canvasColor: menuBackgroundColor,
       textTheme: base.textTheme
           .copyWith(
             bodyMedium: base.textTheme.bodyMedium?.copyWith(fontSize: 13),
@@ -79,6 +84,108 @@ class FcodePosApp extends ConsumerWidget {
                 borderRadius: borderRadius,
               )
               as dynamic,
+      // Dropdown & Popup Menu styling theo theme palette
+      dropdownMenuTheme: DropdownMenuThemeData(
+        textStyle: base.textTheme.bodyMedium?.copyWith(
+          fontSize: 13,
+          color: colorScheme.onSurface,
+        ),
+        menuStyle: MenuStyle(
+          backgroundColor: WidgetStatePropertyAll(menuBackgroundColor),
+          elevation: const WidgetStatePropertyAll(3),
+          shadowColor: WidgetStatePropertyAll(
+            colorScheme.shadow.withValues(alpha: isDark ? 0.35 : 0.08),
+          ),
+          surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
+          shape: WidgetStatePropertyAll(
+            RoundedRectangleBorder(
+              borderRadius: br,
+              side: cardBorder,
+            ),
+          ),
+          padding: const WidgetStatePropertyAll(
+            EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+          ),
+        ),
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: menuBackgroundColor,
+        elevation: 3,
+        shadowColor: colorScheme.shadow.withValues(
+          alpha: isDark ? 0.35 : 0.08,
+        ),
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: br,
+          side: cardBorder,
+        ),
+        textStyle: base.textTheme.bodyMedium?.copyWith(
+          fontSize: 13,
+          color: colorScheme.onSurface,
+        ),
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          return base.textTheme.bodyMedium?.copyWith(
+            fontSize: 13,
+            color: colorScheme.onSurface,
+            fontWeight: states.contains(WidgetState.selected)
+                ? FontWeight.w600
+                : FontWeight.w400,
+          );
+        }),
+        position: PopupMenuPosition.under,
+        menuPadding: const EdgeInsets.symmetric(vertical: 6),
+      ),
+      menuTheme: MenuThemeData(
+        style: MenuStyle(
+          backgroundColor: WidgetStatePropertyAll(menuBackgroundColor),
+          elevation: const WidgetStatePropertyAll(3),
+          shadowColor: WidgetStatePropertyAll(
+            colorScheme.shadow.withValues(alpha: isDark ? 0.35 : 0.08),
+          ),
+          surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
+          shape: WidgetStatePropertyAll(
+            RoundedRectangleBorder(
+              borderRadius: br,
+              side: cardBorder,
+            ),
+          ),
+          padding: const WidgetStatePropertyAll(
+            EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+          ),
+        ),
+      ),
+      menuButtonTheme: MenuButtonThemeData(
+        style: MenuItemButton.styleFrom(
+          foregroundColor: colorScheme.onSurface,
+          textStyle: base.textTheme.bodyMedium?.copyWith(fontSize: 13),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(
+              borderRadius > 4 ? borderRadius - 4 : 0,
+            ),
+          ),
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: menuBackgroundColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: br,
+          side: cardBorder,
+        ),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: menuBackgroundColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(borderRadius > 0 ? borderRadius + 4 : 0),
+          ),
+        ),
+        showDragHandle: false,
+      ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size(64, 44),
@@ -187,7 +294,9 @@ class FcodePosApp extends ConsumerWidget {
     return baseTheme.copyWith(
       isDense: true,
       filled: true,
-      fillColor: colorScheme.surfaceContainerLowest,
+      fillColor: colorScheme.brightness == Brightness.dark
+          ? colorScheme.surfaceContainer
+          : colorScheme.surfaceContainerLowest,
       contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
       hintStyle: TextStyle(
         color: colorScheme.onSurfaceVariant.withValues(alpha: 0.45),
@@ -198,6 +307,9 @@ class FcodePosApp extends ConsumerWidget {
         fontSize: 13,
       ),
       floatingLabelStyle: TextStyle(color: colorScheme.primary, fontSize: 13),
+      prefixIconColor: colorScheme.onSurfaceVariant.applyOpacity(0.7),
+      suffixIconColor: colorScheme.onSurfaceVariant.applyOpacity(0.7),
+      iconColor: colorScheme.onSurfaceVariant.applyOpacity(0.7),
       border: outline(colorScheme.outlineVariant.withValues(alpha: 0.5)),
       enabledBorder: outline(colorScheme.outlineVariant.withValues(alpha: 0.5)),
       disabledBorder: outline(

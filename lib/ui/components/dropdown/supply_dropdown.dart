@@ -74,8 +74,9 @@ class _SupplyDropdownState extends State<SupplyDropdown> {
         _supplies = [];
       });
     } finally {
-      if (!mounted) return;
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -88,7 +89,6 @@ class _SupplyDropdownState extends State<SupplyDropdown> {
         decoration: InputDecoration(
           labelText: '$label${widget.isRequired ? ' *' : ''}',
           prefixIcon: const Icon(Icons.local_shipping_outlined),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           suffixIcon: const SizedBox(
             width: 16,
             height: 16,
@@ -109,7 +109,6 @@ class _SupplyDropdownState extends State<SupplyDropdown> {
       decoration: InputDecoration(
         labelText: '$label${widget.isRequired ? ' *' : ''}',
         prefixIcon: const Icon(Icons.local_shipping_outlined),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         suffixIcon: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

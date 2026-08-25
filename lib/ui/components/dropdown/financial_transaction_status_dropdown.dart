@@ -1,4 +1,5 @@
 import 'package:fcode_pos/enums.dart' as enums;
+import 'package:fcode_pos/ui/components/app_dropdown.dart';
 import 'package:flutter/material.dart';
 
 class FinancialTransactionStatusDropdown extends StatelessWidget {
@@ -17,21 +18,45 @@ class FinancialTransactionStatusDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButtonFormField<enums.FinancialTransactionStatus>(
-      initialValue: initialValue,
-      decoration: InputDecoration(
-        labelText: labelText ?? 'Trạng thái',
-        prefixIcon: const Icon(Icons.flag_outlined),
-        border: const OutlineInputBorder(),
-      ),
-      items: enums.FinancialTransactionStatus.values
-          .map(
-            (status) => DropdownMenuItem(
-              value: status,
-              child: Text(status.label),
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return AppDropdown<enums.FinancialTransactionStatus>(
+      initialItem: initialValue,
+      hintText: labelText ?? 'Trạng thái',
+      prefixIcon: const Icon(Icons.flag_outlined, size: 20),
+      items: enums.FinancialTransactionStatus.values,
+      headerBuilder: (context, selectedItem, enabled) {
+        return Text(
+          selectedItem.label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: colorScheme.onSurface,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        );
+      },
+      listItemBuilder: (context, item, isSelected, onItemSelect) {
+        return Row(
+          children: [
+            Expanded(
+              child: Text(
+                item.label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  color: isSelected ? colorScheme.primary : colorScheme.onSurface,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-          )
-          .toList(),
+            if (isSelected)
+              Icon(Icons.check_rounded, size: 18, color: colorScheme.primary),
+          ],
+        );
+      },
       onChanged: onChanged,
       validator: validator ??
           (value) {

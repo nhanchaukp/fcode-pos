@@ -1,4 +1,5 @@
 import 'package:fcode_pos/enums.dart' as enums;
+import 'package:fcode_pos/ui/components/app_dropdown.dart';
 import 'package:flutter/material.dart';
 
 class FinancialTransactionTypeDropdown extends StatelessWidget {
@@ -23,22 +24,49 @@ class FinancialTransactionTypeDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButtonFormField<enums.FinancialTransactionType>(
-      initialValue: initialValue,
-      decoration: InputDecoration(
-        labelText: labelText ?? 'Loại giao dịch',
-        hintText: hintText,
-        prefixIcon: showPrefixIcon
-            ? const Icon(Icons.swap_horiz_rounded)
-            : null,
-        border: const OutlineInputBorder(),
-      ),
-      items: enums.FinancialTransactionType.values
-          .map((type) => DropdownMenuItem(value: type, child: Text(type.label)))
-          .toList(),
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return AppDropdown<enums.FinancialTransactionType>(
+      initialItem: initialValue,
+      hintText: hintText ?? labelText ?? 'Loại giao dịch',
+      prefixIcon: showPrefixIcon
+          ? const Icon(Icons.swap_horiz_rounded, size: 20)
+          : null,
+      items: enums.FinancialTransactionType.values,
+      headerBuilder: (context, selectedItem, enabled) {
+        return Text(
+          selectedItem.label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: colorScheme.onSurface,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        );
+      },
+      listItemBuilder: (context, item, isSelected, onItemSelect) {
+        return Row(
+          children: [
+            Expanded(
+              child: Text(
+                item.label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  color: isSelected ? colorScheme.primary : colorScheme.onSurface,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (isSelected)
+              Icon(Icons.check_rounded, size: 18, color: colorScheme.primary),
+          ],
+        );
+      },
       onChanged: onChanged,
-      validator:
-          validator ??
+      validator: validator ??
           (required
               ? (value) {
                   if (value == null) {
