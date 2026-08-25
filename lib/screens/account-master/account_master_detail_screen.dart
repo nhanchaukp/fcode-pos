@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:fcode_pos/enums.dart' as enums;
@@ -15,7 +16,6 @@ import 'package:fcode_pos/services/account_slot_service.dart';
 import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/app_tab.dart';
 import 'package:fcode_pos/ui/components/loading_icon.dart';
-import 'package:fcode_pos/ui/components/badge/service_badge.dart';
 import 'package:fcode_pos/ui/components/badge/status_badges.dart';
 import 'package:fcode_pos/ui/components/slot_edit_sheet.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
@@ -24,6 +24,7 @@ import 'package:fcode_pos/utils/string_helper.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:otp/otp.dart';
 
 class AccountMasterDetailScreen extends StatefulWidget {
   final AccountMaster accountMaster;
@@ -44,6 +45,11 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
   // Fresh account master data
   late AccountMaster _accountMaster;
   bool _syncingNetflix = false;
+
+  // OTP state
+  String _otpCode = '';
+  int _otpRemaining = 30;
+  Timer? _otpTimer;
 
   // Tab 0: Slots
   List<AccountSlot> _slots = [];
@@ -75,14 +81,47 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
       }
     });
 
+    if (_accountMaster.twoFactorSecret != null &&
+        _accountMaster.twoFactorSecret!.isNotEmpty) {
+      _startOtpTimer();
+    }
+
     // Fetch fresh data from service, then load slots
     _fetchAccountMaster();
   }
 
   @override
   void dispose() {
+    _otpTimer?.cancel();
     _tabController.dispose();
     super.dispose();
+  }
+
+  void _startOtpTimer() {
+    _refreshOtp();
+    _otpTimer?.cancel();
+    _otpTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      final remaining = 30 - (DateTime.now().second % 30);
+      setState(() => _otpRemaining = remaining);
+      if (remaining == 30) _refreshOtp();
+    });
+  }
+
+  void _refreshOtp() {
+    final secret = _accountMaster.twoFactorSecret;
+    if (secret == null || secret.isEmpty) return;
+    try {
+      final code = OTP.generateTOTPCodeString(
+        secret,
+        DateTime.now().millisecondsSinceEpoch,
+        algorithm: Algorithm.SHA1,
+        isGoogle: true,
+      );
+      if (mounted) setState(() => _otpCode = code);
+    } catch (_) {
+      if (mounted) setState(() => _otpCode = '------');
+    }
   }
 
   Future<void> _fetchAccountMaster() async {
@@ -100,6 +139,12 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
         _slotsLoading = false;
         _slotsError = null;
       });
+      if (_accountMaster.twoFactorSecret != null &&
+          _accountMaster.twoFactorSecret!.isNotEmpty) {
+        _startOtpTimer();
+      } else {
+        _otpTimer?.cancel();
+      }
     } catch (_) {
       if (!mounted) return;
       _loadSlots();
@@ -451,28 +496,18 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
   Widget _buildSlotsTab() {
     return RefreshIndicator(
       onRefresh: _refreshAccountAndSlots,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(minHeight: _tabBodyMinHeight),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                child: Column(
-                  children: [
-                    _buildAccountInfoCard(),
-                    const SizedBox(height: 12),
-                    _buildSlotsCard(),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
+        children: [
+          _buildAccountInfoCard(),
+          if (_accountMaster.twoFactorSecret != null &&
+              _accountMaster.twoFactorSecret!.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            _buildOtpCard(),
+          ],
+          const SizedBox(height: 10),
+          _buildSlotsCard(),
+        ],
       ),
     );
   }
@@ -482,17 +517,17 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
     Toastr.success('Đã sao chép $label', context: context);
   }
 
-  Widget _buildCopyIconButton({required String label, required String value}) {
-    return IconButton(
-      icon: Icon(Icons.copy_outlined, size: 14, color: colorScheme.primary),
-      tooltip: 'Sao chép $label',
-      visualDensity: VisualDensity.compact,
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
-      style: IconButton.styleFrom(
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      ),
-      onPressed: () => _copyToClipboard(label, value),
+  Widget _buildOtpCard() {
+    return _DetailCard(
+      title: 'OTP (TOTP 2FA)',
+      icon: Icons.security_outlined,
+      children: [
+        _OtpTile(
+          code: _otpCode,
+          remaining: _otpRemaining,
+          onCopy: () => _copyToClipboard('OTP', _otpCode),
+        ),
+      ],
     );
   }
 
@@ -505,145 +540,65 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
         )
         .label;
 
-    return Card(
-      margin: const EdgeInsets.only(top: 8),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ListTile(
-            contentPadding: const EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: 4,
-              bottom: 4,
-            ),
-            leading: ServiceBadge(serviceType: accountMaster.serviceType),
-            title: Text(
-              accountMaster.name,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            subtitle: Row(
-              children: [
-                ActiveStatusBadge(
-                  isActive: accountMaster.isActive,
-                  isGhost: true,
-                ),
-                if (accountMaster.paymentDate != null) ...[
-                  Text(
-                    '  ·  ',
-                    style: TextStyle(color: colorScheme.outlineVariant),
-                  ),
-                  Icon(
-                    Icons.calendar_today,
-                    size: 11,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 3),
-                  Text(
-                    DateHelper.formatDateShort(accountMaster.paymentDate!),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ],
-            ),
+    return _DetailCard(
+      title: 'Thông tin đăng nhập',
+      icon: Icons.lock_person_outlined,
+      children: [
+        _InfoRow(label: 'Tài khoản', value: accountMaster.name),
+        _InfoRow(label: 'Username', value: accountMaster.username, canCopy: true),
+        _SecretRow(label: 'Password', value: accountMaster.password),
+        _StatusRow(isActive: accountMaster.isActive),
+        _InfoRow(label: 'Loại dịch vụ', value: serviceTypeLabel),
+        if (accountMaster.supply != null)
+          _InfoRow(label: 'Nhà cung cấp', value: accountMaster.supply!.name),
+        _InfoRow(
+          label: 'Số slot',
+          value: '${_slots.length}/${accountMaster.maxSlots}',
+        ),
+        if (accountMaster.monthlyCost != null)
+          _InfoRow(
+            label: 'Chi phí tháng',
+            value:
+                '${CurrencyHelper.formatCurrency(accountMaster.monthlyCost!)} VND',
           ),
-          Divider(
-            height: 1,
-            color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+        if (accountMaster.paymentDate != null)
+          _InfoRow(
+            label: 'Ngày thanh toán',
+            value: DateHelper.formatDate(accountMaster.paymentDate!),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 8, 16),
-            child: Column(
-              children: [
-                _buildCopyableDetailRow('Username', accountMaster.username),
-                _buildCopyableDetailRow('Password', accountMaster.password),
-                _buildDetailRow('Loại dịch vụ', serviceTypeLabel),
-                _buildDetailRow(
-                  'Nhà cung cấp',
-                  accountMaster.supply?.name ?? '-',
-                ),
-                _buildDetailRow(
-                  'Số slot',
-                  '${_slots.length}/${accountMaster.maxSlots}',
-                ),
-                if (accountMaster.monthlyCost != null)
-                  _buildDetailRow(
-                    'Chi phí hàng tháng',
-                    '${CurrencyHelper.formatCurrency(accountMaster.monthlyCost!)} VND',
-                  ),
-                if (accountMaster.paymentDate != null)
-                  _buildDetailRow(
-                    'Ngày thanh toán',
-                    DateHelper.formatDate(accountMaster.paymentDate!),
-                  ),
-                if (accountMaster.notes != null &&
-                    accountMaster.notes!.isNotEmpty)
-                  _buildDetailRow('Ghi chú', accountMaster.notes!),
-                if (accountMaster.costNotes != null &&
-                    accountMaster.costNotes!.isNotEmpty)
-                  _buildDetailRow('Ghi chú chi phí', accountMaster.costNotes!),
-                if (accountMaster.externalSrc != null &&
-                    accountMaster.externalSrc!.isNotEmpty)
-                  _buildCopyableDetailRow(
-                    'External Src',
-                    accountMaster.externalSrc!,
-                  ),
-                if (accountMaster.externalConfig != null &&
-                    accountMaster.externalConfig!.isNotEmpty)
-                  _buildExternalConfigRow(accountMaster.externalConfig!),
-                _buildDetailRow(
-                  'Trạng thái',
-                  accountMaster.isActive ? 'Đang hoạt động' : 'Không hoạt động',
-                ),
-                if (accountMaster.createdAt != null)
-                  _buildDetailRow(
-                    'Ngày tạo',
-                    DateHelper.formatDate(accountMaster.createdAt!),
-                  ),
-                if (accountMaster.updatedAt != null)
-                  _buildDetailRow(
-                    'Cập nhật lần cuối',
-                    DateHelper.formatDate(accountMaster.updatedAt!),
-                  ),
-              ],
-            ),
+        if (accountMaster.twoFactorSecret != null &&
+            accountMaster.twoFactorSecret!.isNotEmpty)
+          _SecretRow(
+            label: '2FA Secret',
+            value: accountMaster.twoFactorSecret!,
+            monospace: true,
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 130,
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
+        if (accountMaster.notes != null && accountMaster.notes!.isNotEmpty)
+          _InfoRow(label: 'Ghi chú', value: accountMaster.notes!),
+        if (accountMaster.costNotes != null &&
+            accountMaster.costNotes!.isNotEmpty)
+          _InfoRow(label: 'Ghi chú chi phí', value: accountMaster.costNotes!),
+        if (accountMaster.externalSrc != null &&
+            accountMaster.externalSrc!.isNotEmpty)
+          _SecretRow(
+            label: 'External Src',
+            value: accountMaster.externalSrc!,
+            monospace: true,
           ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-            ),
+        if (accountMaster.externalConfig != null &&
+            accountMaster.externalConfig!.isNotEmpty)
+          _buildExternalConfigRow(accountMaster.externalConfig!),
+        if (accountMaster.createdAt != null)
+          _InfoRow(
+            label: 'Ngày tạo',
+            value: DateHelper.formatDate(accountMaster.createdAt!),
           ),
-        ],
-      ),
+        if (accountMaster.updatedAt != null)
+          _InfoRow(
+            label: 'Cập nhật',
+            value: DateHelper.formatDate(accountMaster.updatedAt!),
+          ),
+      ],
     );
   }
 
@@ -651,7 +606,7 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
     final jsonText = const JsonEncoder.withIndent('  ').convert(config);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -660,42 +615,47 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
               () => _externalConfigExpanded = !_externalConfigExpanded,
             ),
             borderRadius: BorderRadius.circular(6),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: 130,
-                    child: Text(
-                      'Config',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 110,
+                  child: Text(
+                    'Config',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  Expanded(
-                    child: Text(
-                      _externalConfigExpanded
-                          ? 'JSON'
-                          : '${config.length} trường · chạm để xem',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  Icon(
+                ),
+                Expanded(
+                  child: Text(
                     _externalConfigExpanded
-                        ? Icons.expand_less
-                        : Icons.expand_more,
-                    size: 20,
-                    color: colorScheme.onSurfaceVariant,
+                        ? 'JSON'
+                        : '${config.length} trường · chạm để xem',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                  _buildCopyIconButton(label: 'Config', value: jsonText),
-                ],
-              ),
+                ),
+                Icon(
+                  _externalConfigExpanded
+                      ? Icons.expand_less
+                      : Icons.expand_more,
+                  size: 18,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                GestureDetector(
+                  onTap: () => _copyToClipboard('Config', jsonText),
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: Icon(
+                      Icons.copy_outlined,
+                      size: 14,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           if (_externalConfigExpanded) ...[
@@ -726,56 +686,28 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
     );
   }
 
-  Widget _buildCopyableDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 130,
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-            ),
-          ),
-          _buildCopyIconButton(label: label, value: value),
-        ],
-      ),
-    );
-  }
-
   Widget _buildSlotsCard() {
     final accountMaster = _accountMaster;
     final hasSlots = _slots.isNotEmpty;
 
     return Card(
+      margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.all(14),
             child: Row(
               children: [
-                Icon(Icons.dns_outlined, size: 14, color: colorScheme.primary),
+                Icon(Icons.dns_outlined, size: 16, color: colorScheme.primary),
                 const SizedBox(width: 6),
                 Text(
-                  'Slots  ${_slots.length}/${accountMaster.maxSlots}',
-                  style: TextStyle(
-                    fontSize: 12,
+                  'Danh sách Slots (${_slots.length}/${accountMaster.maxSlots})',
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
                     fontWeight: FontWeight.w700,
-                    color: colorScheme.primary,
+                    color: colorScheme.onSurface,
                   ),
                 ),
               ],
@@ -825,7 +757,7 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
 
     showModalBottomSheet<void>(
       context: context,
-      builder: (context) => SafeArea(
+      builder: (modalContext) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -833,9 +765,9 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
               leading: const Icon(Icons.open_in_new),
               title: const Text('Xem chi tiết slot'),
               onTap: () async {
-                Navigator.pop(context);
+                Navigator.pop(modalContext);
                 final result = await Navigator.push(
-                  context,
+                  this.context,
                   MaterialPageRoute(
                     builder: (_) => AccountSlotDetailScreen(slot: slot),
                   ),
@@ -850,7 +782,7 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
                 leading: const Icon(Icons.link_off),
                 title: const Text('Gỡ liên kết đơn hàng'),
                 onTap: () {
-                  Navigator.pop(context);
+                  Navigator.pop(modalContext);
                   _unlinkOrderFromSlot(slot);
                 },
               ),
@@ -858,7 +790,7 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
               leading: const Icon(Icons.copy),
               title: const Text('Sao chép thông tin'),
               onTap: () {
-                Navigator.pop(context);
+                Navigator.pop(modalContext);
                 _copySlotInfo(slot);
               },
             ),
@@ -866,8 +798,54 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
               leading: const Icon(Icons.edit),
               title: const Text('Chỉnh sửa'),
               onTap: () {
-                Navigator.pop(context);
+                Navigator.pop(modalContext);
                 _showEditSlotSheet(slot);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.restart_alt),
+              title: const Text('Reset OTP'),
+              onTap: () async {
+                Navigator.pop(modalContext);
+                final confirm = await showDialog<bool>(
+                  context: this.context,
+                  builder: (dialogContext) => AlertDialog(
+                    title: const Text('Reset OTP'),
+                    content: const Text(
+                      'Bạn có chắc muốn đặt lại thông tin OTP của slot này?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(dialogContext, false),
+                        child: const Text('Hủy'),
+                      ),
+                      FilledButton(
+                        onPressed: () => Navigator.pop(dialogContext, true),
+                        child: const Text('Reset'),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirm != true || !mounted) return;
+                try {
+                  final response = await _accountSlotService.resetOtpAt(
+                    slot.id.toString(),
+                  );
+                  if (!mounted) return;
+                  if (response.success) {
+                    Toastr.success('Đã reset OTP', context: this.context);
+                    await _refreshAccountAndSlots();
+                  } else {
+                    Toastr.error(
+                      response.message ?? 'Reset OTP thất bại',
+                      context: this.context,
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    Toastr.error('Lỗi: ${e.toString()}', context: this.context);
+                  }
+                }
               },
             ),
             if (hasOrder)
@@ -1127,6 +1105,21 @@ class _AccountMasterDetailScreenState extends State<AccountMasterDetailScreen>
                                 Text('$startStr → $endStr'),
                               ],
                             ),
+                            if (slot.lastOtpAt != null)
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.access_time,
+                                    size: 11,
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    'OTP: ${DateHelper.formatDateTime(slot.lastOtpAt!)}',
+                                  ),
+                                ],
+                              ),
                           ],
                         ),
                       ),
@@ -1464,5 +1457,277 @@ class _AddSlotSheetState extends State<_AddSlotSheet> {
     );
   }
 }
+
+// ── Detail Card & Rows ─────────────────────────────────────────────────────────
+
+class _DetailCard extends StatelessWidget {
+  const _DetailCard({
+    required this.title,
+    required this.icon,
+    required this.children,
+  });
+
+  final String title;
+  final IconData icon;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 16, color: cs.primary),
+                const SizedBox(width: 6),
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: cs.onSurface,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            ...children,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({
+    required this.label,
+    required this.value,
+    this.canCopy = false,
+  });
+
+  final String label;
+  final String value;
+  final bool canCopy;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 110,
+            child: Text(
+              label,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+            ),
+          ),
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    value,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                if (canCopy)
+                  GestureDetector(
+                    onTap: () {
+                      Clipboard.setData(ClipboardData(text: value));
+                      Toastr.success('Đã sao chép $label', context: context);
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: Icon(
+                        Icons.copy_outlined,
+                        size: 14,
+                        color: cs.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatusRow extends StatelessWidget {
+  const _StatusRow({required this.isActive});
+  final bool isActive;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 110,
+            child: Text(
+              'Trạng thái',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+            ),
+          ),
+          ActiveStatusBadge(
+            isActive: isActive,
+            activeLabel: 'Đang hoạt động',
+            inactiveLabel: 'Không hoạt động',
+            activeColor: Colors.green,
+            inactiveColor: Colors.grey,
+            isGhost: true,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SecretRow extends StatelessWidget {
+  const _SecretRow({
+    required this.label,
+    required this.value,
+    this.monospace = false,
+  });
+
+  final String label;
+  final String value;
+  final bool monospace;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 110,
+            child: Text(
+              label,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              maxLines: 4,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                fontFamily: monospace ? 'monospace' : null,
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: () {
+              Clipboard.setData(ClipboardData(text: value));
+              Toastr.success('Đã sao chép $label', context: context);
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Icon(
+                Icons.copy_outlined,
+                size: 14,
+                color: cs.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── OTP Tile ──────────────────────────────────────────────────────────────────
+
+class _OtpTile extends StatelessWidget {
+  const _OtpTile({
+    required this.code,
+    required this.remaining,
+    required this.onCopy,
+  });
+
+  final String code;
+  final int remaining;
+  final VoidCallback onCopy;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isUrgent = remaining <= 5;
+    final color = isUrgent ? cs.error : cs.primary;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          // Code — tap để copy
+          Expanded(
+            child: GestureDetector(
+              onTap: onCopy,
+              child: Text(
+                code.isEmpty ? '------' : code,
+                style: TextStyle(
+                  fontSize: 34,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'monospace',
+                  letterSpacing: 8,
+                  color: color,
+                ),
+              ),
+            ),
+          ),
+          // Countdown circle
+          SizedBox(
+            width: 34,
+            height: 34,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                CircularProgressIndicator(
+                  value: remaining / 30,
+                  strokeWidth: 3,
+                  color: color,
+                  backgroundColor: color.withValues(alpha: 0.15),
+                ),
+                Text(
+                  '$remaining',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
 
 

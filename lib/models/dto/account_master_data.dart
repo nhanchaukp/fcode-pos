@@ -15,6 +15,7 @@ class AccountMasterData {
   final int? supplyId;
   final String? externalSrc;
   final Map<String, dynamic>? externalConfig;
+  final String? twoFactorSecret;
 
   const AccountMasterData({
     required this.name,
@@ -33,6 +34,7 @@ class AccountMasterData {
     this.supplyId,
     this.externalSrc,
     this.externalConfig,
+    this.twoFactorSecret,
   });
 
   Map<String, dynamic> toJson() {
@@ -51,9 +53,12 @@ class AccountMasterData {
       if (cookies != null && cookies!.isNotEmpty) 'cookies': cookies,
       if (details != null && details!.isNotEmpty) 'details': details,
       if (supplyId != null) 'supply_id': supplyId,
-      if (externalSrc != null && externalSrc!.isNotEmpty) 'external_src': externalSrc,
+      if (externalSrc != null && externalSrc!.isNotEmpty)
+        'external_src': externalSrc,
       if (externalConfig != null && externalConfig!.isNotEmpty)
         'external_config': externalConfig,
+      if (twoFactorSecret != null && twoFactorSecret!.isNotEmpty)
+        'two_factor_secret': twoFactorSecret,
     };
   }
 }

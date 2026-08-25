@@ -69,6 +69,8 @@ class AccountSlot {
 
   final List<AccessLink>? accessLinks;
 
+  final DateTime? lastOtpAt;
+
   AccountSlot({
     required this.id,
     required this.accountMasterId,
@@ -87,6 +89,7 @@ class AccountSlot {
     this.color,
     this.daysUntilExpiry = 0,
     this.accessLinks,
+    this.lastOtpAt,
   });
 
   factory AccountSlot.fromJson(Map<String, dynamic> map) {
@@ -126,6 +129,9 @@ class AccountSlot {
                 .map((item) => AccessLink.fromJson(ensureMap(item)))
                 .toList()
           : <AccessLink>[],
+      lastOtpAt: map['last_otp_at'] != null
+          ? DateTime.parse(map['last_otp_at'].toString())
+          : null,
     );
   }
 
@@ -147,6 +153,7 @@ class AccountSlot {
       'order_item': shopOrderItem?.toMap(),
       'color': color,
       'days_until_expiry': daysUntilExpiry,
+      'last_otp_at': lastOtpAt?.toIso8601String(),
     };
   }
 }

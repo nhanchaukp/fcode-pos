@@ -43,6 +43,7 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
   late TextEditingController _costNotesController;
   late TextEditingController _cookiesController;
   late TextEditingController _detailsController;
+  late TextEditingController _twoFactorSecretController;
   String? _externalSrc;
 
   DateTime? _paymentDate;
@@ -77,6 +78,9 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
     );
     _cookiesController = TextEditingController(text: account?.cookies ?? '');
     _detailsController = TextEditingController(text: account?.details ?? '');
+    _twoFactorSecretController = TextEditingController(
+      text: account?.twoFactorSecret ?? '',
+    );
     _externalSrc = account?.externalSrc;
 
     _paymentDate = account?.paymentDate;
@@ -96,6 +100,7 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
     _costNotesController.dispose();
     _cookiesController.dispose();
     _detailsController.dispose();
+    _twoFactorSecretController.dispose();
     super.dispose();
   }
 
@@ -156,6 +161,9 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
             ? _externalSrc!.trim()
             : null,
         externalConfig: parsedExternalConfig,
+        twoFactorSecret: _twoFactorSecretController.text.trim().isEmpty
+            ? null
+            : _twoFactorSecretController.text.trim(),
       );
 
       if (_isUpdate) {
@@ -423,6 +431,19 @@ class _AccountMasterUpsertScreenState extends State<AccountMasterUpsertScreen> {
                 KeyValueEditor(
                   key: _keyValueEditorKey,
                   initialValue: widget.accountMaster?.externalConfig,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _twoFactorSecretController,
+                  decoration: const InputDecoration(
+                    labelText: 'Two-Factor Secret (BASE32)',
+                    hintText: 'JBSWY3DPEHPK3PXP',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.security),
+                  ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                  ],
                 ),
               ],
             ),

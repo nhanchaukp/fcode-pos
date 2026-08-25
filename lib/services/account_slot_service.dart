@@ -68,6 +68,15 @@ class AccountSlotService {
     );
   }
 
+  /// Reset otp at của slot.
+  Future<ApiResponse<AccountSlot>> resetOtpAt(String slotId) {
+    return _api.post<AccountSlot>(
+      '/account-slots/$slotId/reset-otp',
+      data: {},
+      parser: (json) => AccountSlot.fromJson(ensureMap(json)),
+    );
+  }
+
   /// Lấy lịch sử audit của một slot có phân trang.
   Future<ApiResponse<PaginatedData<Auditable>>> audits(
     int slotId, {

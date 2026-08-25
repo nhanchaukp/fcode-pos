@@ -120,6 +120,47 @@ class _AccountSlotDetailScreenState extends State<AccountSlotDetailScreen>
     }
   }
 
+  Future<void> _resetOtpAt() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Reset OTP'),
+        content: const Text(
+          'Bạn có chắc muốn đặt lại thông tin OTP của slot này?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Hủy'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Reset'),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true || !mounted) return;
+
+    try {
+      final response = await _slotService.resetOtpAt(_slot.id.toString());
+      if (!mounted) return;
+      if (response.success) {
+        Toastr.success('Đã reset OTP', context: context);
+        _fetchDetail();
+      } else {
+        Toastr.error(
+          response.message ?? 'Reset OTP thất bại',
+          context: context,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Toastr.error('Lỗi: ${e.toString()}', context: context);
+      }
+    }
+  }
+
   Future<void> _copySlotInfo() async {
     final text = StringHelper.formatSlotCopyText(_slot);
     await Clipboard.setData(ClipboardData(text: text));
@@ -218,6 +259,8 @@ class _AccountSlotDetailScreenState extends State<AccountSlotDetailScreen>
                   _copySlotInfo();
                 case _SlotAction.edit:
                   _showEditSlot();
+                case _SlotAction.resetOtp:
+                  _resetOtpAt();
                 case _SlotAction.viewMaster:
                   Navigator.push(
                     context,
@@ -259,6 +302,15 @@ class _AccountSlotDetailScreenState extends State<AccountSlotDetailScreen>
                   contentPadding: EdgeInsets.zero,
                   leading: Icon(Icons.edit, size: 18),
                   title: Text('Chỉnh sửa'),
+                ),
+              ),
+              const PopupMenuItem(
+                value: _SlotAction.resetOtp,
+                child: ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.restart_alt, size: 18),
+                  title: Text('Reset OTP'),
                 ),
               ),
               if (_slot.accountMaster != null)
@@ -376,170 +428,117 @@ class _AccountSlotDetailScreenState extends State<AccountSlotDetailScreen>
     final user = order?.user;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      child: _DetailCard(
+        title: 'Thông tin slot',
+        icon: Icons.dns_outlined,
         children: [
-          // ── Status + PIN row ─────────────────────────────────────────────
-          Row(
-            children: [
-              _StatusChip(isActive: _slot.isActive),
-              const SizedBox(width: 8),
-              DaysRemainingBadge(days: _slot.daysUntilExpiry),
-              if (_slot.pin.isNotEmpty) ...[
-                const Spacer(),
-                GestureDetector(
-                  onTap: () {
-                    Clipboard.setData(ClipboardData(text: _slot.pin));
-                    Toastr.success('Đã sao chép PIN', context: context);
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
+          _StatusRow(
+            isActive: _slot.isActive,
+            daysUntilExpiry: _slot.daysUntilExpiry,
+          ),
+          if (_slot.pin.isNotEmpty)
+            _SecretRow(
+              label: 'PIN',
+              value: _slot.pin,
+              monospace: true,
+            ),
+          _InfoRow(
+            label: 'Thời hạn',
+            value: '${_slot.durationMonths} tháng',
+          ),
+          _InfoRow(
+            label: 'Thời gian',
+            value:
+                '${DateHelper.formatDate(_slot.startDate)}  →  ${DateHelper.formatDate(_slot.expiryDate)}',
+          ),
+          _InfoRow(
+            label: 'OTP gần nhất',
+            value: _slot.lastOtpAt != null
+                ? DateHelper.formatDateTime(_slot.lastOtpAt)
+                : 'Chưa có',
+          ),
+          if (_slot.notes != null && _slot.notes!.isNotEmpty)
+            _InfoRow(label: 'Ghi chú', value: _slot.notes!),
+          if (_slot.shopOrderItem != null && (user != null || order != null))
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 110,
+                    child: Text(
+                      'Khách hàng',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.copyWith(color: _cs.onSurfaceVariant),
                     ),
-                    decoration: BoxDecoration(
-                      color: _cs.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
+                  ),
+                  Expanded(
                     child: Row(
-                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          Icons.vpn_key,
-                          size: 12,
-                          color: _cs.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          _slot.pin,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: _cs.onSurface,
-                            fontFamily: 'monospace',
+                        Expanded(
+                          child: Text(
+                            user?.name ?? 'Không xác định',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const SizedBox(width: 4),
-                        Icon(Icons.copy, size: 11, color: _cs.onSurfaceVariant),
+                        if (user != null)
+                          TextButton.icon(
+                            onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => CustomerDetailScreen(user: user),
+                              ),
+                            ),
+                            icon: const Icon(Icons.open_in_new, size: 12),
+                            label: const Text('Hồ sơ'),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              textStyle: const TextStyle(fontSize: 11),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ),
+                        if (order != null)
+                          TextButton.icon(
+                            onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => OrderDetailScreen(
+                                  orderId:
+                                      _slot.shopOrderItem!.orderId.toString(),
+                                ),
+                              ),
+                            ),
+                            icon: const Icon(
+                              Icons.receipt_long_outlined,
+                              size: 12,
+                            ),
+                            label: const Text('Đơn'),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              textStyle: const TextStyle(fontSize: 11),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ),
                       ],
                     ),
                   ),
-                ),
-              ],
-            ],
-          ),
-          const SizedBox(height: 6),
-
-          // ── Date fields ──────────────────────────────────────────────────
-          _infoRow(
-            Icons.date_range_outlined,
-            'Ngày',
-            '${DateHelper.formatDate(_slot.startDate)}  →  ${DateHelper.formatDate(_slot.expiryDate)}',
-          ),
-          _infoRow(
-            Icons.timelapse_outlined,
-            'Thời hạn',
-            '${_slot.durationMonths} tháng',
-          ),
-
-          // ── Notes ────────────────────────────────────────────────────────
-          if (_slot.notes != null && _slot.notes!.isNotEmpty)
-            _infoRow(Icons.notes_outlined, 'Ghi chú', _slot.notes!),
-
-          // ── Customer row ─────────────────────────────────────────────────
-          if (_slot.shopOrderItem != null &&
-              (user != null || order != null)) ...[
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Icon(
-                  Icons.person_outline,
-                  size: 13,
-                  color: _cs.onSurfaceVariant,
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    user?.name ?? 'Không xác định',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                if (user != null)
-                  TextButton.icon(
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => CustomerDetailScreen(user: user),
-                      ),
-                    ),
-                    icon: const Icon(Icons.open_in_new, size: 12),
-                    label: const Text('Hồ sơ'),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      textStyle: const TextStyle(fontSize: 11),
-                      visualDensity: VisualDensity.compact,
-                    ),
-                  ),
-                if (order != null)
-                  TextButton.icon(
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => OrderDetailScreen(
-                          orderId: _slot.shopOrderItem!.orderId.toString(),
-                        ),
-                      ),
-                    ),
-                    icon: const Icon(Icons.receipt_long_outlined, size: 12),
-                    label: const Text('Đơn'),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      textStyle: const TextStyle(fontSize: 11),
-                      visualDensity: VisualDensity.compact,
-                    ),
-                  ),
-              ],
+                ],
+              ),
             ),
-          ],
-
-          const SizedBox(height: 10),
-        ],
-      ),
-    );
-  }
-
-  Widget _infoRow(IconData icon, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Row(
-        children: [
-          Icon(icon, size: 13, color: _cs.onSurfaceVariant),
-          const SizedBox(width: 6),
-          SizedBox(
-            width: 60,
-            child: Text(
-              label,
-              style: TextStyle(fontSize: 12, color: _cs.onSurfaceVariant),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
         ],
       ),
     );
@@ -640,7 +639,181 @@ class _AccountSlotDetailScreenState extends State<AccountSlotDetailScreen>
 
 // ── Enum for popup menu actions ───────────────────────────────────────────────
 
-enum _SlotAction { copy, edit, viewMaster, unlinkOrder, viewOrder, delete }
+enum _SlotAction { copy, edit, resetOtp, viewMaster, unlinkOrder, viewOrder, delete }
+
+// ── Detail Card & Row Widgets (style tham khảo account_vault_detail_screen) ────
+
+class _DetailCard extends StatelessWidget {
+  const _DetailCard({
+    required this.title,
+    required this.icon,
+    required this.children,
+  });
+
+  final String title;
+  final IconData icon;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 16, color: cs.primary),
+                const SizedBox(width: 6),
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: cs.onSurface,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            ...children,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({
+    required this.label,
+    required this.value,
+  });
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 110,
+            child: Text(
+              label,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatusRow extends StatelessWidget {
+  const _StatusRow({required this.isActive, required this.daysUntilExpiry});
+  final bool isActive;
+  final int daysUntilExpiry;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 110,
+            child: Text(
+              'Trạng thái',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+            ),
+          ),
+          _StatusChip(isActive: isActive),
+          const SizedBox(width: 8),
+          DaysRemainingBadge(days: daysUntilExpiry),
+        ],
+      ),
+    );
+  }
+}
+
+class _SecretRow extends StatelessWidget {
+  const _SecretRow({
+    required this.label,
+    required this.value,
+    this.monospace = false,
+  });
+
+  final String label;
+  final String value;
+  final bool monospace;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 110,
+            child: Text(
+              label,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              maxLines: 4,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                fontFamily: monospace ? 'monospace' : null,
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: () {
+              Clipboard.setData(ClipboardData(text: value));
+              Toastr.success('Đã sao chép $label', context: context);
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Icon(
+                Icons.copy_outlined,
+                size: 14,
+                color: cs.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 // ── Skeleton box ─────────────────────────────────────────────────────────────
 
@@ -1030,7 +1203,7 @@ class _CreateAccessLinkSheetState extends State<_CreateAccessLinkSheet> {
                   ),
                   value: _deactivateExisting,
                   onChanged: (v) => setState(() => _deactivateExisting = v),
-                  activeColor: cs.error,
+                  activeTrackColor: cs.error,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 4,
