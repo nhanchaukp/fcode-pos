@@ -563,6 +563,13 @@ class _AccountMasterBrowserScreenState
                   label: 'Password',
                   value: account.password,
                 ),
+                if (account.twoFactorSecret != null &&
+                    account.twoFactorSecret!.isNotEmpty)
+                  _buildCopyableInfoRow(
+                    sheetContext,
+                    label: '2FA Secret',
+                    value: account.twoFactorSecret!,
+                  ),
                 _buildInfoRow('Loại dịch vụ', serviceTypeLabel),
                 _buildInfoRow(
                   'Trạng thái',
@@ -1535,8 +1542,10 @@ class _GetAllCodeBottomSheetState extends State<GetAllCodeBottomSheet> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: colorScheme.primaryContainer,
                     borderRadius: BorderRadius.circular(6),
@@ -1593,8 +1602,10 @@ class _GetAllCodeBottomSheetState extends State<GetAllCodeBottomSheet> {
                 borderRadius: BorderRadius.circular(8),
                 child: Container(
                   width: double.infinity,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: colorScheme.surfaceContainerHigh,
                     borderRadius: BorderRadius.circular(8),
@@ -1660,11 +1671,14 @@ class _GetAllCodeBottomSheetState extends State<GetAllCodeBottomSheet> {
                 borderRadius: BorderRadius.circular(8),
                 child: Container(
                   width: double.infinity,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
-                    color:
-                        colorScheme.tertiaryContainer.withValues(alpha: 0.35),
+                    color: colorScheme.tertiaryContainer.withValues(
+                      alpha: 0.35,
+                    ),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: colorScheme.tertiary.withValues(alpha: 0.3),
