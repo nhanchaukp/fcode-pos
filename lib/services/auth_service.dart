@@ -11,6 +11,7 @@ import 'package:fcode_pos/services/api_service.dart';
 import 'package:fcode_pos/services/notification_service.dart';
 import 'package:fcode_pos/storage/secure_storage.dart';
 import 'package:fcode_pos/storage/user_prefs.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 class AuthService {
   AuthService() : _api = ApiService() {
@@ -139,6 +140,15 @@ class AuthService {
     if (payload != null) {
       await SecureStorage.saveTokens(payload.accessToken, null);
       await UserPrefs.saveUser(payload.user);
+      try {
+        FirebaseCrashlytics.instance.setUserIdentifier(payload.user.id.toString());
+        FirebaseCrashlytics.instance.setCustomKey('user_id', payload.user.id);
+        FirebaseCrashlytics.instance.setCustomKey('user_name', payload.user.name);
+        FirebaseCrashlytics.instance.setCustomKey('user_email', payload.user.email);
+        FirebaseCrashlytics.instance.log(
+          'Auth: Login with passkey successful for user ${payload.user.id} (${payload.user.email})',
+        );
+      } catch (_) {}
     }
 
     return response.map((payload) => payload?.user);

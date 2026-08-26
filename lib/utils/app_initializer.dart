@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:toastr_flutter/toastr.dart'
     show
         Toastr,
@@ -30,6 +31,7 @@ class AppInitializer {
   /// Ensures Flutter bindings are initialized, sets up window dimensions,
   /// and configures device orientation settings.
   static Future<void> initialize({required ThemeMode themeMode}) async {
+    await Hive.initFlutter();
     _setupToastr(themeMode);
     await _setupWindowDimensions();
     await _setupDeviceOrientation();
