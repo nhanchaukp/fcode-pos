@@ -12,6 +12,11 @@ final biometricLabelProvider = FutureProvider<String>((ref) async {
   return await BiometricService.instance.getBiometricDisplayName();
 });
 
+/// Provider thông tin cấu hình sinh trắc học theo Platform (title, subtitle, icon, buttonLabel)
+final biometricInfoProvider = FutureProvider<BiometricInfo>((ref) async {
+  return await BiometricService.instance.getBiometricInfo();
+});
+
 /// Provider trạng thái bật/tắt khóa app trong cài đặt
 final appLockEnabledProvider =
     StateNotifierProvider<AppLockEnabledNotifier, bool>(

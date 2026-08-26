@@ -1,8 +1,23 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+class BiometricInfo {
+  final String title;
+  final String subtitle;
+  final String buttonLabel;
+  final IconData icon;
+
+  const BiometricInfo({
+    required this.title,
+    required this.subtitle,
+    required this.buttonLabel,
+    required this.icon,
+  });
+}
 
 class BiometricService {
   BiometricService._internal();
@@ -35,30 +50,90 @@ class BiometricService {
     }
   }
 
-  /// Lấy tên hiển thị thân thiện tùy theo thiết bị (Face ID, Touch ID, Vân tay...)
-  Future<String> getBiometricDisplayName() async {
-    if (kIsWeb) return 'Sinh trắc học';
+  /// Lấy thông tin hiển thị chuẩn theo từng nền tảng (iOS vs Android vs Web)
+  Future<BiometricInfo> getBiometricInfo() async {
+    if (kIsWeb) {
+      return const BiometricInfo(
+        title: 'Khóa ứng dụng',
+        subtitle: 'Yêu cầu mật khẩu khi mở ứng dụng',
+        buttonLabel: 'Mở khóa ứng dụng',
+        icon: Icons.lock_outline,
+      );
+    }
+
     try {
       final biometrics = await getAvailableBiometrics();
       if (Platform.isIOS || Platform.isMacOS) {
         if (biometrics.contains(BiometricType.face)) {
-          return 'Face ID';
+          return const BiometricInfo(
+            title: 'Mở khóa bằng Face ID',
+            subtitle: 'Yêu cầu Face ID hoặc mật mã thiết bị khi mở ứng dụng',
+            buttonLabel: 'Mở khóa bằng Face ID',
+            icon: Icons.face_rounded,
+          );
         } else if (biometrics.contains(BiometricType.fingerprint)) {
-          return 'Touch ID';
+          return const BiometricInfo(
+            title: 'Mở khóa bằng Touch ID',
+            subtitle: 'Yêu cầu Touch ID hoặc mật mã thiết bị khi mở ứng dụng',
+            buttonLabel: 'Mở khóa bằng Touch ID',
+            icon: Icons.fingerprint_rounded,
+          );
         }
-        return 'Face ID / Touch ID';
+        return const BiometricInfo(
+          title: 'Mở khóa bằng Face ID',
+          subtitle: 'Yêu cầu Face ID hoặc mật mã thiết bị khi mở ứng dụng',
+          buttonLabel: 'Mở khóa bằng Face ID',
+          icon: Icons.face_rounded,
+        );
       } else if (Platform.isAndroid) {
         if (biometrics.contains(BiometricType.fingerprint) &&
             biometrics.contains(BiometricType.face)) {
-          return 'Vân tay / Khuôn mặt';
+          return const BiometricInfo(
+            title: 'Mở khóa bằng sinh trắc học',
+            subtitle:
+                'Yêu cầu vân tay, khuôn mặt hoặc mã PIN / hình mở khóa khi mở ứng dụng',
+            buttonLabel: 'Mở khóa bằng sinh trắc học',
+            icon: Icons.fingerprint_rounded,
+          );
         } else if (biometrics.contains(BiometricType.fingerprint)) {
-          return 'Vân tay';
+          return const BiometricInfo(
+            title: 'Mở khóa bằng vân tay',
+            subtitle:
+                'Yêu cầu vân tay hoặc mã PIN / hình mở khóa khi mở ứng dụng',
+            buttonLabel: 'Mở khóa bằng vân tay',
+            icon: Icons.fingerprint_rounded,
+          );
         } else if (biometrics.contains(BiometricType.face)) {
-          return 'Nhận diện khuôn mặt';
+          return const BiometricInfo(
+            title: 'Mở khóa bằng nhận diện khuôn mặt',
+            subtitle:
+                'Yêu cầu nhận diện khuôn mặt hoặc mã PIN / hình mở khóa khi mở ứng dụng',
+            buttonLabel: 'Mở khóa bằng khuôn mặt',
+            icon: Icons.face_unlock_rounded,
+          );
         }
+        return const BiometricInfo(
+          title: 'Mở khóa bằng vân tay',
+          subtitle:
+              'Yêu cầu vân tay hoặc mã PIN / hình mở khóa khi mở ứng dụng',
+          buttonLabel: 'Mở khóa bằng vân tay',
+          icon: Icons.fingerprint_rounded,
+        );
       }
     } catch (_) {}
-    return 'Face ID / Vân tay';
+
+    return const BiometricInfo(
+      title: 'Mở khóa bằng sinh trắc học',
+      subtitle: 'Yêu cầu sinh trắc học hoặc mật mã máy khi mở ứng dụng',
+      buttonLabel: 'Mở khóa ứng dụng',
+      icon: Icons.fingerprint_rounded,
+    );
+  }
+
+  /// Lấy tên hiển thị thân thiện tùy theo thiết bị (Face ID, Touch ID, Vân tay...)
+  Future<String> getBiometricDisplayName() async {
+    final info = await getBiometricInfo();
+    return info.title.replaceFirst('Mở khóa bằng ', '');
   }
 
   /// Thực hiện quét sinh trắc học hoặc mật mã máy (Device Passcode / PIN fallback)

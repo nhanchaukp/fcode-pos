@@ -31,10 +31,18 @@ class MoreScreen extends ConsumerWidget {
     final notificationEnabled = ref.watch(notificationEnabledProvider);
     final notificationNotifier = ref.read(notificationEnabledProvider.notifier);
     final appLockEnabled = ref.watch(appLockEnabledProvider);
-    final biometricLabel =
-        ref.watch(biometricLabelProvider).asData?.value ?? 'Face ID / Vân tay';
+    final biometricInfo = ref.watch(biometricInfoProvider).asData?.value;
     final canUseBiometrics =
         ref.watch(canUseBiometricsProvider).asData?.value ?? true;
+
+    final biometricTitle = biometricInfo?.title ??
+        (Platform.isIOS ? 'Mở khóa bằng Face ID' : 'Mở khóa bằng vân tay');
+    final biometricSubtitle = biometricInfo?.subtitle ??
+        (Platform.isIOS
+            ? 'Yêu cầu Face ID hoặc mật mã thiết bị khi mở ứng dụng'
+            : 'Yêu cầu vân tay hoặc mã PIN / hình mở khóa khi mở ứng dụng');
+    final biometricIcon = biometricInfo?.icon ??
+        (Platform.isIOS ? Icons.face_rounded : Icons.fingerprint_rounded);
 
     final user = authState.asData?.value;
     final isLoading = authState.isLoading;
@@ -273,12 +281,9 @@ class MoreScreen extends ConsumerWidget {
           ),
           if (canUseBiometrics) ...[
             AppSwitchTile(
-              icon: Platform.isIOS || Platform.isMacOS
-                  ? Icons.face_rounded
-                  : Icons.fingerprint_rounded,
-              title: 'Khóa bằng $biometricLabel',
-              subtitle:
-                  'Yêu cầu xác thực $biometricLabel hoặc mật mã khi mở ứng dụng',
+              icon: biometricIcon,
+              title: biometricTitle,
+              subtitle: biometricSubtitle,
               value: appLockEnabled,
               onChanged: (value) async {
                 final success = await ref
@@ -289,9 +294,9 @@ class MoreScreen extends ConsumerWidget {
                     'Xác thực không thành công. Không thể bật khóa ứng dụng.',
                   );
                 } else if (value) {
-                  Toastr.success('Đã kích hoạt khóa ứng dụng bằng $biometricLabel');
+                  Toastr.success('Đã kích hoạt $biometricTitle');
                 } else {
-                  Toastr.info('Đã tắt khóa ứng dụng');
+                  Toastr.info('Đã tắt $biometricTitle');
                 }
               },
             ),

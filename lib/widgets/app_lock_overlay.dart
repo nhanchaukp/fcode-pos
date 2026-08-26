@@ -78,8 +78,11 @@ class _AppLockOverlayState extends ConsumerState<AppLockOverlay>
     final isLocked = ref.watch(isAppLockedProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final biometricLabel =
-        ref.watch(biometricLabelProvider).asData?.value ?? 'Face ID / Vân tay';
+    final biometricInfo = ref.watch(biometricInfoProvider).asData?.value;
+    final buttonLabel = biometricInfo?.buttonLabel ??
+        (Platform.isIOS ? 'Mở khóa bằng Face ID' : 'Mở khóa bằng vân tay');
+    final biometricIcon = biometricInfo?.icon ??
+        (Platform.isIOS ? Icons.face_rounded : Icons.fingerprint_rounded);
     final user = ref.watch(authProvider).asData?.value;
 
     return Stack(
@@ -139,13 +142,8 @@ class _AppLockOverlayState extends ConsumerState<AppLockOverlay>
                         onPressed: _isAuthenticating
                             ? null
                             : () => _checkAndPromptUnlock(),
-                        icon: Icon(
-                          Platform.isIOS || Platform.isMacOS
-                              ? Icons.face_rounded
-                              : Icons.fingerprint_rounded,
-                          size: 22,
-                        ),
-                        label: Text('Mở khóa bằng $biometricLabel'),
+                        icon: Icon(biometricIcon, size: 22),
+                        label: Text(buttonLabel),
                         style: FilledButton.styleFrom(
                           minimumSize: const Size.fromHeight(50),
                           shape: RoundedRectangleBorder(
