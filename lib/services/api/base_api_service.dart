@@ -6,7 +6,7 @@ import 'package:fcode_pos/api/api_exception.dart';
 import 'package:fcode_pos/config/environment.dart';
 import 'package:fcode_pos/services/api/api_response.dart';
 import 'package:fcode_pos/storage/secure_storage.dart';
-import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 class BaseApiService {
   BaseApiService({String? baseUrl}) {
@@ -161,7 +161,24 @@ class BaseApiService {
       final responseData = response.data;
 
       if (statusCode == 401) {
+        try {
+          FirebaseCrashlytics.instance.log(
+            'API: 401 Unauthorized at ${error.requestOptions.path}. Clearing local token.',
+          );
+        } catch (_) {}
         await SecureStorage.clear();
+      } else if (statusCode >= 500) {
+        try {
+          FirebaseCrashlytics.instance.log(
+            'API: Server Error $statusCode at ${error.requestOptions.path}',
+          );
+          FirebaseCrashlytics.instance.recordError(
+            error,
+            error.stackTrace,
+            reason: 'API Server Error $statusCode on ${error.requestOptions.path}',
+            fatal: false,
+          );
+        } catch (_) {}
       }
 
       final message = _extractErrorMessage(responseData, statusCode);
