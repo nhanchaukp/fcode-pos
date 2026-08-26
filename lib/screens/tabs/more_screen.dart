@@ -33,7 +33,7 @@ class MoreScreen extends ConsumerWidget {
     final appLockEnabled = ref.watch(appLockEnabledProvider);
     final biometricInfo = ref.watch(biometricInfoProvider).asData?.value;
     final canUseBiometrics =
-        ref.watch(canUseBiometricsProvider).asData?.value ?? true;
+        ref.watch(canUseBiometricsProvider).asData?.value ?? false;
 
     final biometricTitle = biometricInfo?.title ??
         (Platform.isIOS ? 'Mở khóa bằng Face ID' : 'Mở khóa bằng vân tay');

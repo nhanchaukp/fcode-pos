@@ -29,10 +29,15 @@ class BiometricService {
   /// Kiểm tra thiết bị có phần cứng và hỗ trợ sinh trắc học không
   Future<bool> isBiometricAvailable() async {
     if (kIsWeb) return false;
+    if (!Platform.isIOS && !Platform.isAndroid && !Platform.isMacOS) {
+      return false;
+    }
     try {
       final isSupported = await _auth.isDeviceSupported();
+      if (!isSupported) return false;
       final canCheck = await _auth.canCheckBiometrics;
-      return isSupported && canCheck;
+      final availableBiometrics = await _auth.getAvailableBiometrics();
+      return canCheck && availableBiometrics.isNotEmpty;
     } catch (e) {
       debugPrint('Error checking biometric availability: $e');
       return false;
