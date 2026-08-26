@@ -79,6 +79,25 @@ class _MoneyFormFieldState extends State<MoneyFormField> {
     _controller.addListener(_handleControllerChange);
   }
 
+  @override
+  void didUpdateWidget(MoneyFormField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      _controller.removeListener(_handleControllerChange);
+      if (widget.controller != null) {
+        _controller = widget.controller!;
+        _isInternalController = false;
+      } else {
+        _controller = TextEditingController();
+        _isInternalController = true;
+      }
+      if (_controller.text.isNotEmpty) {
+        _controller.text = _formatter.formatString(_controller.text);
+      }
+      _controller.addListener(_handleControllerChange);
+    }
+  }
+
   bool _isFormatting = false;
 
   void _handleControllerChange() {

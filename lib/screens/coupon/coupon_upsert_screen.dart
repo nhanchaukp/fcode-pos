@@ -232,6 +232,7 @@ class _CouponUpsertScreenState extends State<CouponUpsertScreen> {
                       const SizedBox(height: 12),
                       if (_type == CouponType.percentage)
                         TextFormField(
+                          key: const ValueKey('coupon_value_percentage'),
                           controller: _valueController,
                           decoration: const InputDecoration(
                             labelText: 'Giá trị (%)',
@@ -252,6 +253,7 @@ class _CouponUpsertScreenState extends State<CouponUpsertScreen> {
                         )
                       else
                         MoneyFormField(
+                          key: const ValueKey('coupon_value_subtraction'),
                           controller: _valueController,
                           labelText: 'Giá trị (VND)',
                           validator: (value) {
@@ -269,6 +271,7 @@ class _CouponUpsertScreenState extends State<CouponUpsertScreen> {
                       if (_type == CouponType.percentage) ...[
                         const SizedBox(height: 12),
                         MoneyFormField(
+                          key: const ValueKey('coupon_max_discount'),
                           controller: _maxDiscountController,
                           labelText: 'Giảm tối đa (VND - Tùy chọn)',
                           validator: (value) {
