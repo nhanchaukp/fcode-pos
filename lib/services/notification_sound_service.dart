@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:fcode_pos/models/notification_sound_item.dart';
-import 'package:fcode_pos/services/user_settings_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -38,7 +37,7 @@ class NotificationSoundService {
     }
   }
 
-  /// Khởi tạo và đọc nhạc chuông đã lưu từ SharedPreferences + đồng bộ từ Server
+  /// Khởi tạo và đọc nhạc chuông đã lưu từ SharedPreferences
   Future<void> init() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -46,31 +45,9 @@ class NotificationSoundService {
       _currentSound = NotificationSoundItem.findById(savedId);
 
       await _syncToIosAppGroup(_currentSound.fileName);
-
-      // Đồng bộ ngầm với Server
-      syncWithServer();
     } catch (e) {
       if (kDebugMode) {
         print('Error reading saved notification sound: $e');
-      }
-    }
-  }
-
-  /// Đồng bộ nhạc chuông từ Server API (GET /api/user/my-settings)
-  Future<void> syncWithServer() async {
-    try {
-      final serverSound = await UserSettingsService().getMyNotificationSound();
-      if (serverSound.isNotEmpty) {
-        final soundItem = NotificationSoundItem.findById(serverSound);
-        _currentSound = soundItem;
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString(_prefKey, soundItem.id);
-
-        await _syncToIosAppGroup(soundItem.fileName);
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error syncing notification sound with server: $e');
       }
     }
   }
@@ -95,7 +72,7 @@ class NotificationSoundService {
     } catch (_) {}
   }
 
-  /// Chọn và lưu nhạc chuông mới vào SharedPreferences + Cập nhật lên Server
+  /// Chọn và lưu nhạc chuông mới vào SharedPreferences cục bộ
   Future<void> setSelectedSound(NotificationSoundItem item) async {
     _currentSound = item;
     try {
@@ -103,9 +80,6 @@ class NotificationSoundService {
       await prefs.setString(_prefKey, item.id);
 
       await _syncToIosAppGroup(item.fileName);
-
-      // Đẩy setting lên Server API (PUT /api/user/my-settings)
-      await UserSettingsService().updateMyNotificationSound(item.androidSoundName);
     } catch (e) {
       if (kDebugMode) {
         print('Error saving notification sound: $e');
