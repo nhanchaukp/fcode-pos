@@ -6,6 +6,7 @@ import 'package:fcode_pos/screens/order/order_detail_screen.dart';
 import 'package:fcode_pos/screens/splash_screen.dart';
 import 'package:fcode_pos/services/deep_link_service.dart';
 import 'package:fcode_pos/utils/extensions.dart';
+import 'package:fcode_pos/widgets/app_lock_overlay.dart';
 import 'package:fcode_pos/widgets/deep_link_listener.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -330,6 +331,9 @@ class FcodePosApp extends ConsumerWidget {
         GlobalWidgetsLocalizations.delegate,
       ],
       onGenerateRoute: _onGenerateRoute,
+      builder: (context, child) => AppLockOverlay(
+        child: child ?? const SizedBox.shrink(),
+      ),
       home: const DeepLinkListener(child: SplashScreen()),
     );
   }

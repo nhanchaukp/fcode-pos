@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:fcode_pos/config/theme_colors.dart';
 import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/providers/auth_provider.dart';
+import 'package:fcode_pos/providers/biometric_provider.dart';
 import 'package:fcode_pos/providers/notification_provider.dart';
 import 'package:fcode_pos/providers/theme_provider.dart';
 import 'package:fcode_pos/screens/developer/developer_screen.dart';
@@ -28,6 +30,11 @@ class MoreScreen extends ConsumerWidget {
     final paletteNotifier = ref.read(themePaletteIndexProvider.notifier);
     final notificationEnabled = ref.watch(notificationEnabledProvider);
     final notificationNotifier = ref.read(notificationEnabledProvider.notifier);
+    final appLockEnabled = ref.watch(appLockEnabledProvider);
+    final biometricLabel =
+        ref.watch(biometricLabelProvider).asData?.value ?? 'Face ID / Vân tay';
+    final canUseBiometrics =
+        ref.watch(canUseBiometricsProvider).asData?.value ?? true;
 
     final user = authState.asData?.value;
     final isLoading = authState.isLoading;
@@ -264,6 +271,32 @@ class MoreScreen extends ConsumerWidget {
               ),
             ),
           ),
+          if (canUseBiometrics) ...[
+            AppSwitchTile(
+              icon: Platform.isIOS || Platform.isMacOS
+                  ? Icons.face_rounded
+                  : Icons.fingerprint_rounded,
+              title: 'Khóa bằng $biometricLabel',
+              subtitle:
+                  'Yêu cầu xác thực $biometricLabel hoặc mật mã khi mở ứng dụng',
+              value: appLockEnabled,
+              onChanged: (value) async {
+                final success = await ref
+                    .read(appLockEnabledProvider.notifier)
+                    .toggle(value);
+                if (!success && value) {
+                  Toastr.error(
+                    'Xác thực không thành công. Không thể bật khóa ứng dụng.',
+                  );
+                } else if (value) {
+                  Toastr.success('Đã kích hoạt khóa ứng dụng bằng $biometricLabel');
+                } else {
+                  Toastr.info('Đã tắt khóa ứng dụng');
+                }
+              },
+            ),
+            const SizedBox(height: 12),
+          ],
           Card(
             elevation: 0,
             margin: EdgeInsets.zero,
