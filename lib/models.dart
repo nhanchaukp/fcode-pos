@@ -12,6 +12,7 @@ export 'models/dto/order_list_filter.dart';
 export 'models/dto/order_create_data.dart';
 export 'models/dto/order_update_data.dart';
 export 'models/dto/order_upsert_items_data.dart';
+export 'models/order_item_form_data.dart';
 
 part 'models/model.dart';
 part 'models/user.dart';

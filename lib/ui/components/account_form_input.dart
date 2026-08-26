@@ -35,11 +35,11 @@ class _AccountFormInputState extends State<AccountFormInput> {
       if (account.containsKey('data') && account['data'] is List) {
         final List data = account['data'] as List;
         if (data.isNotEmpty && data[0] is Map) {
-          final firstItem = data[0] as Map<String, dynamic>;
+          final Map firstItem = data[0] as Map;
           // Get first key-value pair as username-password
           if (firstItem.isNotEmpty) {
             final entry = firstItem.entries.first;
-            username = entry.key;
+            username = entry.key?.toString() ?? '';
             password = entry.value?.toString() ?? '';
           }
         }
@@ -47,7 +47,7 @@ class _AccountFormInputState extends State<AccountFormInput> {
         // If account is a simple object, get first key-value pair
         if (account.isNotEmpty) {
           final entry = account.entries.first;
-          username = entry.key;
+          username = entry.key.toString();
           password = entry.value?.toString() ?? '';
         }
       }

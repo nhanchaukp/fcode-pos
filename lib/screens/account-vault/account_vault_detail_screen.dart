@@ -761,16 +761,7 @@ class _MailSheetState extends State<_MailSheet> {
       builder: (_, scrollController) {
         return Column(
           children: [
-            // Handle
-            Container(
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: cs.outlineVariant,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
+            const SizedBox(height: 8),
             // Header
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 8, 8),

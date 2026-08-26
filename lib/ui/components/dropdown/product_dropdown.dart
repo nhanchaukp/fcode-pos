@@ -235,15 +235,6 @@ class _ProductSelectSheetState extends State<_ProductSelectSheet> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
               DebouncedSearchInput(
                 controller: _searchController,
                 autofocus: true,
@@ -294,38 +285,55 @@ class _ProductSelectSheetState extends State<_ProductSelectSheet> {
                           ],
                         ),
                       )
-                    : ListView.builder(
+                    : ListView.separated(
                         itemCount: _filtered.length,
+                        separatorBuilder: (context, index) =>
+                            const Divider(height: 1, thickness: 0.3),
                         itemBuilder: (context, index) {
                           final product = _filtered[index];
                           final primary = Theme.of(context).colorScheme.primary;
                           return ListTile(
-                            title: Text(product.name),
-                            subtitle: Row(
-                              children: [
-                                Text(
-                                  CurrencyHelper.formatCurrency(
-                                    product.bestPrice ?? 0,
-                                  ),
-                                  style: TextStyle(
-                                    color: primary,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                if (product.sku != null &&
-                                    product.sku!.isNotEmpty) ...[
+                            dense: true,
+                            visualDensity: VisualDensity.compact,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 0,
+                              vertical: 2,
+                            ),
+                            title: Text(
+                              product.name,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            subtitle: Padding(
+                              padding: const EdgeInsets.only(top: 2),
+                              child: Row(
+                                children: [
                                   Text(
-                                    '  ·  SKU: ${product.sku}',
+                                    CurrencyHelper.formatCurrency(
+                                      product.bestPrice ?? 0,
+                                    ),
                                     style: TextStyle(
+                                      color: primary,
+                                      fontWeight: FontWeight.bold,
                                       fontSize: 12,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
                                     ),
                                   ),
+                                  if (product.sku != null &&
+                                      product.sku!.isNotEmpty) ...[
+                                    Text(
+                                      '  ·  SKU: ${product.sku}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ],
                                 ],
-                              ],
+                              ),
                             ),
                             trailing: widget.selected?.id == product.id
                                 ? Icon(

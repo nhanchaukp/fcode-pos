@@ -248,15 +248,6 @@ class _TemplateSelectSheetState extends State<_TemplateSelectSheet> {
           constraints: const BoxConstraints(maxHeight: 420),
           child: Column(
             children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
               DebouncedSearchInput(
                 controller: _searchCtrl,
                 autofocus: true,

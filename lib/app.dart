@@ -98,10 +98,7 @@ class FcodePosApp extends ConsumerWidget {
           ),
           surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
           shape: WidgetStatePropertyAll(
-            RoundedRectangleBorder(
-              borderRadius: br,
-              side: cardBorder,
-            ),
+            RoundedRectangleBorder(borderRadius: br, side: cardBorder),
           ),
           padding: const WidgetStatePropertyAll(
             EdgeInsets.symmetric(vertical: 6, horizontal: 4),
@@ -111,14 +108,9 @@ class FcodePosApp extends ConsumerWidget {
       popupMenuTheme: PopupMenuThemeData(
         color: menuBackgroundColor,
         elevation: 3,
-        shadowColor: colorScheme.shadow.withValues(
-          alpha: isDark ? 0.35 : 0.08,
-        ),
+        shadowColor: colorScheme.shadow.withValues(alpha: isDark ? 0.35 : 0.08),
         surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(
-          borderRadius: br,
-          side: cardBorder,
-        ),
+        shape: RoundedRectangleBorder(borderRadius: br, side: cardBorder),
         textStyle: base.textTheme.bodyMedium?.copyWith(
           fontSize: 13,
           color: colorScheme.onSurface,
@@ -144,10 +136,7 @@ class FcodePosApp extends ConsumerWidget {
           ),
           surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
           shape: WidgetStatePropertyAll(
-            RoundedRectangleBorder(
-              borderRadius: br,
-              side: cardBorder,
-            ),
+            RoundedRectangleBorder(borderRadius: br, side: cardBorder),
           ),
           padding: const WidgetStatePropertyAll(
             EdgeInsets.symmetric(vertical: 6, horizontal: 4),
@@ -170,10 +159,7 @@ class FcodePosApp extends ConsumerWidget {
         backgroundColor: menuBackgroundColor,
         surfaceTintColor: Colors.transparent,
         elevation: 4,
-        shape: RoundedRectangleBorder(
-          borderRadius: br,
-          side: cardBorder,
-        ),
+        shape: RoundedRectangleBorder(borderRadius: br, side: cardBorder),
       ),
       bottomSheetTheme: BottomSheetThemeData(
         backgroundColor: menuBackgroundColor,
@@ -184,13 +170,13 @@ class FcodePosApp extends ConsumerWidget {
             top: Radius.circular(borderRadius > 0 ? borderRadius + 4 : 0),
           ),
         ),
-        showDragHandle: false,
+        showDragHandle: true,
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size(64, 44),
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          shape: RoundedRectangleBorder(borderRadius: br),
+          shape: RoundedRectangleBorder(borderRadius: br * 2),
           textStyle: base.textTheme.labelLarge,
         ),
       ),
@@ -199,7 +185,7 @@ class FcodePosApp extends ConsumerWidget {
           minimumSize: const Size(64, 44),
           elevation: 0,
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          shape: RoundedRectangleBorder(borderRadius: br),
+          shape: RoundedRectangleBorder(borderRadius: br * 2),
           textStyle: base.textTheme.labelLarge,
         ),
       ),
@@ -211,7 +197,7 @@ class FcodePosApp extends ConsumerWidget {
             color: colorScheme.outlineVariant.applyOpacity(0.8),
             width: 1,
           ),
-          shape: RoundedRectangleBorder(borderRadius: br),
+          shape: RoundedRectangleBorder(borderRadius: br * 2),
           textStyle: base.textTheme.labelLarge,
         ),
       ),
@@ -219,26 +205,26 @@ class FcodePosApp extends ConsumerWidget {
         style: TextButton.styleFrom(
           minimumSize: const Size(64, 40),
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-          shape: RoundedRectangleBorder(borderRadius: br),
+          shape: RoundedRectangleBorder(borderRadius: br * 2),
           textStyle: base.textTheme.labelLarge,
         ),
       ),
       iconButtonTheme: IconButtonThemeData(
         style: IconButton.styleFrom(
-          shape: RoundedRectangleBorder(borderRadius: br),
+          shape: RoundedRectangleBorder(borderRadius: br * 2),
         ),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         elevation: 2,
         highlightElevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: br),
+        shape: RoundedRectangleBorder(borderRadius: br * 2),
         extendedTextStyle: base.textTheme.labelLarge?.copyWith(
           fontWeight: FontWeight.w600,
         ),
       ),
       segmentedButtonTheme: SegmentedButtonThemeData(
         style: SegmentedButton.styleFrom(
-          shape: RoundedRectangleBorder(borderRadius: br),
+          shape: RoundedRectangleBorder(borderRadius: br * 2),
           textStyle: base.textTheme.labelLarge,
         ),
       ),
@@ -252,7 +238,7 @@ class FcodePosApp extends ConsumerWidget {
       // selected (primaryContainer) vs unselected (surfaceContainerLow).
       chipTheme: base.chipTheme.copyWith(
         side: BorderSide(color: colorScheme.outlineVariant, width: 0.5),
-        shape: RoundedRectangleBorder(borderRadius: br),
+        shape: RoundedRectangleBorder(borderRadius: br * 2),
         color: WidgetStateProperty.resolveWith<Color?>((states) {
           if (states.contains(WidgetState.selected)) {
             return colorScheme.primaryContainer;

@@ -66,8 +66,10 @@ class _MoneyFormFieldState extends State<MoneyFormField> {
       _isInternalController = true;
     }
 
-    // Set initial value if provided
-    if (widget.initialValue != null && _controller.text.isEmpty) {
+    // Set initial value if provided or format existing controller text
+    if (_controller.text.isNotEmpty) {
+      _controller.text = _formatter.formatString(_controller.text);
+    } else if (widget.initialValue != null) {
       _controller.text = _formatter.formatString(
         widget.initialValue.toString(),
       );

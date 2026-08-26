@@ -70,16 +70,6 @@ class _AccountMasterExcelColumnSheetState
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Handle bar
-            const SizedBox(height: 8),
-            Container(
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: cs.onSurfaceVariant.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
             const SizedBox(height: 8),
 
             // Header

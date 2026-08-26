@@ -213,15 +213,6 @@ class _CustomerSelectSheetState extends State<_CustomerSelectSheet> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
               DebouncedSearchInput(
                 controller: _searchController,
                 autofocus: true,

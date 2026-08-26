@@ -81,7 +81,9 @@ class _AccountSlotDropdownState extends State<AccountSlotDropdown> {
         _availableSlots = [];
       });
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -213,7 +215,8 @@ class _AccountSlotDropdownState extends State<AccountSlotDropdown> {
 
   Widget _buildDetailLink(BuildContext context) {
     final slot = _selectedSlot!;
-    final accountMaster = slot.accountMaster ??
+    final accountMaster =
+        slot.accountMaster ??
         (slot.accountMasterId > 0
             ? AccountMaster(
                 id: slot.accountMasterId,
@@ -337,15 +340,6 @@ class _AccountSlotSelectSheetState extends State<_AccountSlotSelectSheet> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Container(
-              //   width: 40,
-              //   height: 4,
-              //   margin: const EdgeInsets.only(bottom: 12),
-              //   // decoration: BoxDecoration(
-              //   //   color: Colors.grey[300],
-              //   //   borderRadius: BorderRadius.circular(2),
-              //   // ),
-              // ),
               DebouncedSearchInput(
                 controller: _searchController,
                 autofocus: true,
@@ -371,19 +365,36 @@ class _AccountSlotSelectSheetState extends State<_AccountSlotSelectSheet> {
               Flexible(
                 child: _filtered.isEmpty
                     ? const Center(child: Text('Không có account slot phù hợp'))
-                    : ListView.builder(
+                    : ListView.separated(
                         itemCount: _filtered.length,
+                        separatorBuilder: (context, index) =>
+                            const Divider(height: 1, thickness: 0.3),
                         itemBuilder: (context, index) {
                           final slot = _filtered[index];
                           return ListTile(
-                            // contentPadding: const EdgeInsets.symmetric(
-                            //   horizontal: 16,
-                            //   vertical: 4,
-                            // ),
-                            title: Text(_buildSlotDisplayName(slot)),
-                            subtitle: _buildSlotSubtitle(slot),
+                            dense: true,
+                            visualDensity: VisualDensity.compact,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 0,
+                              vertical: 2,
+                            ),
+                            title: Text(
+                              _buildSlotDisplayName(slot),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            subtitle: Padding(
+                              padding: const EdgeInsets.only(top: 2),
+                              child: _buildSlotSubtitle(slot),
+                            ),
                             trailing: widget.selected?.id == slot.id
-                                ? const Icon(Icons.check, color: Colors.green)
+                                ? const Icon(
+                                    Icons.check,
+                                    color: Colors.green,
+                                    size: 20,
+                                  )
                                 : null,
                             onTap: () {
                               Navigator.of(context).pop(slot);

@@ -4,7 +4,7 @@ import 'package:fcode_pos/services/order_service.dart';
 import 'package:fcode_pos/ui/components/app_scaffold.dart';
 import 'package:fcode_pos/ui/components/dropdown/customer_dropdown.dart';
 import 'package:fcode_pos/ui/components/section_header.dart';
-import 'package:fcode_pos/ui/components/order_item_editor_modal.dart';
+import 'package:fcode_pos/screens/order/order_item_upsert_screen.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
 import 'package:fcode_pos/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
@@ -253,7 +253,7 @@ class _OrderCreateScreenState extends ConsumerState<OrderCreateScreen> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceVariant,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -367,52 +367,34 @@ class _OrderCreateScreenState extends ConsumerState<OrderCreateScreen> {
 
   Future<void> _handleAddItem() async {
     final newItem = OrderItemFormData();
-    final result = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      useSafeArea: true,
-      builder: (context) => OrderItemEditorModal(
-        itemData: newItem,
-        title: 'Thêm sản phẩm',
-        primaryActionLabel: 'Thêm',
-        onPrimaryAction: (data) async {
-          // Just validate and close, actual adding is done below
-          return true;
-        },
+    final result = await Navigator.of(context).push<OrderItemFormData>(
+      MaterialPageRoute(
+        builder: (context) => OrderItemUpsertScreen(
+          itemData: newItem,
+        ),
       ),
     );
 
-    if (result == true && mounted) {
+    if (result != null && mounted) {
       setState(() {
-        _orderItems.add(newItem);
+        _orderItems.add(result);
       });
     } else {
-      // Delay dispose to ensure modal animation completes
-      await Future.delayed(const Duration(milliseconds: 300));
       newItem.dispose();
     }
   }
 
   Future<void> _handleEditItem(int index) async {
     final item = _orderItems[index];
-    final result = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      useSafeArea: true,
-      builder: (context) => OrderItemEditorModal(
-        itemData: item,
-        title: 'Chỉnh sửa sản phẩm',
-        primaryActionLabel: 'Lưu',
-        onPrimaryAction: (data) async {
-          // Just validate and close, data is already updated
-          return true;
-        },
+    final result = await Navigator.of(context).push<OrderItemFormData>(
+      MaterialPageRoute(
+        builder: (context) => OrderItemUpsertScreen(
+          itemData: item,
+        ),
       ),
     );
 
-    if (result == true && mounted) {
+    if (result != null && mounted) {
       setState(() {});
     }
   }

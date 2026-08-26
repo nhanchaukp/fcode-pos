@@ -14,7 +14,7 @@ import 'package:fcode_pos/models.dart';
 import 'package:fcode_pos/services/order_service.dart';
 import 'package:fcode_pos/ui/components/order_status_split_button.dart';
 import 'package:fcode_pos/ui/components/order_update_bottom_sheet.dart';
-import 'package:fcode_pos/ui/components/order_item_update_bottom_sheet.dart';
+import 'package:fcode_pos/screens/order/order_item_upsert_screen.dart';
 import 'package:fcode_pos/screens/customer/customer_detail_screen.dart';
 import 'package:fcode_pos/screens/refund/refund_detail_screen.dart';
 import 'package:fcode_pos/utils/currency_helper.dart';
@@ -387,7 +387,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: (_order != null && _tabController.index == 0)
           ? FloatingActionButton.extended(
-              onPressed: () => _showAddProductBottomSheet(_order!.id),
+              onPressed: () => _openAddProductScreen(_order!.id),
               icon: const Icon(Icons.add),
               label: const Text('Thêm sản phẩm'),
             )
@@ -839,7 +839,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
     final hasSlot = accountSlot != null;
 
     return InkWell(
-      onTap: () => _showItemUpdateBottomSheet(item),
+      onTap: () => _openItemUpsertScreen(item),
       // borderRadius: BorderRadius.circular(8),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
@@ -1029,21 +1029,19 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
     );
   }
 
-  Future<void> _showItemUpdateBottomSheet(OrderItem item) async {
+  Future<void> _openItemUpsertScreen(OrderItem item) async {
     if (_order == null) return;
 
-    final updatedOrder = await showModalBottomSheet<Order>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: false,
-      useSafeArea: true,
-      builder: (context) => OrderItemUpdateBottomSheet(
-        orderId: _order!.id,
-        orderItem: item,
-        onSuccess: (updated) {
-          setState(() => _order = updated);
-          _syncOrderToList(updated);
-        },
+    final updatedOrder = await Navigator.of(context).push<Order>(
+      MaterialPageRoute(
+        builder: (context) => OrderItemUpsertScreen(
+          orderId: _order!.id,
+          orderItem: item,
+          onSuccess: (updated) {
+            setState(() => _order = updated);
+            _syncOrderToList(updated);
+          },
+        ),
       ),
     );
 
@@ -1054,19 +1052,17 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
     }
   }
 
-  Future<void> _showAddProductBottomSheet(int orderId) async {
-    final updatedOrder = await showModalBottomSheet<Order>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: false,
-      useSafeArea: true,
-      builder: (context) => OrderItemUpdateBottomSheet(
-        orderId: orderId,
-        orderItem: null,
-        onSuccess: (updated) {
-          setState(() => _order = updated);
-          _syncOrderToList(updated);
-        },
+  Future<void> _openAddProductScreen(int orderId) async {
+    final updatedOrder = await Navigator.of(context).push<Order>(
+      MaterialPageRoute(
+        builder: (context) => OrderItemUpsertScreen(
+          orderId: orderId,
+          orderItem: null,
+          onSuccess: (updated) {
+            setState(() => _order = updated);
+            _syncOrderToList(updated);
+          },
+        ),
       ),
     );
 

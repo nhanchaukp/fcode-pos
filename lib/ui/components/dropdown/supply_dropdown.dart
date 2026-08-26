@@ -275,15 +275,6 @@ class _SupplySelectSheetState extends State<_SupplySelectSheet> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
               DebouncedSearchInput(
                 controller: _searchController,
                 autofocus: true,
@@ -302,14 +293,32 @@ class _SupplySelectSheetState extends State<_SupplySelectSheet> {
                               : 'Không có nhà cung cấp phù hợp',
                         ),
                       )
-                    : ListView.builder(
+                    : ListView.separated(
                         itemCount: _filtered.length,
+                        separatorBuilder: (context, index) =>
+                            const Divider(height: 1, thickness: 0.3),
                         itemBuilder: (context, index) {
                           final supply = _filtered[index];
                           return ListTile(
-                            title: Text(supply.name),
+                            dense: true,
+                            visualDensity: VisualDensity.compact,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 0,
+                              vertical: 2,
+                            ),
+                            title: Text(
+                              supply.name,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
                             trailing: widget.selected?.id == supply.id
-                                ? const Icon(Icons.check, color: Colors.green)
+                                ? const Icon(
+                                    Icons.check,
+                                    color: Colors.green,
+                                    size: 20,
+                                  )
                                 : null,
                             onTap: () {
                               Navigator.of(context).pop(supply);

@@ -535,17 +535,6 @@ class _AccountMasterBrowserScreenState
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Center(
-                  child: Container(
-                    width: 36,
-                    height: 4,
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: Theme.of(sheetContext).colorScheme.outlineVariant,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
                 Text(
                   'Thông tin tài khoản master',
                   style: Theme.of(sheetContext).textTheme.titleMedium?.copyWith(
@@ -655,17 +644,6 @@ class _AccountMasterBrowserScreenState
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: colorScheme.outlineVariant,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
               Text(
                 'Macro Scripts',
                 style: Theme.of(
@@ -912,15 +890,6 @@ class _AccountMasterBrowserScreenState
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const SizedBox(height: 6),
-                Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: colorScheme.outlineVariant,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
                 AppBar(
                   automaticallyImplyLeading: false,
                   leadingWidth: _isEditingAddress ? 40 : 0,

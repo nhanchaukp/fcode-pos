@@ -87,16 +87,7 @@ class _GlobalOrderSearchState extends State<GlobalOrderSearch> {
           ),
           child: Column(
             children: [
-              // Handle bar
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: 12),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
+              const SizedBox(height: 8),
 
               // Header với search field
               Padding(
