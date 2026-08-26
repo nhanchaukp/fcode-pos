@@ -45,11 +45,11 @@ class _OrderCreateScreenState extends ConsumerState<OrderCreateScreen> {
       // Giữ nguyên thông tin khách hàng
       _selectedUser = order.user;
 
-      // Ghi chú đơn
-      _noteController.text = order.note ?? '';
+      // Không clone ghi chú đơn hàng
+      _noteController.text = widget.isClone ? '' : (order.note ?? '');
 
-      // Clone các item: giữ sản phẩm, nhà cung cấp, giá, số lượng, ghi chú.
-      // Không mang theo id, account, accountSlot, expiredAt để tránh ảnh hưởng dữ liệu cũ.
+      // Clone các item: giữ sản phẩm, nhà cung cấp, giá, số lượng và account của sản phẩm.
+      // Không mang theo id, accountSlot, expiredAt và không mang theo ghi chú khi clone.
       for (final item in order.items) {
         final formData = OrderItemFormData(
           product: item.product,
@@ -57,7 +57,10 @@ class _OrderCreateScreenState extends ConsumerState<OrderCreateScreen> {
           quantity: item.quantity,
           price: item.price,
           priceSupply: item.priceSupply,
-          note: item.note,
+          account: item.account != null
+              ? Map<String, dynamic>.from(item.account!)
+              : null,
+          note: widget.isClone ? null : item.note,
         );
         _orderItems.add(formData);
       }

@@ -17,6 +17,7 @@ class AccountFormInput extends StatefulWidget {
 class _AccountFormInputState extends State<AccountFormInput> {
   late TextEditingController _usernameController;
   late TextEditingController _passwordController;
+  bool _obscurePassword = false;
 
   @override
   void initState() {
@@ -86,48 +87,157 @@ class _AccountFormInputState extends State<AccountFormInput> {
     _passwordController.clear();
   }
 
+  bool get _hasValue =>
+      _usernameController.text.isNotEmpty ||
+      _passwordController.text.isNotEmpty;
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final inputBorder = theme.inputDecorationTheme.border;
+    final BorderRadiusGeometry borderRadius = inputBorder is OutlineInputBorder
+        ? inputBorder.borderRadius
+        : (theme.cardTheme.shape is RoundedRectangleBorder
+            ? (theme.cardTheme.shape as RoundedRectangleBorder).borderRadius
+            : const BorderRadius.all(Radius.circular(10)));
+    final BorderSide side = inputBorder is OutlineInputBorder
+        ? inputBorder.borderSide
+        : (theme.cardTheme.shape is RoundedRectangleBorder
+            ? (theme.cardTheme.shape as RoundedRectangleBorder).side
+            : BorderSide(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                width: 1,
+              ));
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            const Text(
+            Text(
               'Thông tin tài khoản',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onSurface,
+              ),
             ),
             const Spacer(),
-            TextButton.icon(
-              onPressed: _clearFields,
-              icon: const Icon(Icons.clear, size: 18),
-              label: const Text('Xóa'),
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-            ),
+            if (_hasValue)
+              TextButton.icon(
+                onPressed: _clearFields,
+                icon: const Icon(Icons.clear, size: 16),
+                label: const Text('Xóa'),
+                style: TextButton.styleFrom(
+                  foregroundColor: colorScheme.error,
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                ),
+              ),
           ],
         ),
         const SizedBox(height: 8),
-        TextFormField(
-          controller: _usernameController,
-          decoration: const InputDecoration(
-            labelText: 'Username',
-            hintText: 'Nhập username',
-            prefixIcon: Icon(Icons.person_outline),
-            border: OutlineInputBorder(),
+        Material(
+          color: colorScheme.brightness == Brightness.dark
+              ? colorScheme.surfaceContainer
+              : colorScheme.surfaceContainerLowest,
+          shape: RoundedRectangleBorder(
+            borderRadius: borderRadius,
+            side: side,
           ),
-          textInputAction: TextInputAction.next,
-        ),
-        const SizedBox(height: 12),
-        TextFormField(
-          controller: _passwordController,
-          decoration: const InputDecoration(
-            labelText: 'Password',
-            hintText: 'Nhập password',
-            prefixIcon: Icon(Icons.lock_outline),
-            border: OutlineInputBorder(),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _usernameController,
+                textAlignVertical: TextAlignVertical.center,
+                style: const TextStyle(fontSize: 13),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.transparent,
+                  hintText: 'Tài khoản (Username / Email)',
+                  hintStyle: TextStyle(
+                    fontSize: 13,
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                  ),
+                  prefixIcon: const Icon(Icons.person_outline, size: 20),
+                  prefixIconConstraints: const BoxConstraints(
+                    minWidth: 44,
+                    minHeight: 44,
+                  ),
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  disabledBorder: InputBorder.none,
+                  errorBorder: InputBorder.none,
+                  focusedErrorBorder: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                ),
+                textInputAction: TextInputAction.next,
+              ),
+              Divider(
+                height: 1,
+                thickness: 0.3,
+                color: side.color,
+                indent: 44,
+                endIndent: 12,
+              ),
+              TextFormField(
+                controller: _passwordController,
+                obscureText: _obscurePassword,
+                textAlignVertical: TextAlignVertical.center,
+                style: const TextStyle(fontSize: 13),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.transparent,
+                  hintText: 'Mật khẩu (Password)',
+                  hintStyle: TextStyle(
+                    fontSize: 13,
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                  ),
+                  prefixIcon: const Icon(Icons.lock_outline, size: 20),
+                  prefixIconConstraints: const BoxConstraints(
+                    minWidth: 44,
+                    minHeight: 44,
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      setState(() => _obscurePassword = !_obscurePassword);
+                    },
+                    tooltip:
+                        _obscurePassword ? 'Hiện mật khẩu' : 'Ẩn mật khẩu',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 44,
+                      minHeight: 44,
+                    ),
+                  ),
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  disabledBorder: InputBorder.none,
+                  errorBorder: InputBorder.none,
+                  focusedErrorBorder: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                ),
+                textInputAction: TextInputAction.done,
+              ),
+            ],
           ),
-          obscureText: false, // Set to true if you want to hide password
-          textInputAction: TextInputAction.done,
         ),
       ],
     );
