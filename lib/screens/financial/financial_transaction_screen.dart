@@ -713,13 +713,18 @@ class _FilterDialogState extends State<_FilterDialog> {
             const SizedBox(height: 8),
 
             // Transaction Types
-            ...widget.transactionTypes.map(
-              (type) => RadioListTile<String>(
-                contentPadding: EdgeInsets.zero,
-                title: Text(_getTypeLabel(type)),
-                value: type,
-                groupValue: _selectedType,
-                onChanged: (value) => setState(() => _selectedType = value),
+            RadioGroup<String>(
+              groupValue: _selectedType,
+              onChanged: (value) => setState(() => _selectedType = value),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: widget.transactionTypes.map(
+                  (type) => RadioListTile<String>(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(_getTypeLabel(type)),
+                    value: type,
+                  ),
+                ).toList(),
               ),
             ),
             if (_selectedType != null)

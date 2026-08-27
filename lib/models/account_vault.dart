@@ -142,7 +142,7 @@ class VaultMailMessage {
   final String date;
   final String subject;
   final String code;
-  final List<_MailSender> from;
+  final List<VaultMailSender> from;
 
   /// Nội dung HTML đầy đủ của mail (có thể rỗng).
   final String htmlContent;
@@ -159,13 +159,13 @@ class VaultMailMessage {
   factory VaultMailMessage.fromJson(Map<String, dynamic> json) {
     // `from` có thể là List<{name,address}> hoặc plain String
     final rawFrom = json['from'];
-    final List<_MailSender> fromList;
+    final List<VaultMailSender> fromList;
     if (rawFrom is List) {
       fromList = rawFrom
-          .map((e) => _MailSender.fromJson(ensureMap(e)))
+          .map((e) => VaultMailSender.fromJson(ensureMap(e)))
           .toList();
     } else if (rawFrom is String && rawFrom.isNotEmpty) {
-      fromList = [_MailSender(name: '', address: rawFrom)];
+      fromList = [VaultMailSender(name: '', address: rawFrom)];
     } else {
       fromList = [];
     }
@@ -184,13 +184,13 @@ class VaultMailMessage {
   bool get hasContent => htmlContent.isNotEmpty;
 }
 
-class _MailSender {
+class VaultMailSender {
   final String name;
   final String address;
 
-  const _MailSender({required this.name, required this.address});
+  const VaultMailSender({required this.name, required this.address});
 
-  factory _MailSender.fromJson(Map<String, dynamic> json) => _MailSender(
+  factory VaultMailSender.fromJson(Map<String, dynamic> json) => VaultMailSender(
     name: json['name']?.toString() ?? '',
     address: json['address']?.toString() ?? '',
   );

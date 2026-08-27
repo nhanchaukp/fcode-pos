@@ -15,12 +15,12 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
-  print('================ [FCM BACKGROUND MESSAGE RECEIVED] ================');
-  print('Message ID: ${message.messageId}');
-  print('Title: ${message.notification?.title}');
-  print('Body: ${message.notification?.body}');
-  print('Data: ${message.data}');
-  print('==================================================================');
+  debugPrint('================ [FCM BACKGROUND MESSAGE RECEIVED] ================');
+  debugPrint('Message ID: ${message.messageId}');
+  debugPrint('Title: ${message.notification?.title}');
+  debugPrint('Body: ${message.notification?.body}');
+  debugPrint('Data: ${message.data}');
+  debugPrint('==================================================================');
 }
 
 class NotificationService {
@@ -379,13 +379,13 @@ class NotificationService {
 
   /// In toàn bộ Token ra Console để Debug
   Future<void> logTokens() async {
-    print('================ [FIREBASE FCM DIAGNOSTIC LOGS] ================');
+    debugPrint('================ [FIREBASE FCM DIAGNOSTIC LOGS] ================');
     if (Platform.isIOS) {
       final apnsToken = await getAPNsToken();
-      print('🍏 APNs Token (iOS): ${apnsToken ?? "NULL (Chưa lấy được từ Apple)"}');
+      debugPrint('🍏 APNs Token (iOS): ${apnsToken ?? "NULL (Chưa lấy được từ Apple)"}');
     }
     final fcmToken = await getFCMToken();
-    print('🔥 FCM Token: ${fcmToken ?? "NULL (Chưa lấy được từ FCM)"}');
-    print('================================================================');
+    debugPrint('🔥 FCM Token: ${fcmToken ?? "NULL (Chưa lấy được từ FCM)"}');
+    debugPrint('================================================================');
   }
 }

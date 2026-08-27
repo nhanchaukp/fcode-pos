@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 // ── AppColors ThemeExtension ──────────────────────────────────────────────────
 
 /// Màu ngữ nghĩa (semantic) cho SnackBar / badge: success, info, warning, danger.
-/// Đăng ký vào ThemeData.extensions, truy cập qua Theme.of(ctx).extension<AppColors>().
+/// Đăng ký vào ThemeData.extensions, truy cập qua `Theme.of(ctx).extension<AppColors>()`.
 @immutable
 class AppColors extends ThemeExtension<AppColors> {
   const AppColors({
