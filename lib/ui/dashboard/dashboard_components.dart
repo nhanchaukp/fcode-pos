@@ -171,7 +171,7 @@ class DashboardSection extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            if (trailing != null) trailing!,
+            ?trailing,
           ],
         ),
         const SizedBox(height: 12),

@@ -46,11 +46,7 @@ class _AuditTileState extends State<AuditTile> {
                     ),
                   ),
                   child: Center(
-                    child: eventIcon(
-                      size: 16,
-                      color: eventColor,
-                      opacity: 0.4,
-                    ),
+                    child: eventIcon(size: 16, color: eventColor, opacity: 0.4),
                   ),
                 ),
                 if (!widget.isLast)
@@ -227,7 +223,7 @@ class AuditUserChip extends StatelessWidget {
 }
 
 class AuditMetaRow extends StatelessWidget {
-  const AuditMetaRow({required this.audit});
+  const AuditMetaRow({super.key, required this.audit});
 
   final Auditable audit;
 
@@ -399,10 +395,7 @@ class _DiffRow extends StatelessWidget {
                   ),
                   child: Text(
                     oldVal,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: Colors.red,
-                    ),
+                    style: const TextStyle(fontSize: 11, color: Colors.red),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),

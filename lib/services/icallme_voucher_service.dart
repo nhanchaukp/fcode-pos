@@ -28,11 +28,11 @@ class IcallmeVoucherService {
       queryParameters: {
         'page': page,
         'limit': limit,
-        if (status != null) 'status': status,
+        'status': ?status,
         if (externalRefId != null && externalRefId.isNotEmpty)
           'externalRefId': externalRefId,
-        if (fromDate != null) 'fromDate': fromDate,
-        if (toDate != null) 'toDate': toDate,
+        'fromDate': ?fromDate,
+        'toDate': ?toDate,
       },
       parser: (json) {
         if (json is! Map<String, dynamic>) {

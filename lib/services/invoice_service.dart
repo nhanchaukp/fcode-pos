@@ -21,7 +21,7 @@ class InvoiceService {
       queryParameters: {
         'page': page,
         'per_page': perPage,
-        if (status != null) 'status': status,
+        'status': ?status,
         if (search != null && search.isNotEmpty) 'search': search,
       },
       parser: (json) => _parsePaginatedInvoices(ensureMap(json)),

@@ -18,11 +18,7 @@ class SectionHeader extends StatelessWidget {
 
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 20,
-          color: theme.colorScheme.primary,
-        ),
+        Icon(icon, size: 20, color: theme.colorScheme.primary),
         const SizedBox(width: 8),
         Text(
           title,
@@ -31,9 +27,8 @@ class SectionHeader extends StatelessWidget {
           ),
         ),
         const Spacer(),
-        if (action != null) action!,
+        ?action,
       ],
     );
   }
 }
-

@@ -14,8 +14,7 @@ class ChatGptBrowserLoginScreen extends StatefulWidget {
       _ChatGptBrowserLoginScreenState();
 }
 
-class _ChatGptBrowserLoginScreenState
-    extends State<ChatGptBrowserLoginScreen> {
+class _ChatGptBrowserLoginScreenState extends State<ChatGptBrowserLoginScreen> {
   final _service = ChatGptSessionService();
   InAppWebViewController? _webController;
 
@@ -89,7 +88,9 @@ class _ChatGptBrowserLoginScreenState
                 width: 18,
                 height: 18,
                 child: CircularProgressIndicator(
-                    strokeWidth: 2, color: Colors.white),
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
               ),
             ),
           if (_isLoggedIn)
@@ -100,7 +101,9 @@ class _ChatGptBrowserLoginScreenState
                       width: 18,
                       height: 18,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white),
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
                     ),
                   )
                 : TextButton.icon(
@@ -109,7 +112,9 @@ class _ChatGptBrowserLoginScreenState
                     label: const Text(
                       'Lưu',
                       style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold),
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
           IconButton(
@@ -149,7 +154,7 @@ class _ChatGptBrowserLoginScreenState
                   onWebViewCreated: (c) => _webController = c,
                   onLoadStart: _onLoadStart,
                   onLoadStop: _onLoadStop,
-                  onReceivedError: (_, __, ___) {
+                  onReceivedError: (_, _, _) {
                     if (mounted) setState(() => _isPageLoading = false);
                   },
                 ),
@@ -161,15 +166,16 @@ class _ChatGptBrowserLoginScreenState
                     child: Center(
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 6),
+                          horizontal: 14,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.black.withValues(alpha: 0.55),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: const Text(
                           'Đăng nhập xong, nhấn "Lưu" trên thanh tiêu đề',
-                          style:
-                              TextStyle(color: Colors.white70, fontSize: 11),
+                          style: TextStyle(color: Colors.white70, fontSize: 11),
                         ),
                       ),
                     ),
@@ -246,14 +252,15 @@ class _ChatGptManualJsonScreenState extends State<ChatGptManualJsonScreen> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.info_outline,
-                            size: 16, color: colorScheme.primary),
+                        Icon(
+                          Icons.info_outline,
+                          size: 16,
+                          color: colorScheme.primary,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           'Hướng dẫn',
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelMedium
+                          style: Theme.of(context).textTheme.labelMedium
                               ?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: colorScheme.primary,
@@ -268,9 +275,9 @@ class _ChatGptManualJsonScreenState extends State<ChatGptManualJsonScreen> {
                       '3. Paste vào ô bên dưới và nhấn Lưu\n\n'
                       'JSON cần có trường "accessToken" để xác thực.',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                            height: 1.5,
-                          ),
+                        color: colorScheme.onSurfaceVariant,
+                        height: 1.5,
+                      ),
                     ),
                   ],
                 ),
@@ -305,7 +312,9 @@ class _ChatGptManualJsonScreenState extends State<ChatGptManualJsonScreen> {
                       width: 16,
                       height: 16,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white),
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
                     )
                   : const Icon(Icons.save),
               label: Text(_isSaving ? 'Đang xác thực...' : 'Lưu session'),

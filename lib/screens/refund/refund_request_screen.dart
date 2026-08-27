@@ -147,7 +147,10 @@ class _RefundRequestScreenState extends ConsumerState<RefundRequestScreen> {
         controller: scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
         children: const [
-          SizedBox(height: 240, child: Center(child: CircularProgressIndicator())),
+          SizedBox(
+            height: 240,
+            child: Center(child: CircularProgressIndicator()),
+          ),
         ],
       );
     }
@@ -339,7 +342,7 @@ class _RefundRequestScreenState extends ConsumerState<RefundRequestScreen> {
               labelText: 'Trạng thái',
               border: OutlineInputBorder(),
             ),
-            value: _selectedStatus,
+            initialValue: _selectedStatus,
             items: const [
               DropdownMenuItem(value: null, child: Text('Tất cả')),
               DropdownMenuItem(value: 'pending', child: Text('Chờ xử lý')),
@@ -359,7 +362,7 @@ class _RefundRequestScreenState extends ConsumerState<RefundRequestScreen> {
               labelText: 'Loại hoàn tiền',
               border: OutlineInputBorder(),
             ),
-            value: _selectedType,
+            initialValue: _selectedType,
             items: const [
               DropdownMenuItem(value: null, child: Text('Tất cả')),
               DropdownMenuItem(value: 'item', child: Text('Hoàn sản phẩm')),
@@ -377,7 +380,7 @@ class _RefundRequestScreenState extends ConsumerState<RefundRequestScreen> {
               labelText: 'Lý do',
               border: OutlineInputBorder(),
             ),
-            value: _selectedReason,
+            initialValue: _selectedReason,
             items: const [
               DropdownMenuItem(value: null, child: Text('Tất cả')),
               DropdownMenuItem(

@@ -284,7 +284,7 @@ class _InvoiceProviderDetailScreenState
               ),
             ),
           ),
-          if (trailing != null) trailing,
+          ?trailing,
         ],
       ),
     );

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:toastr_flutter/toastr.dart' as _pkg;
+import 'package:toastr_flutter/toastr.dart' as pkg;
 
 /// Wrapper giữ nguyên interface cũ (context, SnackBarAction) để không cần
-/// sửa code gọi ở nơi khác. Nội bộ delegate sang [_pkg.Toastr] (toastr_flutter).
+/// sửa code gọi ở nơi khác. Nội bộ delegate sang [pkg.Toastr] (toastr_flutter).
 ///
 /// Import alias `_pkg` tránh xung đột tên với `class Toastr` trong package.
 class Toastr {
@@ -13,9 +13,9 @@ class Toastr {
     BuildContext? context,
     Duration duration = const Duration(seconds: 3),
     SnackBarAction? action,
-  }) => _pkg.Toastr.success(
+  }) => pkg.Toastr.success(
     message,
-    options: _pkg.ToastrOptions(duration: duration),
+    options: pkg.ToastrOptions(duration: duration),
   );
 
   static void info(
@@ -23,9 +23,9 @@ class Toastr {
     BuildContext? context,
     Duration duration = const Duration(seconds: 3),
     SnackBarAction? action,
-  }) => _pkg.Toastr.info(
+  }) => pkg.Toastr.info(
     message,
-    options: _pkg.ToastrOptions(duration: duration),
+    options: pkg.ToastrOptions(duration: duration),
   );
 
   static void warning(
@@ -33,9 +33,9 @@ class Toastr {
     BuildContext? context,
     Duration duration = const Duration(seconds: 4),
     SnackBarAction? action,
-  }) => _pkg.Toastr.warning(
+  }) => pkg.Toastr.warning(
     message,
-    options: _pkg.ToastrOptions(duration: duration),
+    options: pkg.ToastrOptions(duration: duration),
   );
 
   static String _cleanErrorMessage(Object rawMessage) {
@@ -55,9 +55,9 @@ class Toastr {
     BuildContext? context,
     Duration duration = const Duration(seconds: 4),
     SnackBarAction? action,
-  }) => _pkg.Toastr.error(
+  }) => pkg.Toastr.error(
     _cleanErrorMessage(message),
-    options: _pkg.ToastrOptions(duration: duration),
+    options: pkg.ToastrOptions(duration: duration),
   );
 
   /// Hiển thị loading toast, sau đó tự động chuyển sang success hoặc error
@@ -79,30 +79,30 @@ class Toastr {
     Duration? successDuration,
     Duration? errorDuration,
   }) async {
-    final id = _pkg.Toastr.loading(loading);
+    final id = pkg.Toastr.loading(loading);
 
     try {
       final result = await future;
 
       // Đóng loading trước khi show success (tránh giữ icon loading)
-      _pkg.Toastr.dismiss(id);
+      pkg.Toastr.dismiss(id);
 
       final message = successBuilder != null ? successBuilder(result) : success;
-      _pkg.Toastr.success(
+      pkg.Toastr.success(
         message,
-        options: _pkg.ToastrOptions(
+        options: pkg.ToastrOptions(
           duration: successDuration ?? const Duration(seconds: 2),
         ),
       );
 
       return result;
     } catch (e) {
-      _pkg.Toastr.dismiss(id);
+      pkg.Toastr.dismiss(id);
 
       final message = errorBuilder != null ? errorBuilder(e) : error;
-      _pkg.Toastr.error(
+      pkg.Toastr.error(
         message,
-        options: _pkg.ToastrOptions(
+        options: pkg.ToastrOptions(
           duration: errorDuration ?? const Duration(seconds: 4),
           showCloseButton: true,
         ),
@@ -119,12 +119,12 @@ class Toastr {
     Duration duration = const Duration(seconds: 3),
     SnackBarAction? action,
     IconData? icon,
-  }) => _pkg.Toastr.info(
+  }) => pkg.Toastr.info(
     message,
-    options: _pkg.ToastrOptions(duration: duration),
+    options: pkg.ToastrOptions(duration: duration),
   );
 
-  static String loading(String message) => _pkg.Toastr.loading(message);
+  static String loading(String message) => pkg.Toastr.loading(message);
 
-  static void dismiss([String? id]) => _pkg.Toastr.dismiss(id);
+  static void dismiss([String? id]) => pkg.Toastr.dismiss(id);
 }

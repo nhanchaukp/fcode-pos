@@ -13,9 +13,9 @@ class AppSectionCard extends StatelessWidget {
     this.padding,
     this.margin = EdgeInsets.zero,
   }) : assert(
-          children != null || child != null,
-          'Either children or child must be provided',
-        );
+         children != null || child != null,
+         'Either children or child must be provided',
+       );
 
   final String title;
   final IconData icon;
@@ -48,17 +48,17 @@ class AppSectionCard extends StatelessWidget {
                   child: Text(
                     title,
                     style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: cs.onSurface,
-                        ),
+                      fontWeight: FontWeight.w700,
+                      color: cs.onSurface,
+                    ),
                   ),
                 ),
-                if (headerTrailingWidget != null) headerTrailingWidget,
+                ?headerTrailingWidget,
               ],
             ),
             const SizedBox(height: 12),
-            if (childWidget != null) childWidget,
-            if (childrenWidgets != null) ...childrenWidgets,
+            ?childWidget,
+            ...?childrenWidgets,
           ],
         ),
       ),

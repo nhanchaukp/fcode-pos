@@ -65,8 +65,8 @@ class ProductSupplyService {
       'product_id': productId,
       'supply_id': supplyId,
       'price': price,
-      if (sku != null) 'sku': sku,
-      if (note != null) 'note': note,
+      'sku': ?sku,
+      'note': ?note,
       'is_preferred': isPreferred,
     };
     return _api.post<ProductSupply>(
@@ -89,8 +89,8 @@ class ProductSupplyService {
       'product_id': productId,
       'supply_id': supplyId,
       'price': price,
-      if (sku != null) 'sku': sku,
-      if (note != null) 'note': note,
+      'sku': ?sku,
+      'note': ?note,
       'is_preferred': isPreferred,
     };
     return _api.put<ProductSupply>(
